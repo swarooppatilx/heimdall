@@ -1,5 +1,20 @@
 const BOARD = "gitlab";
 
+// -- Domain --
+
+interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  department: string;
+  url: string;
+  postedAt: Date;
+  source: string;
+}
+
+// -- Greenhouse provider --
+
 interface GreenhouseJob {
   id: number;
   title: string;
@@ -9,7 +24,20 @@ interface GreenhouseJob {
   departments: { name: string }[];
 }
 
-async function fetchJobs(board: string): Promise<GreenhouseJob[]> {
+function mapGreenhouseJob(raw: GreenhouseJob, board: string): Job {
+  return {
+    id: `gh-${board}-${raw.id}`,
+    title: raw.title,
+    company: board,
+    location: raw.location.name,
+    department: raw.departments?.[0]?.name ?? "General",
+    url: raw.absolute_url,
+    postedAt: new Date(raw.updated_at),
+    source: "greenhouse",
+  };
+}
+
+async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
   const res = await fetch(url);
 
@@ -18,18 +46,20 @@ async function fetchJobs(board: string): Promise<GreenhouseJob[]> {
   }
 
   const data = await res.json();
-  return data.jobs;
+  return data.jobs.map((j: GreenhouseJob) => mapGreenhouseJob(j, board));
 }
 
-function formatJob(job: GreenhouseJob): string {
-  const dept = job.departments?.[0]?.name ?? "General";
-  return `[${dept}] ${job.title} — ${job.location.name} (posted ${job.updated_at})`;
+// -- Display --
+
+function formatJob(job: Job): string {
+  const posted = job.postedAt.toISOString().slice(0, 10);
+  return `[${job.department}] ${job.title} — ${job.location} (posted ${posted})`;
 }
 
 async function main() {
   console.log(`Fetching jobs from ${BOARD}...`);
 
-  const jobs = await fetchJobs(BOARD);
+  const jobs = await fetchGreenhouseJobs(BOARD);
   console.log(`Found ${jobs.length} jobs\n`);
 
   for (const job of jobs.slice(0, 10)) {
