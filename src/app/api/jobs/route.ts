@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { getAllJobs, upsertJobs } from "@/lib/db";
 import { fetchJobs } from "@/lib/fetch-jobs";
 import { getRegistry } from "@/lib/registry";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,12 +13,18 @@ export async function GET(request: Request) {
   const registry = getRegistry();
   const results = await Promise.allSettled(registry.map((entry) => fetchJobs(entry)));
 
-  let jobs = results
+  const freshJobs = results
     .filter(
       (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchJobs>>> =>
         r.status === "fulfilled",
     )
     .flatMap((r) => r.value);
+
+  if (freshJobs.length > 0) {
+    upsertJobs(freshJobs);
+  }
+
+  let jobs = getAllJobs();
 
   if (query) {
     jobs = jobs.filter(
@@ -29,8 +38,6 @@ export async function GET(request: Request) {
   if (company) {
     jobs = jobs.filter((job) => job.company.toLowerCase() === company);
   }
-
-  jobs.sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime());
 
   return NextResponse.json(jobs);
 }

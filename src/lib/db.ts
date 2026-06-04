@@ -1,0 +1,91 @@
+import path from "node:path";
+import Database from "better-sqlite3";
+import type { Job } from "./job";
+
+const DB_PATH = path.join(process.cwd(), "heimdall.db");
+
+let _db: Database.Database | null = null;
+
+function getDb(): Database.Database {
+  if (!_db) {
+    _db = new Database(DB_PATH);
+    _db.pragma("journal_mode = WAL");
+    _db.exec(`
+      CREATE TABLE IF NOT EXISTS jobs (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        company TEXT NOT NULL,
+        location TEXT NOT NULL,
+        department TEXT NOT NULL,
+        url TEXT NOT NULL,
+        posted_at TEXT NOT NULL,
+        source TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+  }
+  return _db;
+}
+
+export function upsertJobs(jobs: Job[]): number {
+  const db = getDb();
+  const stmt = db.prepare(`
+    INSERT INTO jobs (id, title, company, location, department, url, posted_at, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      location = excluded.location,
+      department = excluded.department,
+      url = excluded.url,
+      posted_at = excluded.posted_at
+  `);
+
+  const insert = db.transaction((items: Job[]) => {
+    for (const job of items) {
+      stmt.run(
+        job.id,
+        job.title,
+        job.company,
+        job.location,
+        job.department,
+        job.url,
+        job.postedAt.toISOString(),
+        job.source,
+      );
+    }
+  });
+
+  insert(jobs);
+  return jobs.length;
+}
+
+export function getAllJobs(): Job[] {
+  const db = getDb();
+  const rows = db.prepare("SELECT * FROM jobs ORDER BY posted_at DESC").all() as {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    department: string;
+    url: string;
+    posted_at: string;
+    source: string;
+  }[];
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    department: row.department,
+    url: row.url,
+    postedAt: new Date(row.posted_at),
+    source: row.source,
+  }));
+}
+
+export function getJobCount(): number {
+  const db = getDb();
+  const row = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { count: number };
+  return row.count;
+}
