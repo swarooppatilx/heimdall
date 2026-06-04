@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 
+const MAX_AGE_DAYS = 15;
+
 // -- Domain --
 
 interface Job {
@@ -71,6 +73,12 @@ async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   throw new Error(`Unknown provider: ${entry.provider}`);
 }
 
+function isFresh(job: Job): boolean {
+  const ageMs = Date.now() - job.postedAt.getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+  return ageDays <= MAX_AGE_DAYS;
+}
+
 // -- Display --
 
 function formatJob(job: Job): string {
@@ -84,8 +92,9 @@ async function main() {
 
   for (const entry of registry) {
     try {
-      const jobs = await fetchJobs(entry);
-      console.log(`${entry.name}: ${jobs.length} jobs`);
+      const allJobs = await fetchJobs(entry);
+      const jobs = allJobs.filter(isFresh);
+      console.log(`${entry.name}: ${jobs.length} fresh jobs (${allJobs.length} total)`);
       for (const job of jobs.slice(0, 5)) {
         console.log(`  ${formatJob(job)}`);
       }
