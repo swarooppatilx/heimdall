@@ -1,13 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Job } from "@/lib/job";
-
-async function getJobs(): Promise<Job[]> {
-  const res = await fetch("http://localhost:3000/api/jobs", {
-    cache: "no-store",
-  });
-
-  if (!res.ok) return [];
-  return res.json();
-}
 
 function daysAgo(date: Date): string {
   const ms = Date.now() - new Date(date).getTime();
@@ -17,8 +11,25 @@ function daysAgo(date: Date): string {
   return `${days}d ago`;
 }
 
-export default async function Home() {
-  const jobs = await getJobs();
+export default function Home() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [query, setQuery] = useState("");
+  const [company, setCompany] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (company) params.set("company", company);
+
+    setLoading(true);
+    fetch(`/api/jobs?${params}`)
+      .then((r) => r.json())
+      .then(setJobs)
+      .finally(() => setLoading(false));
+  }, [query, company]);
+
+  const companies = [...new Set(jobs.map((j) => j.company))];
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
@@ -28,7 +39,31 @@ export default async function Home() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-8">
-        <p className="mb-6 text-sm text-zinc-500">{jobs.length} fresh jobs</p>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+          <input
+            type="text"
+            placeholder="search jobs..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-600"
+          />
+          <select
+            value={company}
+            onChange={(e) => setCompany(e.target.value)}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+          >
+            <option value="">all companies</option>
+            {companies.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <p className="mb-4 text-sm text-zinc-500">
+          {loading ? "loading..." : `${jobs.length} fresh jobs`}
+        </p>
 
         <div className="flex flex-col gap-3">
           {jobs.map((job) => (
@@ -41,16 +76,12 @@ export default async function Home() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-medium text-zinc-100 group-hover:text-white">
-                    {job.title}
-                  </h2>
+                  <h2 className="font-medium text-zinc-100 group-hover:text-white">{job.title}</h2>
                   <p className="mt-1 text-sm text-zinc-400">
                     {job.company} · {job.location}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-zinc-600">
-                  {daysAgo(job.postedAt)}
-                </span>
+                <span className="shrink-0 text-xs text-zinc-600">{daysAgo(job.postedAt)}</span>
               </div>
             </a>
           ))}
