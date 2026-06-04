@@ -1,0 +1,37 @@
+import type { Job } from "../job";
+
+interface LeverPosting {
+  id: string;
+  text: string;
+  categories: {
+    department: string;
+    location: string;
+  };
+  createdAt: number;
+  hostedUrl: string;
+}
+
+function mapJob(raw: LeverPosting, company: string): Job {
+  return {
+    id: `lv-${company}-${raw.id}`,
+    title: raw.text,
+    company,
+    location: raw.categories.location,
+    department: raw.categories.department ?? "General",
+    url: raw.hostedUrl,
+    postedAt: new Date(raw.createdAt),
+    source: "lever",
+  };
+}
+
+export async function fetchLeverJobs(company: string): Promise<Job[]> {
+  const url = `https://api.lever.co/v0/postings/${company}`;
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.map((p: LeverPosting) => mapJob(p, company));
+}
