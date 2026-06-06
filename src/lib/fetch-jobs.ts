@@ -1,4 +1,5 @@
 import type { Job } from "./job";
+import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
 import { fetchLeverJobs } from "./providers/lever";
 import type { RegistryEntry } from "./registry";
@@ -12,6 +13,8 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
     jobs = await fetchGreenhouseJobs(entry.board);
   } else if (entry.provider === "lever") {
     jobs = await fetchLeverJobs(entry.board);
+  } else if (entry.provider === "ashby") {
+    jobs = await fetchAshbyJobs(entry.board);
   } else {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
