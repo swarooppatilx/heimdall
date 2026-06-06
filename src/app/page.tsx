@@ -16,6 +16,20 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+
+  function handleSync() {
+    setSyncing(true);
+    fetch("/api/sync", { method: "POST" })
+      .then(() =>
+        fetch(
+          `/api/jobs?${new URLSearchParams(query ? { q: query } : company ? { company } : {})}`,
+        ),
+      )
+      .then((r) => r.json())
+      .then(setJobs)
+      .finally(() => setSyncing(false));
+  }
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -34,8 +48,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-zinc-100">
       <header className="border-b border-zinc-800 px-6 py-4">
-        <h1 className="text-xl font-semibold tracking-tight">Heimdall</h1>
-        <p className="text-sm text-zinc-500">fresh tech jobs, direct from source</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Heimdall</h1>
+            <p className="text-sm text-zinc-500">fresh tech jobs, direct from source</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={syncing}
+            className="rounded-lg border border-zinc-800 px-4 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+          >
+            {syncing ? "syncing..." : "sync"}
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-8">
