@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Job } from "@/lib/job";
 
 function daysAgo(date: Date): string {
@@ -19,6 +19,23 @@ export default function Home() {
   const [type, setType] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && document.activeElement !== searchRef.current) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setQuery("");
+        searchRef.current?.blur();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   function handleSync() {
     setSyncing(true);
@@ -72,8 +89,9 @@ export default function Home() {
       <main className="mx-auto max-w-3xl px-6 py-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row">
           <input
+            ref={searchRef}
             type="text"
-            placeholder="search jobs..."
+            placeholder="search jobs... (/ to focus)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-600"
