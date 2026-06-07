@@ -15,6 +15,7 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [query, setQuery] = useState("");
   const [company, setCompany] = useState("");
+  const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
@@ -23,7 +24,7 @@ export default function Home() {
     fetch("/api/sync", { method: "POST" })
       .then(() =>
         fetch(
-          `/api/jobs?${new URLSearchParams(query ? { q: query } : company ? { company } : {})}`,
+          `/api/jobs?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(company ? { company } : {}), ...(location ? { location } : {}) })}`,
         ),
       )
       .then((r) => r.json())
@@ -35,15 +36,17 @@ export default function Home() {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (company) params.set("company", company);
+    if (location) params.set("location", location);
 
     setLoading(true);
     fetch(`/api/jobs?${params}`)
       .then((r) => r.json())
       .then(setJobs)
       .finally(() => setLoading(false));
-  }, [query, company]);
+  }, [query, company, location]);
 
   const companies = [...new Set(jobs.map((j) => j.company))];
+  const locations = [...new Set(jobs.map((j) => j.location))];
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
@@ -82,6 +85,18 @@ export default function Home() {
             {companies.map((c) => (
               <option key={c} value={c}>
                 {c}
+              </option>
+            ))}
+          </select>
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+          >
+            <option value="">all locations</option>
+            {locations.map((l) => (
+              <option key={l} value={l}>
+                {l}
               </option>
             ))}
           </select>

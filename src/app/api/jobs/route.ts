@@ -9,6 +9,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.toLowerCase() ?? "";
   const company = searchParams.get("company")?.toLowerCase() ?? "";
+  const location = searchParams.get("location")?.toLowerCase() ?? "";
 
   const registry = getRegistry();
   const results = await Promise.allSettled(registry.map((entry) => fetchJobs(entry)));
@@ -37,6 +38,10 @@ export async function GET(request: Request) {
 
   if (company) {
     jobs = jobs.filter((job) => job.company.toLowerCase() === company);
+  }
+
+  if (location) {
+    jobs = jobs.filter((job) => job.location.toLowerCase().includes(location));
   }
 
   return NextResponse.json(jobs);
