@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllJobs, upsertJobs } from "@/lib/db";
-import { fetchJobs } from "@/lib/fetch-jobs";
-import { getRegistry } from "@/lib/registry";
+import { getAllJobs } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -11,20 +9,7 @@ export async function GET(request: Request) {
   const company = searchParams.get("company")?.toLowerCase() ?? "";
   const location = searchParams.get("location")?.toLowerCase() ?? "";
   const type = searchParams.get("type") ?? "";
-
-  const registry = getRegistry();
-  const results = await Promise.allSettled(registry.map((entry) => fetchJobs(entry)));
-
-  const freshJobs = results
-    .filter(
-      (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchJobs>>> =>
-        r.status === "fulfilled",
-    )
-    .flatMap((r) => r.value);
-
-  if (freshJobs.length > 0) {
-    upsertJobs(freshJobs);
-  }
+  const source = searchParams.get("source")?.toLowerCase() ?? "";
 
   let jobs = getAllJobs();
 
@@ -43,6 +28,10 @@ export async function GET(request: Request) {
 
   if (location) {
     jobs = jobs.filter((job) => job.location.toLowerCase().includes(location));
+  }
+
+  if (source) {
+    jobs = jobs.filter((job) => job.source.toLowerCase() === source);
   }
 
   if (type) {

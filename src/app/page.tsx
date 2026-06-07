@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import type { Job } from "@/lib/job";
+
+interface FilterOptions {
+  companies: string[];
+  locations: string[];
+  sources: string[];
+}
 
 function daysAgo(date: Date): string {
   const ms = Date.now() - new Date(date).getTime();
@@ -11,15 +18,61 @@ function daysAgo(date: Date): string {
   return `${days}d ago`;
 }
 
-export default function Home() {
+function useQueryParam(key: string, initial: string): [string, (v: string) => void] {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const value = searchParams.get(key) ?? initial;
+
+  function setValue(v: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (v) {
+      params.set(key, v);
+    } else {
+      params.delete(key);
+    }
+    router.replace(`?${params.toString()}`);
+  }
+
+  return [value, setValue];
+}
+
+function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [query, setQuery] = useState("");
-  const [company, setCompany] = useState("");
-  const [location, setLocation] = useState("");
-  const [type, setType] = useState("");
+  const [filters, setFilters] = useState<FilterOptions>({
+    companies: [],
+    locations: [],
+    sources: [],
+  });
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const [query, setQuery] = useQueryParam("q", "");
+  const [company, setCompany] = useQueryParam("company", "");
+  const [location, setLocation] = useQueryParam("location", "");
+  const [type, setType] = useQueryParam("type", "");
+  const [source, setSource] = useQueryParam("source", "");
+
+  useEffect(() => {
+    fetch("/api/filters")
+      .then((r) => r.json())
+      .then(setFilters);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (company) params.set("company", company);
+    if (location) params.set("location", location);
+    if (type) params.set("type", type);
+    if (source) params.set("source", source);
+
+    setLoading(true);
+    fetch(`/api/jobs?${params}`)
+      .then((r) => r.json())
+      .then(setJobs)
+      .finally(() => setLoading(false));
+  }, [query, company, location, type, source]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -32,40 +85,26 @@ export default function Home() {
         searchRef.current?.blur();
       }
     }
-
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [setQuery]);
 
   function handleSync() {
     setSyncing(true);
     fetch("/api/sync", { method: "POST" })
-      .then(() =>
-        fetch(
-          `/api/jobs?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(company ? { company } : {}), ...(location ? { location } : {}), ...(type ? { type } : {}) })}`,
-        ),
-      )
+      .then(() => fetch("/api/filters"))
       .then((r) => r.json())
-      .then(setJobs)
+      .then(setFilters)
       .finally(() => setSyncing(false));
   }
 
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    if (company) params.set("company", company);
-    if (location) params.set("location", location);
-    if (type) params.set("type", type);
-
-    setLoading(true);
-    fetch(`/api/jobs?${params}`)
-      .then((r) => r.json())
-      .then(setJobs)
-      .finally(() => setLoading(false));
-  }, [query, company, location, type]);
-
-  const companies = [...new Set(jobs.map((j) => j.company))];
-  const locations = [...new Set(jobs.map((j) => j.location))];
+  const typeFilters = [
+    { value: "", label: "all" },
+    { value: "remote", label: "remote" },
+    { value: "internship", label: "internship" },
+    { value: "new_grad", label: "new grad" },
+    { value: "full_time", label: "full time" },
+  ];
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
@@ -87,7 +126,7 @@ export default function Home() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
           <input
             ref={searchRef}
             type="text"
@@ -102,7 +141,7 @@ export default function Home() {
             className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
           >
             <option value="">all companies</option>
-            {companies.map((c) => (
+            {filters.companies.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
@@ -114,22 +153,28 @@ export default function Home() {
             className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
           >
             <option value="">all locations</option>
-            {locations.map((l) => (
+            {filters.locations.map((l) => (
               <option key={l} value={l}>
                 {l}
+              </option>
+            ))}
+          </select>
+          <select
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+          >
+            <option value="">all sources</option>
+            {filters.sources.map((s) => (
+              <option key={s} value={s}>
+                {s}
               </option>
             ))}
           </select>
         </div>
 
         <div className="mb-6 flex gap-2">
-          {[
-            { value: "", label: "all" },
-            { value: "remote", label: "remote" },
-            { value: "internship", label: "internship" },
-            { value: "new_grad", label: "new grad" },
-            { value: "full_time", label: "full time" },
-          ].map((t) => (
+          {typeFilters.map((t) => (
             <button
               key={t.value}
               type="button"
@@ -151,26 +196,42 @@ export default function Home() {
 
         <div className="flex flex-col gap-3">
           {jobs.map((job) => (
-            <a
+            <div
               key={job.id}
-              href={job.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group rounded-lg border border-zinc-800 p-4 transition-colors hover:border-zinc-600 hover:bg-zinc-900"
+              className="rounded-lg border border-zinc-800 p-4 transition-colors hover:border-zinc-600 hover:bg-zinc-900"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-medium text-zinc-100 group-hover:text-white">{job.title}</h2>
+                  <h2 className="font-medium text-zinc-100">{job.title}</h2>
                   <p className="mt-1 text-sm text-zinc-400">
                     {job.company} · {job.location}
                   </p>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-600">
+                    <span className="rounded bg-zinc-900 px-2 py-0.5">{job.source}</span>
+                    <span>{daysAgo(job.postedAt)}</span>
+                  </div>
                 </div>
-                <span className="shrink-0 text-xs text-zinc-600">{daysAgo(job.postedAt)}</span>
+                <a
+                  href={job.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-300"
+                >
+                  apply
+                </a>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       </main>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <JobsPage />
+    </Suspense>
   );
 }

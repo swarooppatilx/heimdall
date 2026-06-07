@@ -84,6 +84,26 @@ export function getAllJobs(): Job[] {
   }));
 }
 
+export function getFilterOptions(): {
+  companies: string[];
+  locations: string[];
+  sources: string[];
+} {
+  const db = getDb();
+  const companies = (
+    db.prepare("SELECT DISTINCT company FROM jobs ORDER BY company").all() as { company: string }[]
+  ).map((r) => r.company);
+  const locations = (
+    db.prepare("SELECT DISTINCT location FROM jobs ORDER BY location").all() as {
+      location: string;
+    }[]
+  ).map((r) => r.location);
+  const sources = (
+    db.prepare("SELECT DISTINCT source FROM jobs ORDER BY source").all() as { source: string }[]
+  ).map((r) => r.source);
+  return { companies, locations, sources };
+}
+
 export function getJobCount(): number {
   const db = getDb();
   const row = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { count: number };
