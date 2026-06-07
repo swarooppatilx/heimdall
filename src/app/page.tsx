@@ -16,6 +16,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
+  const [type, setType] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
@@ -24,7 +25,7 @@ export default function Home() {
     fetch("/api/sync", { method: "POST" })
       .then(() =>
         fetch(
-          `/api/jobs?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(company ? { company } : {}), ...(location ? { location } : {}) })}`,
+          `/api/jobs?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(company ? { company } : {}), ...(location ? { location } : {}), ...(type ? { type } : {}) })}`,
         ),
       )
       .then((r) => r.json())
@@ -37,13 +38,14 @@ export default function Home() {
     if (query) params.set("q", query);
     if (company) params.set("company", company);
     if (location) params.set("location", location);
+    if (type) params.set("type", type);
 
     setLoading(true);
     fetch(`/api/jobs?${params}`)
       .then((r) => r.json())
       .then(setJobs)
       .finally(() => setLoading(false));
-  }, [query, company, location]);
+  }, [query, company, location, type]);
 
   const companies = [...new Set(jobs.map((j) => j.company))];
   const locations = [...new Set(jobs.map((j) => j.location))];
@@ -100,6 +102,29 @@ export default function Home() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="mb-6 flex gap-2">
+          {[
+            { value: "", label: "all" },
+            { value: "remote", label: "remote" },
+            { value: "internship", label: "internship" },
+            { value: "new_grad", label: "new grad" },
+            { value: "full_time", label: "full time" },
+          ].map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setType(t.value)}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                type === t.value
+                  ? "bg-zinc-100 text-black"
+                  : "border border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
         <p className="mb-4 text-sm text-zinc-500">
