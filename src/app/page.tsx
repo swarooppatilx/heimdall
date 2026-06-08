@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Job } from "@/lib/job";
 
 interface FilterOptions {
@@ -54,13 +54,14 @@ function JobsPage() {
   const [experience, setExperience] = useQueryParam("experience", "");
   const [source, setSource] = useQueryParam("source", "");
 
-  useEffect(() => {
+  const fetchFilters = useCallback(() => {
     fetch("/api/filters")
       .then((r) => r.json())
-      .then(setFilters);
+      .then(setFilters)
+      .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const fetchJobs = useCallback(() => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (company) params.set("company", company);
@@ -73,8 +74,17 @@ function JobsPage() {
     fetch(`/api/jobs?${params}`)
       .then((r) => r.json())
       .then(setJobs)
+      .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, [query, company, location, type, experience, source]);
+
+  useEffect(() => {
+    fetchFilters();
+  }, [fetchFilters]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -94,9 +104,8 @@ function JobsPage() {
   function handleSync() {
     setSyncing(true);
     fetch("/api/sync", { method: "POST" })
-      .then(() => fetch("/api/filters"))
-      .then((r) => r.json())
-      .then(setFilters)
+      .then(() => fetchFilters())
+      .then(() => fetchJobs())
       .finally(() => setSyncing(false));
   }
 
