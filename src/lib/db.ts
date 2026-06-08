@@ -1,5 +1,6 @@
 import path from "node:path";
 import Database from "better-sqlite3";
+import { detectExperienceLevel } from "./experience";
 import type { Job } from "./job";
 
 const DB_PATH = path.join(process.cwd(), "heimdall.db");
@@ -20,9 +21,14 @@ function getDb(): Database.Database {
         url TEXT NOT NULL,
         posted_at TEXT NOT NULL,
         source TEXT NOT NULL,
+        experience_level TEXT NOT NULL DEFAULT 'mid',
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `);
+    const columns = _db.prepare("PRAGMA table_info(jobs)").all() as { name: string }[];
+    if (!columns.some((c) => c.name === "experience_level")) {
+      _db.exec("ALTER TABLE jobs ADD COLUMN experience_level TEXT NOT NULL DEFAULT 'mid'");
+    }
   }
   return _db;
 }
@@ -30,14 +36,15 @@ function getDb(): Database.Database {
 export function upsertJobs(jobs: Job[]): number {
   const db = getDb();
   const stmt = db.prepare(`
-    INSERT INTO jobs (id, title, company, location, department, url, posted_at, source)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO jobs (id, title, company, location, department, url, posted_at, source, experience_level)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
       location = excluded.location,
       department = excluded.department,
       url = excluded.url,
-      posted_at = excluded.posted_at
+      posted_at = excluded.posted_at,
+      experience_level = excluded.experience_level
   `);
 
   const insert = db.transaction((items: Job[]) => {
@@ -51,6 +58,7 @@ export function upsertJobs(jobs: Job[]): number {
         job.url,
         job.postedAt.toISOString(),
         job.source,
+        detectExperienceLevel(job.title),
       );
     }
   });
@@ -70,6 +78,7 @@ export function getAllJobs(): Job[] {
     url: string;
     posted_at: string;
     source: string;
+    experience_level: string;
   }[];
 
   return rows.map((row) => ({
@@ -81,6 +90,7 @@ export function getAllJobs(): Job[] {
     url: row.url,
     postedAt: new Date(row.posted_at),
     source: row.source,
+    experienceLevel: row.experience_level,
   }));
 }
 

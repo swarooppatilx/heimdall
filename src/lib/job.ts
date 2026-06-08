@@ -7,4 +7,5 @@ export interface Job {
   url: string;
   postedAt: Date;
   source: string;
+  experienceLevel?: string;
 }

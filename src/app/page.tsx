@@ -51,6 +51,7 @@ function JobsPage() {
   const [company, setCompany] = useQueryParam("company", "");
   const [location, setLocation] = useQueryParam("location", "");
   const [type, setType] = useQueryParam("type", "");
+  const [experience, setExperience] = useQueryParam("experience", "");
   const [source, setSource] = useQueryParam("source", "");
 
   useEffect(() => {
@@ -65,6 +66,7 @@ function JobsPage() {
     if (company) params.set("company", company);
     if (location) params.set("location", location);
     if (type) params.set("type", type);
+    if (experience) params.set("experience", experience);
     if (source) params.set("source", source);
 
     setLoading(true);
@@ -72,7 +74,7 @@ function JobsPage() {
       .then((r) => r.json())
       .then(setJobs)
       .finally(() => setLoading(false));
-  }, [query, company, location, type, source]);
+  }, [query, company, location, type, experience, source]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -101,9 +103,15 @@ function JobsPage() {
   const typeFilters = [
     { value: "", label: "all" },
     { value: "remote", label: "remote" },
-    { value: "internship", label: "internship" },
-    { value: "new_grad", label: "new grad" },
-    { value: "full_time", label: "full time" },
+  ];
+
+  const experienceFilters = [
+    { value: "", label: "all levels" },
+    { value: "intern", label: "intern" },
+    { value: "entry", label: "entry" },
+    { value: "mid", label: "mid" },
+    { value: "senior", label: "senior" },
+    { value: "staff", label: "staff" },
   ];
 
   return (
@@ -173,7 +181,7 @@ function JobsPage() {
           </select>
         </div>
 
-        <div className="mb-6 flex gap-2">
+        <div className="mb-3 flex gap-2">
           {typeFilters.map((t) => (
             <button
               key={t.value}
@@ -186,6 +194,23 @@ function JobsPage() {
               }`}
             >
               {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-6 flex gap-2">
+          {experienceFilters.map((e) => (
+            <button
+              key={e.value}
+              type="button"
+              onClick={() => setExperience(e.value)}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                experience === e.value
+                  ? "bg-zinc-100 text-black"
+                  : "border border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+              }`}
+            >
+              {e.label}
             </button>
           ))}
         </div>
@@ -208,6 +233,9 @@ function JobsPage() {
                   </p>
                   <div className="mt-2 flex items-center gap-3 text-xs text-zinc-600">
                     <span className="rounded bg-zinc-900 px-2 py-0.5">{job.source}</span>
+                    {job.experienceLevel && (
+                      <span className="rounded bg-zinc-900 px-2 py-0.5">{job.experienceLevel}</span>
+                    )}
                     <span>{daysAgo(job.postedAt)}</span>
                   </div>
                 </div>
