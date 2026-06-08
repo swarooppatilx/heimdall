@@ -1,4 +1,5 @@
 import type { Job } from "../job";
+import { normalizeLocation } from "../normalize";
 
 interface AshbyJob {
   id: string;
@@ -14,7 +15,7 @@ function mapJob(raw: AshbyJob, company: string): Job {
     id: `ab-${company}-${raw.id}`,
     title: raw.title,
     company,
-    location: raw.location,
+    location: normalizeLocation(raw.location),
     department: raw.department ?? "General",
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),
