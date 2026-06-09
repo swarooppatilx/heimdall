@@ -10,12 +10,14 @@ interface FilterOptions {
   sources: string[];
 }
 
-function daysAgo(date: Date): string {
-  const ms = Date.now() - new Date(date).getTime();
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  return `${days}d ago`;
+function timeAgo(date: Date): string {
+  const ms = Date.now() - date.getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
 }
 
 function useQueryParam(key: string, initial: string): [string, (v: string) => void] {
@@ -52,6 +54,7 @@ function JobsPage() {
   const [location, setLocation] = useQueryParam("location", "");
   const [type, setType] = useQueryParam("type", "");
   const [experience, setExperience] = useQueryParam("experience", "");
+  const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
 
   const fetchFilters = useCallback(() => {
@@ -68,6 +71,7 @@ function JobsPage() {
     if (location) params.set("location", location);
     if (type) params.set("type", type);
     if (experience) params.set("experience", experience);
+    if (posted) params.set("posted", posted);
     if (source) params.set("source", source);
 
     setLoading(true);
@@ -76,7 +80,7 @@ function JobsPage() {
       .then(setJobs)
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
-  }, [query, company, location, type, experience, source]);
+  }, [query, company, location, type, experience, posted, source]);
 
   useEffect(() => {
     fetchFilters();
@@ -109,13 +113,10 @@ function JobsPage() {
       .finally(() => setSyncing(false));
   }
 
-  const typeFilters = [
-    { value: "", label: "all" },
-    { value: "remote", label: "remote" },
-  ];
+  const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
 
   const experienceFilters = [
-    { value: "", label: "all levels" },
+    { value: "", label: "all" },
     { value: "intern", label: "intern" },
     { value: "entry", label: "entry" },
     { value: "mid", label: "mid" },
@@ -123,41 +124,62 @@ function JobsPage() {
     { value: "staff", label: "staff" },
   ];
 
+  const postedFilters = [
+    { value: "", label: "any time" },
+    { value: "today", label: "today" },
+    { value: "week", label: "this week" },
+    { value: "month", label: "this month" },
+  ];
+
+  const activeFilters = [company, location, type, experience, posted, source].filter(Boolean);
+
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
-      <header className="border-b border-zinc-800 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">Heimdall</h1>
-            <p className="text-sm text-zinc-500">fresh tech jobs, direct from source</p>
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-black/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-lg font-semibold tracking-tight">Heimdall</h1>
+            <span className="hidden text-xs text-zinc-600 sm:inline">
+              fresh tech jobs, direct from source
+            </span>
           </div>
           <button
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="rounded-lg border border-zinc-800 px-4 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+            className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
           >
             {syncing ? "syncing..." : "sync"}
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-          <input
-            ref={searchRef}
-            type="text"
-            placeholder="search jobs... (/ to focus)"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-600"
-          />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
+        <div className="mb-4">
+          <div className="relative">
+            <input
+              ref={searchRef}
+              type="text"
+              placeholder="search jobs..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 pr-16 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-600"
+              aria-label="Search jobs"
+            />
+            <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">
+              /
+            </kbd>
+          </div>
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-2">
           <select
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            aria-label="Filter by company"
           >
-            <option value="">all companies</option>
+            <option value="">company</option>
             {filters.companies.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -167,9 +189,10 @@ function JobsPage() {
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            aria-label="Filter by location"
           >
-            <option value="">all locations</option>
+            <option value="">location</option>
             {filters.locations.map((l) => (
               <option key={l} value={l}>
                 {l}
@@ -179,85 +202,122 @@ function JobsPage() {
           <select
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600"
+            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            aria-label="Filter by source"
           >
-            <option value="">all sources</option>
+            <option value="">source</option>
             {filters.sources.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
             ))}
           </select>
-        </div>
-
-        <div className="mb-3 flex gap-2">
-          {typeFilters.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setType(t.value)}
-              className={`rounded-full px-3 py-1 text-xs transition-colors ${
-                type === t.value
-                  ? "bg-zinc-100 text-black"
-                  : "border border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mb-6 flex gap-2">
+          <div className="hidden h-6 w-px bg-zinc-800 sm:block" aria-hidden="true" />
           {experienceFilters.map((e) => (
             <button
               key={e.value}
               type="button"
               onClick={() => setExperience(e.value)}
-              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                 experience === e.value
                   ? "bg-zinc-100 text-black"
-                  : "border border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+                  : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
               {e.label}
             </button>
           ))}
+          <div className="hidden h-6 w-px bg-zinc-800 sm:block" aria-hidden="true" />
+          {postedFilters.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              onClick={() => setPosted(p.value)}
+              className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+                posted === p.value ? "bg-zinc-100 text-black" : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
-        <p className="mb-4 text-sm text-zinc-500">
+        {(type || activeFilters.length > 0) && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setType(type ? "" : "remote")}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                type === "remote"
+                  ? "bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/30"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              remote
+            </button>
+            {activeFilters.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCompany("");
+                  setLocation("");
+                  setType("");
+                  setExperience("");
+                  setPosted("");
+                  setSource("");
+                }}
+                className="text-xs text-zinc-600 hover:text-zinc-400"
+              >
+                clear all
+              </button>
+            )}
+          </div>
+        )}
+
+        <p className="mb-4 text-xs text-zinc-600">
           {loading ? "loading..." : `${jobs.length} fresh jobs`}
         </p>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {jobs.map((job) => (
-            <div
+            <article
               key={job.id}
-              className="rounded-lg border border-zinc-800 p-4 transition-colors hover:border-zinc-600 hover:bg-zinc-900"
+              className="group rounded-lg border border-zinc-800/50 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/50 sm:p-4"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-medium text-zinc-100">{job.title}</h2>
-                  <p className="mt-1 text-sm text-zinc-400">
-                    {job.company} · {job.location}
+                  <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
+                  <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">
+                    {job.company}
+                    <span className="text-zinc-600"> · </span>
+                    {job.location}
                   </p>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-600">
-                    <span className="rounded bg-zinc-900 px-2 py-0.5">{job.source}</span>
-                    {job.experienceLevel && (
-                      <span className="rounded bg-zinc-900 px-2 py-0.5">{job.experienceLevel}</span>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-600 sm:gap-2 sm:text-xs">
+                    {isRemote(job.location) && (
+                      <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
+                        remote
+                      </span>
                     )}
-                    <span>{daysAgo(job.postedAt)}</span>
+                    <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">{job.source}</span>
+                    {job.experienceLevel && job.experienceLevel !== "mid" && (
+                      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">
+                        {job.experienceLevel}
+                      </span>
+                    )}
+                    <span>{timeAgo(job.postedAt)}</span>
                   </div>
                 </div>
                 <a
                   href={job.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-300"
+                  className="shrink-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-zinc-300 sm:px-4 sm:py-2 sm:text-sm"
+                  aria-label={`Apply to ${job.title} at ${job.company}`}
                 >
                   apply
                 </a>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </main>

@@ -10,6 +10,7 @@ export async function GET(request: Request) {
   const location = searchParams.get("location")?.toLowerCase() ?? "";
   const type = searchParams.get("type") ?? "";
   const experience = searchParams.get("experience")?.toLowerCase() ?? "";
+  const posted = searchParams.get("posted") ?? "";
   const source = searchParams.get("source")?.toLowerCase() ?? "";
 
   let jobs = getAllJobs();
@@ -45,6 +46,19 @@ export async function GET(request: Request) {
 
   if (experience) {
     jobs = jobs.filter((job) => job.experienceLevel === experience);
+  }
+
+  if (posted) {
+    const now = Date.now();
+    const ms: Record<string, number> = {
+      today: 24 * 60 * 60 * 1000,
+      week: 7 * 24 * 60 * 60 * 1000,
+      month: 30 * 24 * 60 * 60 * 1000,
+    };
+    const maxAge = ms[posted];
+    if (maxAge) {
+      jobs = jobs.filter((job) => now - job.postedAt.getTime() <= maxAge);
+    }
   }
 
   return NextResponse.json(jobs);
