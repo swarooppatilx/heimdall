@@ -3,6 +3,6 @@ import { getFilterOptions } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export function GET() {
   return NextResponse.json(getFilterOptions());
 }

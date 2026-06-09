@@ -21,15 +21,46 @@
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
         "useExhaustiveDependencies": "warn",
-        "useHookAtTopLevel": "error"
+        "useHookAtTopLevel": "error",
+        "noUndeclaredVariables": "error",
+        "noUnreachable": "error",
+        "noConstantCondition": "error",
+        "noSelfAssign": "error",
+        "noSwitchDeclarations": "error"
       },
       "suspicious": {
-        "noDoubleEquals": "error"
+        "noDoubleEquals": "error",
+        "noExplicitAny": "warn",
+        "noLabelVar": "error",
+        "noRedeclare": "error",
+        "noShadowRestrictedNames": "error",
+        "useAwait": "warn"
       },
       "style": {
         "useConst": "error",
-        "useImportType": "error"
+        "useImportType": "error",
+        "noNonNullAssertion": "off",
+        "noUselessElse": "error",
+        "useDefaultSwitchClause": "error",
+        "useShorthandAssign": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useCollapsedElseIf": "error",
+        "useShorthandFunctionType": "error",
+        "useForOf": "error",
+        "noNegationElse": "error"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error"
+      },
+      "complexity": {
+        "noBannedTypes": "error",
+        "noEmptyTypeParameters": "error",
+        "noUselessConstructor": "error",
+        "noUselessRename": "error",
+        "useOptionalChain": "error",
+        "useLiteralKeys": "error"
       }
     }
   },
