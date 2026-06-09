@@ -1,6 +1,0 @@
-{
-  "companies": [
-    { "name": "gitlab", "provider": "greenhouse", "board": "gitlab" },
-    { "name": "discord", "provider": "greenhouse", "board": "discord" }
-  ]
-}

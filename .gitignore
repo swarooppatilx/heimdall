@@ -4,3 +4,7 @@ dist
 .env.*
 .next
 .vercel
+*.tsbuildinfo
+*.db
+*.db-shm
+*.db-wal
