@@ -12,9 +12,9 @@ export async function POST() {
   let total = 0;
   const errors: string[] = [];
 
-  for (let i = 0; i < results.length; i++) {
+  registry.forEach((entry, i) => {
     const result = results[i];
-    const entry = registry[i];
+    if (!result) return;
 
     if (result.status === "fulfilled") {
       upsertJobs(result.value);
@@ -22,7 +22,7 @@ export async function POST() {
     } else {
       errors.push(`${entry.name}: ${result.reason}`);
     }
-  }
+  });
 
   return NextResponse.json({ synced: total, errors });
 }

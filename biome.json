@@ -17,7 +17,20 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "warn",
+        "useHookAtTopLevel": "error"
+      },
+      "suspicious": {
+        "noDoubleEquals": "error"
+      },
+      "style": {
+        "useConst": "error",
+        "useImportType": "error"
+      }
     }
   },
   "javascript": {
