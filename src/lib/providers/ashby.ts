@@ -16,7 +16,7 @@ function mapJob(raw: AshbyJob, company: string): Job {
     title: raw.title,
     company,
     location: normalizeLocation(raw.location),
-    department: raw.department ?? "General",
+    department: raw.department || "General",
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),
     source: "ashby",

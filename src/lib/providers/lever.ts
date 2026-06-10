@@ -18,7 +18,7 @@ function mapJob(raw: LeverPosting, company: string): Job {
     title: raw.text,
     company,
     location: normalizeLocation(raw.categories.location ?? ""),
-    department: raw.categories.department ?? "General",
+    department: raw.categories.department || "General",
     url: raw.hostedUrl,
     postedAt: new Date(raw.createdAt),
     source: "lever",
