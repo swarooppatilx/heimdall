@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Job } from "@/lib/job";
@@ -288,7 +289,12 @@ function JobsPage() {
                 <div className="min-w-0 flex-1">
                   <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
                   <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">
-                    {job.company}
+                    <Link
+                      href={`/company/${encodeURIComponent(job.company)}`}
+                      className="hover:text-zinc-200"
+                    >
+                      {job.company}
+                    </Link>
                     <span className="text-zinc-600"> · </span>
                     {job.location}
                   </p>

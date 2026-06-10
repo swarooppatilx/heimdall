@@ -114,6 +114,65 @@ export function getFilterOptions(): {
   return { companies, locations, sources };
 }
 
+export function getJobsByCompany(company: string): Job[] {
+  const db = getDb();
+  const rows = db
+    .prepare("SELECT * FROM jobs WHERE company = ? ORDER BY posted_at DESC")
+    .all(company) as {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    department: string;
+    url: string;
+    posted_at: string;
+    source: string;
+    experience_level: string;
+  }[];
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    department: row.department,
+    url: row.url,
+    postedAt: new Date(row.posted_at),
+    source: row.source,
+    experienceLevel: row.experience_level,
+  }));
+}
+
+export function getCompanyStats(company: string): {
+  total: number;
+  departments: string[];
+  locations: string[];
+  sources: string[];
+} {
+  const db = getDb();
+  const total = (
+    db.prepare("SELECT COUNT(*) as count FROM jobs WHERE company = ?").get(company) as {
+      count: number;
+    }
+  ).count;
+  const departments = (
+    db
+      .prepare("SELECT DISTINCT department FROM jobs WHERE company = ? ORDER BY department")
+      .all(company) as { department: string }[]
+  ).map((r) => r.department);
+  const locations = (
+    db
+      .prepare("SELECT DISTINCT location FROM jobs WHERE company = ? ORDER BY location")
+      .all(company) as { location: string }[]
+  ).map((r) => r.location);
+  const sources = (
+    db
+      .prepare("SELECT DISTINCT source FROM jobs WHERE company = ? ORDER BY source")
+      .all(company) as { source: string }[]
+  ).map((r) => r.source);
+  return { total, departments, locations, sources };
+}
+
 export function getJobCount(): number {
   const db = getDb();
   const row = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { count: number };

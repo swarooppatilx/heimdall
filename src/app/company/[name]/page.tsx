@@ -1,0 +1,131 @@
+import Link from "next/link";
+import { getCompanyStats, getJobsByCompany } from "@/lib/db";
+
+function timeAgo(date: Date): string {
+  const ms = Date.now() - date.getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
+export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
+  const { name } = await params;
+  const company = decodeURIComponent(name);
+  const jobs = getJobsByCompany(company);
+  const stats = getCompanyStats(company);
+
+  if (jobs.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black text-zinc-100">
+        <p className="text-zinc-500">No jobs found for {company}</p>
+        <Link href="/" className="mt-4 text-sm text-zinc-400 hover:text-zinc-200">
+          ← back to search
+        </Link>
+      </div>
+    );
+  }
+
+  const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-black/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
+          <Link href="/" className="text-xs text-zinc-600 hover:text-zinc-400">
+            ← all jobs
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight">{company}</h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            {stats.total} open position{stats.total === 1 ? "" : "s"}
+          </p>
+        </div>
+
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border border-zinc-800 p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Departments
+            </h2>
+            <div className="flex flex-wrap gap-1.5">
+              {stats.departments.map((d) => (
+                <span key={d} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-800 p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Locations
+            </h2>
+            <div className="flex flex-wrap gap-1.5">
+              {stats.locations.map((l) => (
+                <span key={l} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                  {l}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-800 p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Sources
+            </h2>
+            <div className="flex flex-wrap gap-1.5">
+              {stats.sources.map((s) => (
+                <span key={s} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {jobs.map((job) => (
+            <article
+              key={job.id}
+              className="group rounded-lg border border-zinc-800/50 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/50 sm:p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
+                  <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">{job.location}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-600 sm:gap-2 sm:text-xs">
+                    {isRemote(job.location) && (
+                      <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
+                        remote
+                      </span>
+                    )}
+                    <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">{job.department}</span>
+                    {job.experienceLevel && job.experienceLevel !== "mid" && (
+                      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">
+                        {job.experienceLevel}
+                      </span>
+                    )}
+                    <span>{timeAgo(job.postedAt)}</span>
+                  </div>
+                </div>
+                <a
+                  href={job.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-zinc-300 sm:px-4 sm:py-2 sm:text-sm"
+                  aria-label={`Apply to ${job.title}`}
+                >
+                  apply
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
