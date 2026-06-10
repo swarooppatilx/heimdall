@@ -4,7 +4,7 @@ const PATTERNS: { level: ExperienceLevel; regex: RegExp }[] = [
   { level: "intern", regex: /\bintern(?:ship)?\b/i },
   {
     level: "entry",
-    regex: /\b(?:junior|jr\.?|entry[ -]level|new[ -]grad(?:uate)?|graduate|trainee)\b/i,
+    regex: /\b(?:junior|jr\.?|associate|entry[ -]level|new[ -]grad(?:uate)?|graduate|trainee)\b/i,
   },
   {
     level: "staff",

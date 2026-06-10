@@ -32,7 +32,7 @@ export function normalizeLocation(raw: string): string {
   const isRemote = lower.startsWith("remote");
 
   if (isRemote) {
-    const withoutRemote = first.replace(/^remote\s*[-,.\s]\s*/i, "").trim();
+    const withoutRemote = first.replace(/^remote\s*[-,.\s]?\s*/i, "").trim();
     if (!withoutRemote) return "Remote";
     const countries = withoutRemote
       .split(/\s*,\s*/)
