@@ -1,14 +1,24 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import type { Job } from "@/lib/job";
 
 interface FilterOptions {
   companies: string[];
   locations: string[];
   sources: string[];
+}
+
+interface CrawlStatusEntry {
+  company: string;
+  status: string;
+  jobsFound: number;
+  durationMs: number;
+  error: string | null;
+  createdAt: string;
 }
 
 function timeAgo(date: Date | string): string {
@@ -39,25 +49,34 @@ function useQueryParam(key: string, initial: string): [string, (v: string) => vo
   return [value, setValue];
 }
 
-function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [filters, setFilters] = useState<FilterOptions>({
-    companies: [],
-    locations: [],
-    sources: [],
+function useJobFilters(filters: {
+  q: string;
+  company: string;
+  location: string;
+  type: string;
+  experience: string;
+  posted: string;
+  source: string;
+}) {
+  return useQuery<Job[]>({
+    queryKey: ["jobs", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.q) params.set("q", filters.q);
+      if (filters.company) params.set("company", filters.company);
+      if (filters.location) params.set("location", filters.location);
+      if (filters.type) params.set("type", filters.type);
+      if (filters.experience) params.set("experience", filters.experience);
+      if (filters.posted) params.set("posted", filters.posted);
+      if (filters.source) params.set("source", filters.source);
+      const res = await fetch(`/api/jobs?${params}`);
+      return res.json();
+    },
   });
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [crawlStatus, setCrawlStatus] = useState<{
-    latest: {
-      company: string;
-      status: string;
-      jobsFound: number;
-      durationMs: number;
-      error: string | null;
-      createdAt: string;
-    }[];
-  } | null>(null);
+}
+
+function JobsPage() {
+  const queryClient = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useQueryParam("q", "");
@@ -68,46 +87,28 @@ function JobsPage() {
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
 
-  const fetchFilters = useCallback(() => {
-    fetch("/api/filters")
-      .then((r) => r.json())
-      .then(setFilters)
-      .catch(() => {});
-  }, []);
+  const filters = { q: query, company, location, type, experience, posted, source };
 
-  const fetchJobs = useCallback(() => {
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    if (company) params.set("company", company);
-    if (location) params.set("location", location);
-    if (type) params.set("type", type);
-    if (experience) params.set("experience", experience);
-    if (posted) params.set("posted", posted);
-    if (source) params.set("source", source);
+  const { data: jobs = [], isLoading } = useJobFilters(filters);
 
-    setLoading(true);
-    fetch(`/api/jobs?${params}`)
-      .then((r) => r.json())
-      .then(setJobs)
-      .catch(() => setJobs([]))
-      .finally(() => setLoading(false));
-  }, [query, company, location, type, experience, posted, source]);
+  const { data: filterOptions } = useQuery<FilterOptions>({
+    queryKey: ["filters"],
+    queryFn: () => fetch("/api/filters").then((r) => r.json()),
+  });
 
-  const fetchCrawlStatus = useCallback(() => {
-    fetch("/api/crawl/status")
-      .then((r) => r.json())
-      .then(setCrawlStatus)
-      .catch(() => {});
-  }, []);
+  const { data: crawlStatus } = useQuery<{ latest: CrawlStatusEntry[] }>({
+    queryKey: ["crawlStatus"],
+    queryFn: () => fetch("/api/crawl/status").then((r) => r.json()),
+  });
 
-  useEffect(() => {
-    fetchFilters();
-    fetchCrawlStatus();
-  }, [fetchFilters, fetchCrawlStatus]);
-
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  const syncMutation = useMutation({
+    mutationFn: () => fetch("/api/sync", { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["filters"] });
+      queryClient.invalidateQueries({ queryKey: ["crawlStatus"] });
+    },
+  });
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -123,15 +124,6 @@ function JobsPage() {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [setQuery]);
-
-  function handleSync() {
-    setSyncing(true);
-    fetch("/api/sync", { method: "POST" })
-      .then(() => fetchFilters())
-      .then(() => fetchJobs())
-      .then(() => fetchCrawlStatus())
-      .finally(() => setSyncing(false));
-  }
 
   const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
 
@@ -177,12 +169,14 @@ function JobsPage() {
             )}
             <button
               type="button"
-              onClick={handleSync}
-              disabled={syncing}
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isPending}
               className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
-              aria-label={syncing ? "Syncing jobs from providers" : "Sync jobs from providers"}
+              aria-label={
+                syncMutation.isPending ? "Syncing jobs from providers" : "Sync jobs from providers"
+              }
             >
-              {syncing ? "syncing..." : "sync"}
+              {syncMutation.isPending ? "syncing..." : "sync"}
             </button>
           </div>
         </div>
@@ -214,7 +208,7 @@ function JobsPage() {
             aria-label="Filter by company"
           >
             <option value="">company</option>
-            {filters.companies.map((c) => (
+            {filterOptions?.companies.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
@@ -227,7 +221,7 @@ function JobsPage() {
             aria-label="Filter by location"
           >
             <option value="">location</option>
-            {filters.locations.map((l) => (
+            {filterOptions?.locations.map((l) => (
               <option key={l} value={l}>
                 {l}
               </option>
@@ -240,7 +234,7 @@ function JobsPage() {
             aria-label="Filter by source"
           >
             <option value="">source</option>
-            {filters.sources.map((s) => (
+            {filterOptions?.sources.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
@@ -318,7 +312,7 @@ function JobsPage() {
         )}
 
         <p className="mb-4 text-xs text-zinc-400" aria-live="polite" aria-atomic="true">
-          {loading ? "loading..." : `${jobs.length} fresh jobs`}
+          {isLoading ? "loading..." : `${jobs.length} fresh jobs`}
         </p>
 
         <ul id="job-results" className="flex flex-col gap-2">
