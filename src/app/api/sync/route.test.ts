@@ -1,21 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockUpsertJobs = vi.fn();
-const mockFetchJobs = vi.fn();
+const mockCrawlAll = vi.fn();
 
-vi.mock("@/lib/db", () => ({
-  upsertJobs: (...args: unknown[]) => mockUpsertJobs(...args),
-}));
-
-vi.mock("@/lib/registry", () => ({
-  getRegistry: () => [
-    { name: "gitlab", provider: "greenhouse", board: "gitlab" },
-    { name: "discord", provider: "greenhouse", board: "discord" },
-  ],
-}));
-
-vi.mock("@/lib/fetch-jobs", () => ({
-  fetchJobs: (...args: unknown[]) => mockFetchJobs(...args),
+vi.mock("@/lib/crawler", () => ({
+  crawlAll: (...args: unknown[]) => mockCrawlAll(...args),
 }));
 
 describe("POST /api/sync", () => {
@@ -24,8 +12,9 @@ describe("POST /api/sync", () => {
   });
 
   it("syncs jobs from all providers", async () => {
-    mockFetchJobs.mockResolvedValue([
-      { id: "1", title: "Engineer", company: "gitlab", source: "greenhouse" },
+    mockCrawlAll.mockResolvedValue([
+      { company: "gitlab", status: "ok", jobsFound: 1, durationMs: 50 },
+      { company: "discord", status: "ok", jobsFound: 1, durationMs: 40 },
     ]);
 
     const { POST } = await import("./route");
@@ -34,11 +23,13 @@ describe("POST /api/sync", () => {
 
     expect(data.synced).toBe(2);
     expect(data.errors).toHaveLength(0);
-    expect(mockUpsertJobs).toHaveBeenCalledTimes(2);
   });
 
   it("reports errors from failed providers", async () => {
-    mockFetchJobs.mockRejectedValue(new Error("Network error"));
+    mockCrawlAll.mockResolvedValue([
+      { company: "gitlab", status: "error", jobsFound: 0, durationMs: 0, error: "Network error" },
+      { company: "discord", status: "error", jobsFound: 0, durationMs: 0, error: "Network error" },
+    ]);
 
     const { POST } = await import("./route");
     const res = await POST();
@@ -51,9 +42,10 @@ describe("POST /api/sync", () => {
   });
 
   it("handles partial failures", async () => {
-    mockFetchJobs
-      .mockResolvedValueOnce([{ id: "1", title: "Engineer" }])
-      .mockRejectedValueOnce(new Error("fail"));
+    mockCrawlAll.mockResolvedValue([
+      { company: "gitlab", status: "ok", jobsFound: 1, durationMs: 30 },
+      { company: "discord", status: "error", jobsFound: 0, durationMs: 0, error: "fail" },
+    ]);
 
     const { POST } = await import("./route");
     const res = await POST();

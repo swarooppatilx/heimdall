@@ -48,6 +48,16 @@ function JobsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [crawlStatus, setCrawlStatus] = useState<{
+    latest: {
+      company: string;
+      status: string;
+      jobsFound: number;
+      durationMs: number;
+      error: string | null;
+      createdAt: string;
+    }[];
+  } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useQueryParam("q", "");
@@ -83,9 +93,17 @@ function JobsPage() {
       .finally(() => setLoading(false));
   }, [query, company, location, type, experience, posted, source]);
 
+  const fetchCrawlStatus = useCallback(() => {
+    fetch("/api/crawl/status")
+      .then((r) => r.json())
+      .then(setCrawlStatus)
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchFilters();
-  }, [fetchFilters]);
+    fetchCrawlStatus();
+  }, [fetchFilters, fetchCrawlStatus]);
 
   useEffect(() => {
     fetchJobs();
@@ -111,6 +129,7 @@ function JobsPage() {
     fetch("/api/sync", { method: "POST" })
       .then(() => fetchFilters())
       .then(() => fetchJobs())
+      .then(() => fetchCrawlStatus())
       .finally(() => setSyncing(false));
   }
 
@@ -150,15 +169,22 @@ function JobsPage() {
               fresh tech jobs, direct from source
             </span>
           </div>
-          <button
-            type="button"
-            onClick={handleSync}
-            disabled={syncing}
-            className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
-            aria-label={syncing ? "Syncing jobs from providers" : "Sync jobs from providers"}
-          >
-            {syncing ? "syncing..." : "sync"}
-          </button>
+          <div className="flex items-center gap-3">
+            {crawlStatus?.latest && crawlStatus.latest.length > 0 && (
+              <span className="hidden text-[11px] text-zinc-500 sm:inline">
+                last sync {timeAgo(crawlStatus.latest[0]!.createdAt)}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+              aria-label={syncing ? "Syncing jobs from providers" : "Sync jobs from providers"}
+            >
+              {syncing ? "syncing..." : "sync"}
+            </button>
+          </div>
         </div>
       </header>
 

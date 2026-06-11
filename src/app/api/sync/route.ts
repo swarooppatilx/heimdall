@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server";
-import { upsertJobs } from "@/lib/db";
-import { fetchJobs } from "@/lib/fetch-jobs";
-import { getRegistry } from "@/lib/registry";
+import { crawlAll } from "@/lib/crawler";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
-  const registry = getRegistry();
-  const results = await Promise.allSettled(registry.map((entry) => fetchJobs(entry)));
+  const results = await crawlAll();
 
-  let total = 0;
-  const errors: string[] = [];
+  const synced = results.filter((r) => r.status === "ok").reduce((sum, r) => sum + r.jobsFound, 0);
+  const errors = results.filter((r) => r.status === "error").map((r) => `${r.company}: ${r.error}`);
 
-  registry.forEach((entry, i) => {
-    const result = results[i];
-    if (!result) return;
-
-    if (result.status === "fulfilled") {
-      upsertJobs(result.value);
-      total += result.value.length;
-    } else {
-      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      errors.push(`${entry.name}: ${msg}`);
-    }
-  });
-
-  return NextResponse.json({ synced: total, errors });
+  return NextResponse.json({ synced, errors, results });
 }

@@ -29,6 +29,18 @@ function getDb(): Database.Database {
     if (!columns.some((c) => c.name === "experience_level")) {
       _db.exec("ALTER TABLE jobs ADD COLUMN experience_level TEXT NOT NULL DEFAULT 'mid'");
     }
+
+    _db.exec(`
+      CREATE TABLE IF NOT EXISTS crawls (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'ok',
+        jobs_found INTEGER NOT NULL DEFAULT 0,
+        duration_ms INTEGER NOT NULL DEFAULT 0,
+        error TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
   }
   return _db;
 }
@@ -177,4 +189,63 @@ export function getJobCount(): number {
   const db = getDb();
   const row = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { count: number };
   return row.count;
+}
+
+export function recordCrawl(
+  company: string,
+  status: string,
+  jobsFound: number,
+  durationMs: number,
+  error?: string,
+): void {
+  const db = getDb();
+  db.prepare(
+    "INSERT INTO crawls (company, status, jobs_found, duration_ms, error) VALUES (?, ?, ?, ?, ?)",
+  ).run(company, status, jobsFound, durationMs, error ?? null);
+}
+
+export function getCrawlHistory(): {
+  company: string;
+  status: string;
+  jobsFound: number;
+  durationMs: number;
+  error: string | null;
+  createdAt: string;
+}[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT company, status, jobs_found as jobsFound, duration_ms as durationMs, error, created_at as createdAt FROM crawls ORDER BY created_at DESC LIMIT 100",
+    )
+    .all() as {
+    company: string;
+    status: string;
+    jobsFound: number;
+    durationMs: number;
+    error: string | null;
+    createdAt: string;
+  }[];
+}
+
+export function getLatestCrawls(): {
+  company: string;
+  status: string;
+  jobsFound: number;
+  durationMs: number;
+  error: string | null;
+  createdAt: string;
+}[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT company, status, jobs_found as jobsFound, duration_ms as durationMs, error, created_at as createdAt FROM crawls WHERE id IN (SELECT MAX(id) FROM crawls GROUP BY company)",
+    )
+    .all() as {
+    company: string;
+    status: string;
+    jobsFound: number;
+    durationMs: number;
+    error: string | null;
+    createdAt: string;
+  }[];
 }
