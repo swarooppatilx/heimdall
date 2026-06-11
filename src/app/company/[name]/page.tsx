@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
 
 function timeAgo(date: Date | string): string {
@@ -28,6 +29,11 @@ export async function generateMetadata({
       description: `${stats.total} open positions at ${company}.`,
       type: "website",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${company} — Fresh Tech Jobs`,
+      description: `${stats.total} open positions at ${company}.`,
+    },
   };
 }
 
@@ -50,8 +56,17 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
 
   const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: company,
+    url: jobs[0]?.url?.split("/jobs/")[0] || undefined,
+    numberOfEmployees: stats.total,
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
+      <JsonLd data={jsonLd} />
       <a
         href="#job-results"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-zinc-800 focus:px-4 focus:py-2 focus:text-sm focus:text-zinc-100"
