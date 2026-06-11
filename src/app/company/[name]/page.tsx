@@ -1,14 +1,34 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
 
-function timeAgo(date: Date): string {
-  const ms = Date.now() - date.getTime();
+function timeAgo(date: Date | string): string {
+  const ms = Date.now() - new Date(date).getTime();
   const mins = Math.floor(ms / 60000);
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   return `${days}d`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ name: string }>;
+}): Promise<Metadata> {
+  const { name } = await params;
+  const company = decodeURIComponent(name);
+  const stats = getCompanyStats(company);
+  return {
+    title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
+    description: `Browse ${stats.total} fresh tech job openings at ${company}. Direct from the company career page.`,
+    openGraph: {
+      title: `${company} — Fresh Tech Jobs`,
+      description: `${stats.total} open positions at ${company}.`,
+      type: "website",
+    },
+  };
 }
 
 export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
@@ -32,9 +52,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
 
   return (
     <div className="flex min-h-screen flex-col">
+      <a
+        href="#job-results"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-zinc-800 focus:px-4 focus:py-2 focus:text-sm focus:text-zinc-100"
+      >
+        Skip to results
+      </a>
       <header className="sticky top-0 z-10 border-b border-zinc-800 bg-black/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
-          <Link href="/" className="text-xs text-zinc-600 hover:text-zinc-400">
+          <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
             ← all jobs
           </Link>
         </div>
@@ -87,9 +113,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <ul id="job-results" className="flex flex-col gap-2">
           {jobs.map((job) => (
-            <article
+            <li
               key={job.id}
               className="group rounded-lg border border-zinc-800/50 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/50 sm:p-4"
             >
@@ -97,7 +123,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
                 <div className="min-w-0 flex-1">
                   <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
                   <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">{job.location}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-600 sm:gap-2 sm:text-xs">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 sm:gap-2 sm:text-xs">
                     {isRemote(job.location) && (
                       <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
                         remote
@@ -122,9 +148,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
                   apply
                 </a>
               </div>
-            </article>
+            </li>
           ))}
-        </div>
+        </ul>
       </main>
     </div>
   );

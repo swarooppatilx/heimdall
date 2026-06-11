@@ -2,6 +2,7 @@ import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
 import { fetchLeverJobs } from "./providers/lever";
+import { fetchSmartRecruitersJobs } from "./providers/smartrecruiters";
 import type { RegistryEntry } from "./registry";
 
 const MAX_AGE_DAYS = 15;
@@ -15,6 +16,8 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
     jobs = await fetchLeverJobs(entry.board);
   } else if (entry.provider === "ashby") {
     jobs = await fetchAshbyJobs(entry.board);
+  } else if (entry.provider === "smartrecruiters") {
+    jobs = await fetchSmartRecruitersJobs(entry.board);
   } else {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }

@@ -20,7 +20,8 @@ export async function POST() {
       upsertJobs(result.value);
       total += result.value.length;
     } else {
-      errors.push(`${entry.name}: ${result.reason}`);
+      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      errors.push(`${entry.name}: ${msg}`);
     }
   });
 

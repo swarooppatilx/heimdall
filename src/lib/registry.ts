@@ -7,8 +7,25 @@ export interface RegistryEntry {
 const registry: RegistryEntry[] = [
   { name: "gitlab", provider: "greenhouse", board: "gitlab" },
   { name: "discord", provider: "greenhouse", board: "discord" },
+  { name: "figma", provider: "greenhouse", board: "figma" },
+  { name: "airtable", provider: "greenhouse", board: "airtable" },
+  { name: "datadog", provider: "greenhouse", board: "datadog" },
+  { name: "elastic", provider: "greenhouse", board: "elastic" },
+  { name: "twilio", provider: "greenhouse", board: "twilio" },
+  { name: "upstart", provider: "greenhouse", board: "upstart" },
+  { name: "checkr", provider: "greenhouse", board: "checkr" },
+  { name: "devrev", provider: "greenhouse", board: "devrev" },
+  { name: "doximity", provider: "greenhouse", board: "doximity" },
+  { name: "lightrun", provider: "greenhouse", board: "lightrun" },
+  { name: "relativity", provider: "greenhouse", board: "relativity" },
   { name: "lever", provider: "lever", board: "leverdemo" },
   { name: "ashby", provider: "ashby", board: "ashby" },
+  { name: "notion", provider: "ashby", board: "notion" },
+  { name: "vercel", provider: "ashby", board: "vercel" },
+  { name: "posthog", provider: "ashby", board: "posthog" },
+  { name: "ramp", provider: "ashby", board: "ramp" },
+  { name: "linear", provider: "ashby", board: "linear" },
+  { name: "wise", provider: "smartrecruiters", board: "wise" },
 ];
 
 export function getRegistry(): RegistryEntry[] {
