@@ -1,7 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+
+const geist = Geist({ subsets: ["latin"], display: "swap", variable: "--font-geist" });
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://heimdall.dev"),
@@ -31,6 +38,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  alternates: {
+    canonical: "https://heimdall.dev",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -48,11 +58,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className="h-full antialiased dark">
+    <html lang="en" className={`${geist.variable} h-full antialiased dark`}>
       <head>
         <JsonLd data={jsonLd} />
       </head>
-      <body className="min-h-full flex flex-col bg-black text-zinc-100">
+      <body className="min-h-full flex flex-col bg-black font-[family-name:var(--font-geist)] text-zinc-100">
         <Providers>{children}</Providers>
       </body>
     </html>

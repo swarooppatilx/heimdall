@@ -311,7 +311,12 @@ function JobsPage() {
           </div>
         )}
 
-        <p className="mb-4 text-xs text-zinc-400" aria-live="polite" aria-atomic="true">
+        <p
+          className="mb-4 text-xs text-zinc-300"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {isLoading ? "loading..." : `${jobs.length} fresh jobs`}
         </p>
 
