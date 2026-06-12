@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { GET } from "./route";
 
 vi.mock("@/lib/db", () => ({
   getFilterOptions: () => ({
@@ -9,9 +8,16 @@ vi.mock("@/lib/db", () => ({
   }),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  checkRateLimit: () => ({ allowed: true, remaining: 100, resetMs: 60_000 }),
+  rateLimitResponse: () => new Response("rate limited", { status: 429 }),
+}));
+
 describe("GET /api/filters", () => {
   it("returns filter options from db", async () => {
-    const res = await GET();
+    const { GET } = await import("./route");
+    const req = new Request("http://localhost/api/filters");
+    const res = GET(req);
     const data = await res.json();
 
     expect(data.companies).toEqual(["gitlab", "discord"]);

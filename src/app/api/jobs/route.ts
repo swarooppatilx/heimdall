@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAllJobs } from "@/lib/db";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export function GET(request: Request) {
+  const limit = checkRateLimit(request, { windowMs: 60_000, max: 100 });
+  if (!limit.allowed) return rateLimitResponse(limit.resetMs);
+
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.toLowerCase() ?? "";
   const company = searchParams.get("company")?.toLowerCase() ?? "";

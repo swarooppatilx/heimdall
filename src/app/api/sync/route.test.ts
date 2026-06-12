@@ -6,6 +6,11 @@ vi.mock("@/lib/crawler", () => ({
   crawlAll: (...args: unknown[]) => mockCrawlAll(...args),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  checkRateLimit: () => ({ allowed: true, remaining: 100, resetMs: 60_000 }),
+  rateLimitResponse: () => new Response("rate limited", { status: 429 }),
+}));
+
 describe("POST /api/sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -18,7 +23,8 @@ describe("POST /api/sync", () => {
     ]);
 
     const { POST } = await import("./route");
-    const res = await POST();
+    const req = new Request("http://localhost/api/sync", { method: "POST" });
+    const res = await POST(req);
     const data = await res.json();
 
     expect(data.synced).toBe(2);
@@ -32,7 +38,8 @@ describe("POST /api/sync", () => {
     ]);
 
     const { POST } = await import("./route");
-    const res = await POST();
+    const req = new Request("http://localhost/api/sync", { method: "POST" });
+    const res = await POST(req);
     const data = await res.json();
 
     expect(data.synced).toBe(0);
@@ -48,7 +55,8 @@ describe("POST /api/sync", () => {
     ]);
 
     const { POST } = await import("./route");
-    const res = await POST();
+    const req = new Request("http://localhost/api/sync", { method: "POST" });
+    const res = await POST(req);
     const data = await res.json();
 
     expect(data.synced).toBe(1);
