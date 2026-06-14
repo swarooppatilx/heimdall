@@ -140,7 +140,6 @@ function JobsPage() {
     { value: "", label: "any time" },
     { value: "today", label: "today" },
     { value: "week", label: "this week" },
-    { value: "month", label: "this month" },
   ];
 
   const activeFilters = [company, location, type, experience, posted, source].filter(Boolean);

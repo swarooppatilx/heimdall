@@ -57,7 +57,6 @@ export function GET(request: Request) {
     const ms: Record<string, number> = {
       today: 24 * 60 * 60 * 1000,
       week: 7 * 24 * 60 * 60 * 1000,
-      month: 30 * 24 * 60 * 60 * 1000,
     };
     const maxAge = ms[posted];
     if (maxAge) {

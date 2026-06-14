@@ -1,6 +1,7 @@
 import path from "node:path";
 import Database from "better-sqlite3";
 import { detectExperienceLevel } from "./experience";
+import { freshnessCutoff } from "./freshness";
 import type { Job } from "./job";
 
 const DB_PATH = path.join(process.cwd(), "heimdall.db");
@@ -81,7 +82,9 @@ export function upsertJobs(jobs: Job[]): number {
 
 export function getAllJobs(): Job[] {
   const db = getDb();
-  const rows = db.prepare("SELECT * FROM jobs ORDER BY posted_at DESC").all() as {
+  const rows = db
+    .prepare("SELECT * FROM jobs WHERE posted_at >= ? ORDER BY posted_at DESC")
+    .all(freshnessCutoff()) as {
     id: string;
     title: string;
     company: string;
@@ -113,15 +116,21 @@ export function getFilterOptions(): {
 } {
   const db = getDb();
   const companies = (
-    db.prepare("SELECT DISTINCT company FROM jobs ORDER BY company").all() as { company: string }[]
+    db
+      .prepare("SELECT DISTINCT company FROM jobs WHERE posted_at >= ? ORDER BY company")
+      .all(freshnessCutoff()) as { company: string }[]
   ).map((r) => r.company);
   const locations = (
-    db.prepare("SELECT DISTINCT location FROM jobs ORDER BY location").all() as {
+    db
+      .prepare("SELECT DISTINCT location FROM jobs WHERE posted_at >= ? ORDER BY location")
+      .all(freshnessCutoff()) as {
       location: string;
     }[]
   ).map((r) => r.location);
   const sources = (
-    db.prepare("SELECT DISTINCT source FROM jobs ORDER BY source").all() as { source: string }[]
+    db
+      .prepare("SELECT DISTINCT source FROM jobs WHERE posted_at >= ? ORDER BY source")
+      .all(freshnessCutoff()) as { source: string }[]
   ).map((r) => r.source);
   return { companies, locations, sources };
 }
@@ -129,8 +138,8 @@ export function getFilterOptions(): {
 export function getJobsByCompany(company: string): Job[] {
   const db = getDb();
   const rows = db
-    .prepare("SELECT * FROM jobs WHERE company = ? ORDER BY posted_at DESC")
-    .all(company) as {
+    .prepare("SELECT * FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY posted_at DESC")
+    .all(company, freshnessCutoff()) as {
     id: string;
     title: string;
     company: string;
@@ -162,33 +171,48 @@ export function getCompanyStats(company: string): {
   sources: string[];
 } {
   const db = getDb();
+  const cutoff = freshnessCutoff();
   const total = (
-    db.prepare("SELECT COUNT(*) as count FROM jobs WHERE company = ?").get(company) as {
-      count: number;
-    }
+    db
+      .prepare("SELECT COUNT(*) as count FROM jobs WHERE company = ? AND posted_at >= ?")
+      .get(company, cutoff) as { count: number }
   ).count;
   const departments = (
     db
-      .prepare("SELECT DISTINCT department FROM jobs WHERE company = ? ORDER BY department")
-      .all(company) as { department: string }[]
+      .prepare(
+        "SELECT DISTINCT department FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY department",
+      )
+      .all(company, cutoff) as { department: string }[]
   ).map((r) => r.department);
   const locations = (
     db
-      .prepare("SELECT DISTINCT location FROM jobs WHERE company = ? ORDER BY location")
-      .all(company) as { location: string }[]
+      .prepare(
+        "SELECT DISTINCT location FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY location",
+      )
+      .all(company, cutoff) as { location: string }[]
   ).map((r) => r.location);
   const sources = (
     db
-      .prepare("SELECT DISTINCT source FROM jobs WHERE company = ? ORDER BY source")
-      .all(company) as { source: string }[]
+      .prepare(
+        "SELECT DISTINCT source FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY source",
+      )
+      .all(company, cutoff) as { source: string }[]
   ).map((r) => r.source);
   return { total, departments, locations, sources };
 }
 
 export function getJobCount(): number {
   const db = getDb();
-  const row = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { count: number };
+  const row = db
+    .prepare("SELECT COUNT(*) as count FROM jobs WHERE posted_at >= ?")
+    .get(freshnessCutoff()) as { count: number };
   return row.count;
+}
+
+export function deleteStaleJobs(): number {
+  const db = getDb();
+  const result = db.prepare("DELETE FROM jobs WHERE posted_at < ?").run(freshnessCutoff());
+  return result.changes;
 }
 
 export function recordCrawl(

@@ -1,4 +1,4 @@
-import { recordCrawl, upsertJobs } from "./db";
+import { deleteStaleJobs, recordCrawl, upsertJobs } from "./db";
 import { fetchJobs } from "./fetch-jobs";
 import { getRegistry, type RegistryEntry } from "./registry";
 
@@ -34,6 +34,8 @@ export async function crawlAll(): Promise<CrawlResult[]> {
       });
     }
   }
+
+  deleteStaleJobs();
 
   return results;
 }
