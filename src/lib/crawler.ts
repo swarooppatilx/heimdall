@@ -35,7 +35,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     }
   }
 
-  deleteStaleJobs();
+  await deleteStaleJobs();
 
   return results;
 }
@@ -44,9 +44,9 @@ async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {
   const start = Date.now();
   try {
     const jobs = await fetchJobs(entry);
-    upsertJobs(jobs);
+    await upsertJobs(jobs);
     const durationMs = Date.now() - start;
-    recordCrawl(entry.name, "ok", jobs.length, durationMs);
+    await recordCrawl(entry.name, "ok", jobs.length, durationMs);
     return {
       company: entry.name,
       status: "ok",
@@ -56,7 +56,7 @@ async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {
   } catch (err) {
     const durationMs = Date.now() - start;
     const msg = err instanceof Error ? err.message : String(err);
-    recordCrawl(entry.name, "error", 0, durationMs, msg);
+    await recordCrawl(entry.name, "error", 0, durationMs, msg);
     return {
       company: entry.name,
       status: "error",

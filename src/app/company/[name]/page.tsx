@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { name } = await params;
   const company = decodeURIComponent(name);
-  const stats = getCompanyStats(company);
+  const stats = await getCompanyStats(company);
   return {
     title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
     description: `Browse ${stats.total} fresh tech job openings at ${company}. Direct from the company career page.`,
@@ -40,8 +40,8 @@ export async function generateMetadata({
 export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
   const company = decodeURIComponent(name);
-  const jobs = getJobsByCompany(company);
-  const stats = getCompanyStats(company);
+  const jobs = await getJobsByCompany(company);
+  const stats = await getCompanyStats(company);
 
   if (jobs.length === 0) {
     return (

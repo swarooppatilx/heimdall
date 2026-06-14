@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db", () => ({
-  getFilterOptions: () => ({
+  getFilterOptions: async () => ({
     companies: ["gitlab", "discord"],
     locations: ["Remote — United States", "San Francisco Bay Area"],
     sources: ["greenhouse", "ashby"],
@@ -17,7 +17,7 @@ describe("GET /api/filters", () => {
   it("returns filter options from db", async () => {
     const { GET } = await import("./route");
     const req = new Request("http://localhost/api/filters");
-    const res = GET(req);
+    const res = await GET(req);
     const data = await res.json();
 
     expect(data.companies).toEqual(["gitlab", "discord"]);

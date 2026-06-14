@@ -38,7 +38,7 @@ const mockJobs = [
 ];
 
 vi.mock("@/lib/db", () => ({
-  getAllJobs: () => mockJobs,
+  getAllJobs: async () => mockJobs,
 }));
 
 function makeRequest(params: Record<string, string> = {}): Request {
