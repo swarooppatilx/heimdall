@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
+function readFilters(res: Response): Promise<{
+  companies: string[];
+  locations: string[];
+  sources: string[];
+}> {
+  return res.json() as Promise<{
+    companies: string[];
+    locations: string[];
+    sources: string[];
+  }>;
+}
+
 vi.mock("@/lib/db", () => ({
   getFilterOptions: async () => ({
     companies: ["gitlab", "discord"],
@@ -18,7 +30,7 @@ describe("GET /api/filters", () => {
     const { GET } = await import("./route");
     const req = new Request("http://localhost/api/filters");
     const res = await GET(req);
-    const data = await res.json();
+    const data = await readFilters(res);
 
     expect(data.companies).toEqual(["gitlab", "discord"]);
     expect(data.locations).toContain("Remote — United States");

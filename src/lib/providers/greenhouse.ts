@@ -31,6 +31,6 @@ export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
     throw new Error(`Failed to fetch jobs from ${board}: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as { jobs: GreenhouseJob[] };
   return data.jobs.map((j: GreenhouseJob) => mapJob(j, board));
 }

@@ -31,6 +31,6 @@ export async function fetchAshbyJobs(company: string): Promise<Job[]> {
     throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as { jobs: AshbyJob[] };
   return data.jobs.map((j: AshbyJob) => mapJob(j, company));
 }

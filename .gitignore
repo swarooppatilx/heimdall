@@ -3,6 +3,8 @@ dist
 .env
 .env.*
 .next
+.open-next
+.wrangler
 .vercel
 *.tsbuildinfo
 *.db

@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+function readSync(res: Response): Promise<{ synced: number; errors: string[] }> {
+  return res.json() as Promise<{ synced: number; errors: string[] }>;
+}
+
 const mockCrawlAll = vi.fn();
 
 vi.mock("@/lib/crawler", () => ({
@@ -25,7 +29,7 @@ describe("POST /api/sync", () => {
     const { POST } = await import("./route");
     const req = new Request("http://localhost/api/sync", { method: "POST" });
     const res = await POST(req);
-    const data = await res.json();
+    const data = await readSync(res);
 
     expect(data.synced).toBe(2);
     expect(data.errors).toHaveLength(0);
@@ -40,7 +44,7 @@ describe("POST /api/sync", () => {
     const { POST } = await import("./route");
     const req = new Request("http://localhost/api/sync", { method: "POST" });
     const res = await POST(req);
-    const data = await res.json();
+    const data = await readSync(res);
 
     expect(data.synced).toBe(0);
     expect(data.errors).toHaveLength(2);
@@ -57,7 +61,7 @@ describe("POST /api/sync", () => {
     const { POST } = await import("./route");
     const req = new Request("http://localhost/api/sync", { method: "POST" });
     const res = await POST(req);
-    const data = await res.json();
+    const data = await readSync(res);
 
     expect(data.synced).toBe(1);
     expect(data.errors).toHaveLength(1);
