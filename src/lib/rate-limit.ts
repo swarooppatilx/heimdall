@@ -1,10 +1,29 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 interface RateLimitEntry {
   timestamps: number[];
 }
 
 const store = new Map<string, RateLimitEntry>();
 
+export interface RateLimitOptions {
+  binding?: string;
+  windowMs: number;
+  max: number;
+}
+
+export interface RateLimitResult {
+  allowed: boolean;
+  resetMs: number;
+}
+
+interface EdgeLimiter {
+  limit(input: { key: string }): Promise<{ success: boolean }>;
+}
+
 function getClientIp(request: Request): string {
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp;
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]!.trim();
   const real = request.headers.get("x-real-ip");
@@ -12,42 +31,50 @@ function getClientIp(request: Request): string {
   return "127.0.0.1";
 }
 
-function cleanup(key: string, windowMs: number): void {
-  const entry = store.get(key);
-  if (!entry) return;
-  const cutoff = Date.now() - windowMs;
-  entry.timestamps = entry.timestamps.filter((t) => t > cutoff);
-  if (entry.timestamps.length === 0) store.delete(key);
+async function checkEdgeLimit(
+  key: string,
+  opts: RateLimitOptions,
+): Promise<RateLimitResult | null> {
+  if (!opts.binding) return null;
+  try {
+    const { env } = await getCloudflareContext();
+    const limiter = (env as unknown as Record<string, EdgeLimiter | undefined>)[opts.binding];
+    if (!limiter) return null;
+    const result = await limiter.limit({ key });
+    return { allowed: result.success, resetMs: opts.windowMs };
+  } catch {
+    return null;
+  }
 }
 
-export function checkRateLimit(
-  request: Request,
-  opts: { windowMs: number; max: number },
-): { allowed: boolean; remaining: number; resetMs: number } {
-  const ip = getClientIp(request);
-  const key = ip;
-  const now = Date.now();
+function cleanup(entry: RateLimitEntry, windowMs: number): void {
+  const cutoff = Date.now() - windowMs;
+  entry.timestamps = entry.timestamps.filter((t) => t > cutoff);
+}
 
-  cleanup(key, opts.windowMs);
+export async function checkRateLimit(
+  request: Request,
+  opts: RateLimitOptions,
+): Promise<RateLimitResult> {
+  const key = getClientIp(request);
+
+  const edge = await checkEdgeLimit(key, opts);
+  if (edge) return edge;
 
   let entry = store.get(key);
   if (!entry) {
     entry = { timestamps: [] };
     store.set(key, entry);
   }
+  cleanup(entry, opts.windowMs);
 
   if (entry.timestamps.length >= opts.max) {
     const oldest = entry.timestamps[0]!;
-    const resetMs = oldest + opts.windowMs - now;
-    return { allowed: false, remaining: 0, resetMs };
+    return { allowed: false, resetMs: oldest + opts.windowMs - Date.now() };
   }
 
-  entry.timestamps.push(now);
-  return {
-    allowed: true,
-    remaining: opts.max - entry.timestamps.length,
-    resetMs: opts.windowMs,
-  };
+  entry.timestamps.push(Date.now());
+  return { allowed: true, resetMs: opts.windowMs };
 }
 
 export function rateLimitResponse(resetMs: number): Response {

@@ -13,47 +13,38 @@ describe("checkRateLimit", () => {
     return () => vi.useRealTimers();
   });
 
-  it("allows request within limit", () => {
-    const res = checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
+  it("allows request within limit", async () => {
+    const res = await checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
     expect(res.allowed).toBe(true);
-    expect(res.remaining).toBe(4);
+    expect(res.resetMs).toBe(60_000);
   });
 
-  it("blocks after exceeding limit", () => {
+  it("blocks after exceeding limit", async () => {
     for (let i = 0; i < 5; i++) {
-      checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
+      await checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
     }
-    const res = checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
+    const res = await checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
     expect(res.allowed).toBe(false);
-    expect(res.remaining).toBe(0);
+    expect(res.resetMs).toBeGreaterThan(0);
   });
 
-  it("tracks remaining correctly", () => {
-    checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 3 });
-    checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 3 });
-    const res = checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 3 });
-    expect(res.remaining).toBe(0);
-  });
-
-  it("resets after window expires", () => {
+  it("resets after window expires", async () => {
     for (let i = 0; i < 3; i++) {
-      checkRateLimit(fakeRequest(), { windowMs: 10_000, max: 3 });
+      await checkRateLimit(fakeRequest(), { windowMs: 10_000, max: 3 });
     }
     vi.advanceTimersByTime(10_001);
-    const res = checkRateLimit(fakeRequest(), { windowMs: 10_000, max: 3 });
+    const res = await checkRateLimit(fakeRequest(), { windowMs: 10_000, max: 3 });
     expect(res.allowed).toBe(true);
-    expect(res.remaining).toBe(2);
   });
 
-  it("tracks different IPs separately", () => {
+  it("tracks different IPs separately", async () => {
     for (let i = 0; i < 3; i++) {
-      checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });
+      await checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });
     }
-    const blocked = checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });
+    const blocked = await checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });
+    const other = await checkRateLimit(fakeRequest("2.2.2.2"), { windowMs: 60_000, max: 3 });
     expect(blocked.allowed).toBe(false);
-
-    const allowed = checkRateLimit(fakeRequest("2.2.2.2"), { windowMs: 60_000, max: 3 });
-    expect(allowed.allowed).toBe(true);
+    expect(other.allowed).toBe(true);
   });
 });
 

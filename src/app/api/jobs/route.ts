@@ -5,7 +5,11 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const limit = checkRateLimit(request, { windowMs: 60_000, max: 100 });
+  const limit = await checkRateLimit(request, {
+    binding: "JOBS_RATE_LIMITER",
+    windowMs: 60_000,
+    max: 100,
+  });
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
   const { searchParams } = new URL(request.url);

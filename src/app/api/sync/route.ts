@@ -5,7 +5,11 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const limit = checkRateLimit(request, { windowMs: 60_000, max: 5 });
+  const limit = await checkRateLimit(request, {
+    binding: "SYNC_RATE_LIMITER",
+    windowMs: 60_000,
+    max: 5,
+  });
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
   const results = await crawlAll();

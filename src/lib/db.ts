@@ -1,10 +1,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, asc, desc, eq, gte, like, lt, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
 import { freshnessCutoff } from "./freshness";
 import type { Job } from "./job";
-import { crawls, jobs } from "../db/schema";
 
 type Db = ReturnType<typeof drizzle>;
 
