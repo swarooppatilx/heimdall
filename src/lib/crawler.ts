@@ -10,8 +10,18 @@ export interface CrawlResult {
   error?: string;
 }
 
-export async function crawlAll(): Promise<CrawlResult[]> {
-  const registry = getRegistry();
+const TICK_MS = 15 * 60 * 1000;
+const TICKS_PER_SWEEP = 8;
+
+export function sweepSlice(entries: RegistryEntry[], now = Date.now()): RegistryEntry[] {
+  const sliceSize = Math.ceil(entries.length / TICKS_PER_SWEEP);
+  const ordinal = Math.floor(now / TICK_MS) % TICKS_PER_SWEEP;
+  const start = Math.min(ordinal * sliceSize, entries.length - sliceSize);
+  return entries.slice(start, start + sliceSize);
+}
+
+export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlResult[]> {
+  const registry = slice ?? getRegistry();
   const results: CrawlResult[] = [];
 
   const settled = await Promise.allSettled(registry.map((entry) => crawlOne(entry)));

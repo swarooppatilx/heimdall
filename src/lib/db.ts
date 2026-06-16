@@ -20,6 +20,10 @@ function getDb(): Promise<Db> {
   return _db;
 }
 
+export function bindDb(database: D1Database): void {
+  _db = Promise.resolve(drizzle(database));
+}
+
 function toJob(row: typeof jobs.$inferSelect): Job {
   return {
     id: row.id,
