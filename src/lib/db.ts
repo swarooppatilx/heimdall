@@ -1,4 +1,4 @@
-import { createClient, type Client } from "@libsql/client";
+import { type Client, createClient } from "@libsql/client";
 import { detectExperienceLevel } from "./experience";
 import { freshnessCutoff } from "./freshness";
 import type { Job } from "./job";
@@ -46,6 +46,11 @@ async function initClient(): Promise<Client> {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
+
+  await client.execute("CREATE INDEX IF NOT EXISTS idx_jobs_posted_at ON jobs (posted_at)");
+  await client.execute(
+    "CREATE INDEX IF NOT EXISTS idx_jobs_company_posted_at ON jobs (company, posted_at)",
+  );
 
   return client;
 }
@@ -97,11 +102,60 @@ export async function upsertJobs(jobs: Job[]): Promise<number> {
   return jobs.length;
 }
 
-export async function getAllJobs(): Promise<Job[]> {
+export interface JobFilters {
+  q?: string;
+  company?: string;
+  location?: string;
+  source?: string;
+  type?: string;
+  experience?: string;
+  posted?: string;
+}
+
+const POSTED_WINDOWS_MS: Record<string, number> = {
+  today: 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+};
+
+export async function searchJobs(filters: JobFilters): Promise<Job[]> {
   const client = await getClient();
+
+  const conditions = ["posted_at >= ?"];
+  const args: (string | number)[] = [freshnessCutoff()];
+
+  if (filters.q) {
+    conditions.push("(title LIKE ? OR location LIKE ? OR department LIKE ?)");
+    const needle = `%${filters.q}%`;
+    args.push(needle, needle, needle);
+  }
+  if (filters.company) {
+    conditions.push("company = ?");
+    args.push(filters.company);
+  }
+  if (filters.location) {
+    conditions.push("location LIKE ?");
+    args.push(`%${filters.location}%`);
+  }
+  if (filters.source) {
+    conditions.push("source = ?");
+    args.push(filters.source);
+  }
+  if (filters.type === "remote") {
+    conditions.push("location LIKE '%remote%'");
+  }
+  if (filters.experience) {
+    conditions.push("experience_level = ?");
+    args.push(filters.experience);
+  }
+  const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
+  if (windowMs) {
+    conditions.push("posted_at >= ?");
+    args.push(new Date(Date.now() - windowMs).toISOString());
+  }
+
   const result = await client.execute({
-    sql: "SELECT * FROM jobs WHERE posted_at >= ? ORDER BY posted_at DESC",
-    args: [freshnessCutoff()],
+    sql: `SELECT * FROM jobs WHERE ${conditions.join(" AND ")} ORDER BY posted_at DESC`,
+    args,
   });
   return result.rows.map(toJob);
 }

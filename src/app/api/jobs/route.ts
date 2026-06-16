@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllJobs } from "@/lib/db";
+import { searchJobs } from "@/lib/db";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -9,60 +9,15 @@ export async function GET(request: Request) {
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q")?.toLowerCase() ?? "";
-  const company = searchParams.get("company")?.toLowerCase() ?? "";
-  const location = searchParams.get("location")?.toLowerCase() ?? "";
-  const type = searchParams.get("type") ?? "";
-  const experience = searchParams.get("experience")?.toLowerCase() ?? "";
-  const posted = searchParams.get("posted") ?? "";
-  const source = searchParams.get("source")?.toLowerCase() ?? "";
-
-  let jobs = await getAllJobs();
-
-  if (query) {
-    jobs = jobs.filter(
-      (job) =>
-        job.title.toLowerCase().includes(query) ||
-        job.location.toLowerCase().includes(query) ||
-        job.department.toLowerCase().includes(query),
-    );
-  }
-
-  if (company) {
-    jobs = jobs.filter((job) => job.company.toLowerCase() === company);
-  }
-
-  if (location) {
-    jobs = jobs.filter((job) => job.location.toLowerCase().includes(location));
-  }
-
-  if (source) {
-    jobs = jobs.filter((job) => job.source.toLowerCase() === source);
-  }
-
-  if (type) {
-    jobs = jobs.filter((job) => {
-      const l = job.location.toLowerCase();
-      if (type === "remote") return l.includes("remote");
-      return true;
-    });
-  }
-
-  if (experience) {
-    jobs = jobs.filter((job) => job.experienceLevel === experience);
-  }
-
-  if (posted) {
-    const now = Date.now();
-    const ms: Record<string, number> = {
-      today: 24 * 60 * 60 * 1000,
-      week: 7 * 24 * 60 * 60 * 1000,
-    };
-    const maxAge = ms[posted];
-    if (maxAge) {
-      jobs = jobs.filter((job) => now - job.postedAt.getTime() <= maxAge);
-    }
-  }
+  const jobs = await searchJobs({
+    q: searchParams.get("q")?.toLowerCase() || undefined,
+    company: searchParams.get("company")?.toLowerCase() || undefined,
+    location: searchParams.get("location")?.toLowerCase() || undefined,
+    source: searchParams.get("source")?.toLowerCase() || undefined,
+    type: searchParams.get("type") || undefined,
+    experience: searchParams.get("experience")?.toLowerCase() || undefined,
+    posted: searchParams.get("posted") || undefined,
+  });
 
   return NextResponse.json(jobs);
 }
