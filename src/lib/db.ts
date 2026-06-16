@@ -1,105 +1,37 @@
-import { type Client, createClient } from "@libsql/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { and, asc, desc, eq, gte, like, lt, or, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import { detectExperienceLevel } from "./experience";
 import { freshnessCutoff } from "./freshness";
 import type { Job } from "./job";
+import { crawls, jobs } from "../db/schema";
 
-const LIBSQL_URL = process.env.LIBSQL_URL ?? "file:heimdall.db";
+type Db = ReturnType<typeof drizzle>;
 
-let _client: Promise<Client> | null = null;
+let _db: Promise<Db> | null = null;
 
-function getClient(): Promise<Client> {
-  if (!_client) {
-    _client = initClient();
+function getDb(): Promise<Db> {
+  if (!_db) {
+    _db = (async () => {
+      const { env } = await getCloudflareContext();
+      return drizzle(env.DB);
+    })();
   }
-  return _client;
+  return _db;
 }
 
-async function initClient(): Promise<Client> {
-  const client = createClient({
-    url: LIBSQL_URL,
-    authToken: process.env.LIBSQL_AUTH_TOKEN,
-  });
-
-  await client.execute(`
-    CREATE TABLE IF NOT EXISTS jobs (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      company TEXT NOT NULL,
-      location TEXT NOT NULL,
-      department TEXT NOT NULL,
-      url TEXT NOT NULL,
-      posted_at TEXT NOT NULL,
-      source TEXT NOT NULL,
-      experience_level TEXT NOT NULL DEFAULT 'mid',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-
-  await client.execute(`
-    CREATE TABLE IF NOT EXISTS crawls (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      company TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'ok',
-      jobs_found INTEGER NOT NULL DEFAULT 0,
-      duration_ms INTEGER NOT NULL DEFAULT 0,
-      error TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-
-  await client.execute("CREATE INDEX IF NOT EXISTS idx_jobs_posted_at ON jobs (posted_at)");
-  await client.execute(
-    "CREATE INDEX IF NOT EXISTS idx_jobs_company_posted_at ON jobs (company, posted_at)",
-  );
-
-  return client;
-}
-
-function toJob(row: Record<string, unknown>): Job {
+function toJob(row: typeof jobs.$inferSelect): Job {
   return {
-    id: String(row.id),
-    title: String(row.title),
-    company: String(row.company),
-    location: String(row.location),
-    department: String(row.department),
-    url: String(row.url),
-    postedAt: new Date(String(row.posted_at)),
-    source: String(row.source),
-    experienceLevel: String(row.experience_level),
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    department: row.department,
+    url: row.url,
+    postedAt: new Date(row.postedAt),
+    source: row.source,
+    experienceLevel: row.experienceLevel,
   };
-}
-
-export async function upsertJobs(jobs: Job[]): Promise<number> {
-  const client = await getClient();
-  if (jobs.length === 0) return 0;
-
-  const statements = jobs.map((job) => ({
-    sql: `
-      INSERT INTO jobs (id, title, company, location, department, url, posted_at, source, experience_level)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        title = excluded.title,
-        location = excluded.location,
-        department = excluded.department,
-        url = excluded.url,
-        posted_at = excluded.posted_at,
-        experience_level = excluded.experience_level
-    `,
-    args: [
-      job.id,
-      job.title,
-      job.company,
-      job.location,
-      job.department,
-      job.url,
-      job.postedAt.toISOString(),
-      job.source,
-      detectExperienceLevel(job.title),
-    ],
-  }));
-
-  await client.batch(statements, "write");
-  return jobs.length;
 }
 
 export interface JobFilters {
@@ -118,46 +50,87 @@ const POSTED_WINDOWS_MS: Record<string, number> = {
 };
 
 export async function searchJobs(filters: JobFilters): Promise<Job[]> {
-  const client = await getClient();
+  const db = await getDb();
 
-  const conditions = ["posted_at >= ?"];
-  const args: (string | number)[] = [freshnessCutoff()];
+  const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
   if (filters.q) {
-    conditions.push("(title LIKE ? OR location LIKE ? OR department LIKE ?)");
     const needle = `%${filters.q}%`;
-    args.push(needle, needle, needle);
+    const matchesAnyColumn = or(
+      like(jobs.title, needle),
+      like(jobs.location, needle),
+      like(jobs.department, needle),
+    );
+    if (matchesAnyColumn) {
+      conditions.push(matchesAnyColumn);
+    }
   }
   if (filters.company) {
-    conditions.push("company = ?");
-    args.push(filters.company);
+    conditions.push(eq(jobs.company, filters.company));
   }
   if (filters.location) {
-    conditions.push("location LIKE ?");
-    args.push(`%${filters.location}%`);
+    conditions.push(like(jobs.location, `%${filters.location}%`));
   }
   if (filters.source) {
-    conditions.push("source = ?");
-    args.push(filters.source);
+    conditions.push(eq(jobs.source, filters.source));
   }
   if (filters.type === "remote") {
-    conditions.push("location LIKE '%remote%'");
+    conditions.push(like(jobs.location, "%remote%"));
   }
   if (filters.experience) {
-    conditions.push("experience_level = ?");
-    args.push(filters.experience);
+    conditions.push(eq(jobs.experienceLevel, filters.experience));
   }
   const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
   if (windowMs) {
-    conditions.push("posted_at >= ?");
-    args.push(new Date(Date.now() - windowMs).toISOString());
+    conditions.push(gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString()));
   }
 
-  const result = await client.execute({
-    sql: `SELECT * FROM jobs WHERE ${conditions.join(" AND ")} ORDER BY posted_at DESC`,
-    args,
-  });
-  return result.rows.map(toJob);
+  const rows = await db
+    .select()
+    .from(jobs)
+    .where(and(...conditions))
+    .orderBy(desc(jobs.postedAt));
+  return rows.map(toJob);
+}
+
+const UPSERT_CHUNK = 100;
+
+export async function upsertJobs(items: Job[]): Promise<number> {
+  if (items.length === 0) return 0;
+
+  const db = await getDb();
+  for (let i = 0; i < items.length; i += UPSERT_CHUNK) {
+    const chunk = items.slice(i, i + UPSERT_CHUNK);
+    const statements = chunk.map((job) => {
+      const values = {
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        department: job.department,
+        url: job.url,
+        postedAt: job.postedAt.toISOString(),
+        source: job.source,
+        experienceLevel: detectExperienceLevel(job.title),
+      };
+      return db
+        .insert(jobs)
+        .values(values)
+        .onConflictDoUpdate({
+          target: jobs.id,
+          set: {
+            title: values.title,
+            location: values.location,
+            department: values.department,
+            url: values.url,
+            postedAt: values.postedAt,
+            experienceLevel: values.experienceLevel,
+          },
+        });
+    });
+    await db.batch(statements as never);
+  }
+  return items.length;
 }
 
 export async function getFilterOptions(): Promise<{
@@ -165,36 +138,40 @@ export async function getFilterOptions(): Promise<{
   locations: string[];
   sources: string[];
 }> {
-  const client = await getClient();
-  const cutoff = freshnessCutoff();
+  const db = await getDb();
+  const fresh = gte(jobs.postedAt, freshnessCutoff());
 
-  const companies = await client.execute({
-    sql: "SELECT DISTINCT company FROM jobs WHERE posted_at >= ? ORDER BY company",
-    args: [cutoff],
-  });
-  const locations = await client.execute({
-    sql: "SELECT DISTINCT location FROM jobs WHERE posted_at >= ? ORDER BY location",
-    args: [cutoff],
-  });
-  const sources = await client.execute({
-    sql: "SELECT DISTINCT source FROM jobs WHERE posted_at >= ? ORDER BY source",
-    args: [cutoff],
-  });
+  const companies = await db
+    .selectDistinct({ value: jobs.company })
+    .from(jobs)
+    .where(fresh)
+    .orderBy(asc(jobs.company));
+  const locations = await db
+    .selectDistinct({ value: jobs.location })
+    .from(jobs)
+    .where(fresh)
+    .orderBy(asc(jobs.location));
+  const sources = await db
+    .selectDistinct({ value: jobs.source })
+    .from(jobs)
+    .where(fresh)
+    .orderBy(asc(jobs.source));
 
   return {
-    companies: companies.rows.map((r) => String(r.company)),
-    locations: locations.rows.map((r) => String(r.location)),
-    sources: sources.rows.map((r) => String(r.source)),
+    companies: companies.map((r) => r.value),
+    locations: locations.map((r) => r.value),
+    sources: sources.map((r) => r.value),
   };
 }
 
 export async function getJobsByCompany(company: string): Promise<Job[]> {
-  const client = await getClient();
-  const result = await client.execute({
-    sql: "SELECT * FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY posted_at DESC",
-    args: [company, freshnessCutoff()],
-  });
-  return result.rows.map(toJob);
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.company, company), gte(jobs.postedAt, freshnessCutoff())))
+    .orderBy(desc(jobs.postedAt));
+  return rows.map(toJob);
 }
 
 export async function getCompanyStats(company: string): Promise<{
@@ -203,50 +180,47 @@ export async function getCompanyStats(company: string): Promise<{
   locations: string[];
   sources: string[];
 }> {
-  const client = await getClient();
-  const cutoff = freshnessCutoff();
+  const db = await getDb();
+  const scope = and(eq(jobs.company, company), gte(jobs.postedAt, freshnessCutoff()));
 
-  const total = await client.execute({
-    sql: "SELECT COUNT(*) AS count FROM jobs WHERE company = ? AND posted_at >= ?",
-    args: [company, cutoff],
-  });
-  const departments = await client.execute({
-    sql: "SELECT DISTINCT department FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY department",
-    args: [company, cutoff],
-  });
-  const locations = await client.execute({
-    sql: "SELECT DISTINCT location FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY location",
-    args: [company, cutoff],
-  });
-  const sources = await client.execute({
-    sql: "SELECT DISTINCT source FROM jobs WHERE company = ? AND posted_at >= ? ORDER BY source",
-    args: [company, cutoff],
-  });
+  const totalRows = await db.select({ count: sql<number>`count(*)` }).from(jobs).where(scope);
+  const departments = await db
+    .selectDistinct({ value: jobs.department })
+    .from(jobs)
+    .where(scope)
+    .orderBy(asc(jobs.department));
+  const locations = await db
+    .selectDistinct({ value: jobs.location })
+    .from(jobs)
+    .where(scope)
+    .orderBy(asc(jobs.location));
+  const sources = await db
+    .selectDistinct({ value: jobs.source })
+    .from(jobs)
+    .where(scope)
+    .orderBy(asc(jobs.source));
 
   return {
-    total: Number(total.rows[0]?.count ?? 0),
-    departments: departments.rows.map((r) => String(r.department)),
-    locations: locations.rows.map((r) => String(r.location)),
-    sources: sources.rows.map((r) => String(r.source)),
+    total: Number(totalRows[0]?.count ?? 0),
+    departments: departments.map((r) => r.value),
+    locations: locations.map((r) => r.value),
+    sources: sources.map((r) => r.value),
   };
 }
 
 export async function getJobCount(): Promise<number> {
-  const client = await getClient();
-  const result = await client.execute({
-    sql: "SELECT COUNT(*) as count FROM jobs WHERE posted_at >= ?",
-    args: [freshnessCutoff()],
-  });
-  return Number(result.rows[0]?.count ?? 0);
+  const db = await getDb();
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(jobs)
+    .where(gte(jobs.postedAt, freshnessCutoff()));
+  return Number(rows[0]?.count ?? 0);
 }
 
 export async function deleteStaleJobs(): Promise<number> {
-  const client = await getClient();
-  const result = await client.execute({
-    sql: "DELETE FROM jobs WHERE posted_at < ?",
-    args: [freshnessCutoff()],
-  });
-  return result.rowsAffected;
+  const db = await getDb();
+  const result = await db.delete(jobs).where(lt(jobs.postedAt, freshnessCutoff()));
+  return result.meta.changes ?? 0;
 }
 
 export async function recordCrawl(
@@ -256,10 +230,13 @@ export async function recordCrawl(
   durationMs: number,
   error?: string,
 ): Promise<void> {
-  const client = await getClient();
-  await client.execute({
-    sql: "INSERT INTO crawls (company, status, jobs_found, duration_ms, error) VALUES (?, ?, ?, ?, ?)",
-    args: [company, status, jobsFound, durationMs, error ?? null],
+  const db = await getDb();
+  await db.insert(crawls).values({
+    company,
+    status,
+    jobsFound,
+    durationMs,
+    error: error ?? null,
   });
 }
 
@@ -272,29 +249,28 @@ interface CrawlRecord {
   createdAt: string;
 }
 
-function toCrawlRecord(row: Record<string, unknown>): CrawlRecord {
+function toCrawlRecord(row: typeof crawls.$inferSelect): CrawlRecord {
   return {
-    company: String(row.company),
-    status: String(row.status),
-    jobsFound: Number(row.jobsFound),
-    durationMs: Number(row.durationMs),
-    error: row.error === null ? null : String(row.error),
-    createdAt: String(row.createdAt),
+    company: row.company,
+    status: row.status,
+    jobsFound: row.jobsFound,
+    durationMs: row.durationMs,
+    error: row.error,
+    createdAt: row.createdAt,
   };
 }
 
 export async function getCrawlHistory(): Promise<CrawlRecord[]> {
-  const client = await getClient();
-  const result = await client.execute(
-    "SELECT company, status, jobs_found as jobsFound, duration_ms as durationMs, error, created_at as createdAt FROM crawls ORDER BY created_at DESC LIMIT 100",
-  );
-  return result.rows.map(toCrawlRecord);
+  const db = await getDb();
+  const rows = await db.select().from(crawls).orderBy(desc(crawls.createdAt)).limit(100);
+  return rows.map(toCrawlRecord);
 }
 
 export async function getLatestCrawls(): Promise<CrawlRecord[]> {
-  const client = await getClient();
-  const result = await client.execute(
-    "SELECT company, status, jobs_found as jobsFound, duration_ms as durationMs, error, created_at as createdAt FROM crawls WHERE id IN (SELECT MAX(id) FROM crawls GROUP BY company)",
-  );
-  return result.rows.map(toCrawlRecord);
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(crawls)
+    .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`);
+  return rows.map(toCrawlRecord);
 }
