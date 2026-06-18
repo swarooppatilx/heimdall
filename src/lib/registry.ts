@@ -18,8 +18,6 @@ const registry: RegistryEntry[] = [
   { name: "doximity", provider: "greenhouse", board: "doximity" },
   { name: "lightrun", provider: "greenhouse", board: "lightrun" },
   { name: "relativity", provider: "greenhouse", board: "relativity" },
-  { name: "lever", provider: "lever", board: "leverdemo" },
-  { name: "ashby", provider: "ashby", board: "ashby" },
   { name: "notion", provider: "ashby", board: "notion" },
   { name: "vercel", provider: "ashby", board: "vercel" },
   { name: "posthog", provider: "ashby", board: "posthog" },
