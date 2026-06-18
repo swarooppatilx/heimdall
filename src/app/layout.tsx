@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://heimdall.dev",
+    canonical: SITE_URL,
   },
 };
 
@@ -49,11 +49,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Heimdall",
-    url: "https://heimdall.dev",
+    url: SITE_URL,
     description: "Fresh, verified tech job opportunities from official company career pages.",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://heimdall.dev/?q={search_term_string}",
+      target: `${SITE_URL}/?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
