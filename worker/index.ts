@@ -15,7 +15,7 @@ interface ExecutionContext {
 
 export default {
   fetch: handler.fetch,
-  async scheduled(controller: ScheduledController, env: CloudflareEnv, ctx: ExecutionContext) {
+  scheduled(controller: ScheduledController, env: CloudflareEnv, ctx: ExecutionContext) {
     ctx.waitUntil(
       (async () => {
         bindDb(env.DB);
