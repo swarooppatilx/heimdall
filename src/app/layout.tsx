@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], display: "swap", variable: "--font-geist" });
@@ -11,7 +12,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://heimdall.dev"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Heimdall — Fresh Tech Jobs",
     template: "%s | Heimdall",
