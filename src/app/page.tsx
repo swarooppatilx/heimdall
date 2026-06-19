@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
@@ -76,7 +76,6 @@ function useJobFilters(filters: {
 }
 
 function JobsPage() {
-  const queryClient = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useQueryParam("q", "");
@@ -99,15 +98,6 @@ function JobsPage() {
   const { data: crawlStatus } = useQuery<{ latest: CrawlStatusEntry[] }>({
     queryKey: ["crawlStatus"],
     queryFn: () => fetch("/api/crawl/status").then((r) => r.json()),
-  });
-
-  const syncMutation = useMutation({
-    mutationFn: () => fetch("/api/sync", { method: "POST" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["filters"] });
-      queryClient.invalidateQueries({ queryKey: ["crawlStatus"] });
-    },
   });
 
   useEffect(() => {
@@ -166,17 +156,6 @@ function JobsPage() {
                 last sync {timeAgo(crawlStatus.latest[0]!.createdAt)}
               </span>
             )}
-            <button
-              type="button"
-              onClick={() => syncMutation.mutate()}
-              disabled={syncMutation.isPending}
-              className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
-              aria-label={
-                syncMutation.isPending ? "Syncing jobs from providers" : "Sync jobs from providers"
-              }
-            >
-              {syncMutation.isPending ? "syncing..." : "sync"}
-            </button>
           </div>
         </div>
       </header>
