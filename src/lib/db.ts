@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, asc, desc, eq, gte, like, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, like, lt, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
@@ -110,44 +110,79 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   return rows.map(toJob);
 }
 
-const UPSERT_CHUNK = 100;
+const CHUNK_SIZE = 100;
 
-export async function upsertJobs(items: Job[]): Promise<number> {
-  if (items.length === 0) return 0;
+function chunk<T>(items: T[]): T[][] {
+  const pages: T[][] = [];
+  for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+    pages.push(items.slice(i, i + CHUNK_SIZE));
+  }
+  return pages;
+}
 
+function toRow(job: Job): typeof jobs.$inferInsert {
+  return {
+    id: job.id,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    department: job.department,
+    url: job.url,
+    postedAt: job.postedAt.toISOString(),
+    source: job.source,
+    experienceLevel: detectExperienceLevel(job.title),
+  };
+}
+
+export async function getJobsByIds(ids: string[]): Promise<Job[]> {
   const db = await getDb();
-  for (let i = 0; i < items.length; i += UPSERT_CHUNK) {
-    const chunk = items.slice(i, i + UPSERT_CHUNK);
-    const statements = chunk.map((job) => {
-      const values = {
-        id: job.id,
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        department: job.department,
-        url: job.url,
-        postedAt: job.postedAt.toISOString(),
-        source: job.source,
-        experienceLevel: detectExperienceLevel(job.title),
-      };
+  const rows: (typeof jobs.$inferSelect)[] = [];
+  for (const page of chunk(ids)) {
+    const result = await db.select().from(jobs).where(inArray(jobs.id, page));
+    rows.push(...result);
+  }
+  return rows.map(toJob);
+}
+
+export async function insertJobs(items: Job[]): Promise<void> {
+  if (items.length === 0) return;
+  const db = await getDb();
+  for (const page of chunk(items)) {
+    const statements = page.map((job) =>
+      db.insert(jobs).values(toRow(job)).onConflictDoNothing({ target: jobs.id }),
+    );
+    await db.batch(statements as never);
+  }
+}
+
+export async function updateJobs(items: Job[]): Promise<void> {
+  if (items.length === 0) return;
+  const db = await getDb();
+  for (const page of chunk(items)) {
+    const statements = page.map((job) => {
+      const values = toRow(job);
       return db
-        .insert(jobs)
-        .values(values)
-        .onConflictDoUpdate({
-          target: jobs.id,
-          set: {
-            title: values.title,
-            location: values.location,
-            department: values.department,
-            url: values.url,
-            postedAt: values.postedAt,
-            experienceLevel: values.experienceLevel,
-          },
-        });
+        .update(jobs)
+        .set({
+          title: values.title,
+          location: values.location,
+          department: values.department,
+          url: values.url,
+          postedAt: values.postedAt,
+          experienceLevel: values.experienceLevel,
+        })
+        .where(eq(jobs.id, job.id));
     });
     await db.batch(statements as never);
   }
-  return items.length;
+}
+
+export async function deleteJobsByIds(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const db = await getDb();
+  for (const page of chunk(ids)) {
+    await db.delete(jobs).where(inArray(jobs.id, page));
+  }
 }
 
 export async function getFilterOptions(): Promise<{

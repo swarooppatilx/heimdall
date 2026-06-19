@@ -1,4 +1,12 @@
-import { deleteStaleJobs, recordCrawl, upsertJobs } from "./db";
+import {
+  deleteJobsByIds,
+  deleteStaleJobs,
+  getJobsByIds,
+  insertJobs,
+  recordCrawl,
+  updateJobs,
+} from "./db";
+import { diffJobs } from "./diff";
 import { fetchJobs } from "./fetch-jobs";
 import { getRegistry, type RegistryEntry } from "./registry";
 
@@ -54,7 +62,11 @@ async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {
   const start = Date.now();
   try {
     const jobs = await fetchJobs(entry);
-    await upsertJobs(jobs);
+    const existing = await getJobsByIds(jobs.map((job) => job.id));
+    const diff = diffJobs(existing, jobs);
+    await insertJobs(diff.inserts);
+    await updateJobs(diff.updates);
+    await deleteJobsByIds(diff.deletedIds);
     const durationMs = Date.now() - start;
     await recordCrawl(entry.name, "ok", jobs.length, durationMs);
     return {
