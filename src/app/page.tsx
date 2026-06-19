@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
@@ -49,7 +49,9 @@ function useQueryParam(key: string, initial: string): [string, (v: string) => vo
   return [value, setValue];
 }
 
-function useJobFilters(filters: {
+const PAGE_SIZE = 200;
+
+interface JobFiltersInput {
   q: string;
   company: string;
   location: string;
@@ -57,10 +59,12 @@ function useJobFilters(filters: {
   experience: string;
   posted: string;
   source: string;
-}) {
-  return useQuery<Job[]>({
+}
+
+function useJobFilters(filters: JobFiltersInput) {
+  return useInfiniteQuery({
     queryKey: ["jobs", filters],
-    queryFn: async () => {
+    queryFn: async ({ pageParam }): Promise<Job[]> => {
       const params = new URLSearchParams();
       if (filters.q) params.set("q", filters.q);
       if (filters.company) params.set("company", filters.company);
@@ -69,10 +73,14 @@ function useJobFilters(filters: {
       if (filters.experience) params.set("experience", filters.experience);
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
-      params.set("limit", "200");
+      if (pageParam) params.set("offset", String(pageParam));
+      params.set("limit", String(PAGE_SIZE));
       const res = await fetch(`/api/jobs?${params}`);
       return res.json();
     },
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
   });
 }
 
@@ -89,7 +97,14 @@ function JobsPage() {
 
   const filters = { q: query, company, location, type, experience, posted, source };
 
-  const { data: jobs = [], isLoading } = useJobFilters(filters);
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useJobFilters(filters);
+  const jobs = data?.pages.flat() ?? [];
 
   const { data: filterOptions } = useQuery<FilterOptions>({
     queryKey: ["filters"],
@@ -346,6 +361,19 @@ function JobsPage() {
             </li>
           ))}
         </ul>
+
+        {hasNextPage && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="rounded-md border border-zinc-800 px-4 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+            >
+              {isFetchingNextPage ? "loading..." : "load more jobs"}
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
