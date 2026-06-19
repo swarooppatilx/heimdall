@@ -47,15 +47,18 @@ describe("GET /api/jobs", () => {
 
   it("searches with empty filters when no params are given", async () => {
     const res = await GET(makeRequest());
-    expect(mockSearchJobs).toHaveBeenCalledWith({
-      q: undefined,
-      company: undefined,
-      location: undefined,
-      source: undefined,
-      type: undefined,
-      experience: undefined,
-      posted: undefined,
-    });
+    expect(mockSearchJobs).toHaveBeenCalledWith(
+      {
+        q: undefined,
+        company: undefined,
+        location: undefined,
+        source: undefined,
+        type: undefined,
+        experience: undefined,
+        posted: undefined,
+      },
+      { limit: undefined, offset: undefined },
+    );
     expect(await readJobs(res)).toEqual(JSON.parse(JSON.stringify(jobs)));
   });
 
@@ -63,27 +66,38 @@ describe("GET /api/jobs", () => {
     await GET(
       makeRequest({ q: "Designer", company: "Discord", location: "Remote", source: "Ashby" }),
     );
-    expect(mockSearchJobs).toHaveBeenCalledWith({
-      q: "designer",
-      company: "discord",
-      location: "remote",
-      source: "ashby",
-      type: undefined,
-      experience: undefined,
-      posted: undefined,
-    });
+    expect(mockSearchJobs).toHaveBeenCalledWith(
+      {
+        q: "designer",
+        company: "discord",
+        location: "remote",
+        source: "ashby",
+        type: undefined,
+        experience: undefined,
+        posted: undefined,
+      },
+      { limit: undefined, offset: undefined },
+    );
   });
 
   it("passes through enum filters untouched", async () => {
     await GET(makeRequest({ type: "remote", experience: "senior", posted: "week" }));
-    expect(mockSearchJobs).toHaveBeenCalledWith({
-      q: undefined,
-      company: undefined,
-      location: undefined,
-      source: undefined,
-      type: "remote",
-      experience: "senior",
-      posted: "week",
-    });
+    expect(mockSearchJobs).toHaveBeenCalledWith(
+      {
+        q: undefined,
+        company: undefined,
+        location: undefined,
+        source: undefined,
+        type: "remote",
+        experience: "senior",
+        posted: "week",
+      },
+      { limit: undefined, offset: undefined },
+    );
+  });
+
+  it("passes pagination params through", async () => {
+    await GET(makeRequest({ limit: "50", offset: "100" }));
+    expect(mockSearchJobs).toHaveBeenCalledWith(expect.anything(), { limit: 50, offset: 100 });
   });
 });

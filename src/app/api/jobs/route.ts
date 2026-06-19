@@ -13,15 +13,22 @@ export async function GET(request: Request) {
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
   const { searchParams } = new URL(request.url);
-  const jobs = await searchJobs({
-    q: searchParams.get("q")?.toLowerCase() || undefined,
-    company: searchParams.get("company")?.toLowerCase() || undefined,
-    location: searchParams.get("location")?.toLowerCase() || undefined,
-    source: searchParams.get("source")?.toLowerCase() || undefined,
-    type: searchParams.get("type") || undefined,
-    experience: searchParams.get("experience")?.toLowerCase() || undefined,
-    posted: searchParams.get("posted") || undefined,
-  });
+  const parseIntParam = (key: string): number | undefined => {
+    const value = Number.parseInt(searchParams.get(key) ?? "", 10);
+    return Number.isNaN(value) ? undefined : value;
+  };
+  const jobs = await searchJobs(
+    {
+      q: searchParams.get("q")?.toLowerCase() || undefined,
+      company: searchParams.get("company")?.toLowerCase() || undefined,
+      location: searchParams.get("location")?.toLowerCase() || undefined,
+      source: searchParams.get("source")?.toLowerCase() || undefined,
+      type: searchParams.get("type") || undefined,
+      experience: searchParams.get("experience")?.toLowerCase() || undefined,
+      posted: searchParams.get("posted") || undefined,
+    },
+    { limit: parseIntParam("limit"), offset: parseIntParam("offset") },
+  );
 
   return NextResponse.json(jobs);
 }

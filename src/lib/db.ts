@@ -53,7 +53,15 @@ const POSTED_WINDOWS_MS: Record<string, number> = {
   week: 7 * 24 * 60 * 60 * 1000,
 };
 
-export async function searchJobs(filters: JobFilters): Promise<Job[]> {
+export interface PageOptions {
+  limit?: number;
+  offset?: number;
+}
+
+const DEFAULT_LIMIT = 200;
+const MAX_LIMIT = 500;
+
+export async function searchJobs(filters: JobFilters, page?: PageOptions): Promise<Job[]> {
   const db = await getDb();
 
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
@@ -89,11 +97,16 @@ export async function searchJobs(filters: JobFilters): Promise<Job[]> {
     conditions.push(gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString()));
   }
 
+  const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
+  const offset = Math.max(page?.offset ?? 0, 0);
+
   const rows = await db
     .select()
     .from(jobs)
     .where(and(...conditions))
-    .orderBy(desc(jobs.postedAt));
+    .orderBy(desc(jobs.postedAt))
+    .limit(limit)
+    .offset(offset);
   return rows.map(toJob);
 }
 

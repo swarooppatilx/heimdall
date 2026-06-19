@@ -69,6 +69,7 @@ function useJobFilters(filters: {
       if (filters.experience) params.set("experience", filters.experience);
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
+      params.set("limit", "200");
       const res = await fetch(`/api/jobs?${params}`);
       return res.json();
     },
