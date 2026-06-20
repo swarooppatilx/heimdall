@@ -1,3 +1,4 @@
+import { FRESHNESS_DAYS } from "./freshness";
 import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
@@ -14,8 +15,6 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   smartrecruiters: fetchSmartRecruitersJobs,
 };
 
-const MAX_AGE_DAYS = 15;
-
 export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   const fetchProviderJobs = PROVIDERS[entry.provider];
 
@@ -28,6 +27,6 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   return jobs.filter((job) => {
     const ageMs = Date.now() - job.postedAt.getTime();
     const ageDays = ageMs / (1000 * 60 * 60 * 24);
-    return ageDays <= MAX_AGE_DAYS;
+    return ageDays <= FRESHNESS_DAYS;
   });
 }
