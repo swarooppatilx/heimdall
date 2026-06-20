@@ -70,6 +70,7 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
     const needle = `%${filters.q}%`;
     const matchesAnyColumn = or(
       like(jobs.title, needle),
+      like(jobs.company, needle),
       like(jobs.location, needle),
       like(jobs.department, needle),
     );
