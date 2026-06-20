@@ -25,7 +25,7 @@ function mapJob(raw: GreenhouseJob, board: string): Job {
 
 export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  const res = await fetch(url);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch jobs from ${board}: ${res.status}`);

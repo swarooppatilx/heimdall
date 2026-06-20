@@ -52,7 +52,7 @@ export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> 
 
   while (true) {
     const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${limit}&offset=${offset}`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);

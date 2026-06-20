@@ -92,8 +92,6 @@ describe("fetchAshbyJobs", () => {
 
     await fetchAshbyJobs("mycompany");
 
-    expect(fetch).toHaveBeenCalledWith("https://api.ashbyhq.com/posting-api/job-board/mycompany", {
-      next: { revalidate: 3600 },
-    });
+    expect(fetch).toHaveBeenCalledWith("https://api.ashbyhq.com/posting-api/job-board/mycompany");
   });
 });

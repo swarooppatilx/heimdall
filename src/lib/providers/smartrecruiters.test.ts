@@ -167,8 +167,7 @@ describe("fetchSmartRecruitersJobs", () => {
     await fetchSmartRecruitersJobs("mycompany");
 
     expect(fetch).toHaveBeenCalledWith(
-      "https://api.smartrecruiters.com/v1/companies/mycompany/postings?limit=100&offset=0",
-      { next: { revalidate: 3600 } },
+      "https://api.smartrecruiters.com/v1/companies/mycompany/postings?limit=100&offset=0"
     );
   });
 });

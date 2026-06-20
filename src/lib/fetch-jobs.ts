@@ -5,22 +5,25 @@ import { fetchLeverJobs } from "./providers/lever";
 import { fetchSmartRecruitersJobs } from "./providers/smartrecruiters";
 import type { RegistryEntry } from "./registry";
 
+export type ProviderFetcher = (board: string) => Promise<Job[]>;
+
+const PROVIDERS: Record<string, ProviderFetcher> = {
+  greenhouse: fetchGreenhouseJobs,
+  lever: fetchLeverJobs,
+  ashby: fetchAshbyJobs,
+  smartrecruiters: fetchSmartRecruitersJobs,
+};
+
 const MAX_AGE_DAYS = 15;
 
 export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
-  let jobs: Job[];
+  const fetchProviderJobs = PROVIDERS[entry.provider];
 
-  if (entry.provider === "greenhouse") {
-    jobs = await fetchGreenhouseJobs(entry.board);
-  } else if (entry.provider === "lever") {
-    jobs = await fetchLeverJobs(entry.board);
-  } else if (entry.provider === "ashby") {
-    jobs = await fetchAshbyJobs(entry.board);
-  } else if (entry.provider === "smartrecruiters") {
-    jobs = await fetchSmartRecruitersJobs(entry.board);
-  } else {
+  if (!fetchProviderJobs) {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
+
+  const jobs = await fetchProviderJobs(entry.board);
 
   return jobs.filter((job) => {
     const ageMs = Date.now() - job.postedAt.getTime();

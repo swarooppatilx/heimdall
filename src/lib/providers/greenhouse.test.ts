@@ -94,8 +94,6 @@ describe("fetchGreenhouseJobs", () => {
 
     await fetchGreenhouseJobs("discord");
 
-    expect(fetch).toHaveBeenCalledWith("https://boards-api.greenhouse.io/v1/boards/discord/jobs", {
-      next: { revalidate: 3600 },
-    });
+    expect(fetch).toHaveBeenCalledWith("https://boards-api.greenhouse.io/v1/boards/discord/jobs");
   });
 });

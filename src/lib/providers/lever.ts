@@ -27,7 +27,7 @@ function mapJob(raw: LeverPosting, company: string): Job {
 
 export async function fetchLeverJobs(company: string): Promise<Job[]> {
   const url = `https://api.lever.co/v0/postings/${company}`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  const res = await fetch(url);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);

@@ -25,7 +25,7 @@ function mapJob(raw: AshbyJob, company: string): Job {
 
 export async function fetchAshbyJobs(company: string): Promise<Job[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${company}`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  const res = await fetch(url);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);

@@ -83,8 +83,6 @@ describe("fetchLeverJobs", () => {
 
     await fetchLeverJobs("testco");
 
-    expect(fetch).toHaveBeenCalledWith("https://api.lever.co/v0/postings/testco", {
-      next: { revalidate: 3600 },
-    });
+    expect(fetch).toHaveBeenCalledWith("https://api.lever.co/v0/postings/testco");
   });
 });
