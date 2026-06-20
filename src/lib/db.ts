@@ -236,22 +236,16 @@ export async function getCompanyStats(company: string): Promise<{
   const db = await getDb();
   const scope = and(eq(jobs.company, company), gte(jobs.postedAt, freshnessCutoff()));
 
-  const totalRows = await db.select({ count: sql<number>`count(*)` }).from(jobs).where(scope);
-  const departments = await db
-    .selectDistinct({ value: jobs.department })
-    .from(jobs)
-    .where(scope)
-    .orderBy(asc(jobs.department));
-  const locations = await db
-    .selectDistinct({ value: jobs.location })
-    .from(jobs)
-    .where(scope)
-    .orderBy(asc(jobs.location));
-  const sources = await db
-    .selectDistinct({ value: jobs.source })
-    .from(jobs)
-    .where(scope)
-    .orderBy(asc(jobs.source));
+  const [totalRows, departments, locations, sources] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(jobs).where(scope),
+    db
+      .selectDistinct({ value: jobs.department })
+      .from(jobs)
+      .where(scope)
+      .orderBy(asc(jobs.department)),
+    db.selectDistinct({ value: jobs.location }).from(jobs).where(scope).orderBy(asc(jobs.location)),
+    db.selectDistinct({ value: jobs.source }).from(jobs).where(scope).orderBy(asc(jobs.source)),
+  ]);
 
   return {
     total: Number(totalRows[0]?.count ?? 0),
