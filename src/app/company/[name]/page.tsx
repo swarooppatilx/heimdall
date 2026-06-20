@@ -3,18 +3,10 @@ import Link from "next/link";
 import { cache } from "react";
 import { JsonLd } from "@/components/json-ld";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
+import { isRemoteLocation } from "@/lib/location";
+import { timeAgo } from "@/lib/time-ago";
 
 const companyStats = cache(getCompanyStats);
-
-function timeAgo(date: Date | string): string {
-  const ms = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
-}
 
 export async function generateMetadata({
   params,
@@ -57,9 +49,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
     );
   }
 
-  const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
-
-  const jsonLd = {
+    const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: company,
@@ -142,7 +132,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
                   <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
                   <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">{job.location}</p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 sm:gap-2 sm:text-xs">
-                    {isRemote(job.location) && (
+                    {isRemoteLocation(job.location) && (
                       <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
                         remote
                       </span>

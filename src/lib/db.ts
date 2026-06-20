@@ -88,7 +88,7 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
     conditions.push(eq(jobs.source, filters.source));
   }
   if (filters.type === "remote") {
-    conditions.push(like(jobs.location, "%remote%"));
+    conditions.push(like(jobs.location, "remote%"));
   }
   if (filters.experience) {
     conditions.push(eq(jobs.experienceLevel, filters.experience));

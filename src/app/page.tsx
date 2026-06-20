@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
 import type { Job } from "@/lib/job";
+import { isRemoteLocation } from "@/lib/location";
+import { timeAgo } from "@/lib/time-ago";
 
 interface FilterOptions {
   companies: string[];
@@ -19,16 +21,6 @@ interface CrawlStatusEntry {
   durationMs: number;
   error: string | null;
   createdAt: string;
-}
-
-function timeAgo(date: Date | string): string {
-  const ms = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
 }
 
 function useQueryParam(key: string, initial: string): [string, (v: string) => void] {
@@ -126,9 +118,7 @@ function JobsPage() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [setQuery]);
 
-  const isRemote = (l: string) => l.toLowerCase().startsWith("remote");
-
-  const experienceFilters = [
+    const experienceFilters = [
     { value: "", label: "all" },
     { value: "intern", label: "intern" },
     { value: "entry", label: "entry" },
@@ -329,7 +319,7 @@ function JobsPage() {
                     {job.location}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 sm:gap-2 sm:text-xs">
-                    {isRemote(job.location) && (
+                    {isRemoteLocation(job.location) && (
                       <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
                         remote
                       </span>
