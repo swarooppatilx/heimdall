@@ -97,13 +97,8 @@ function JobsPage() {
 
   const filters = { q: query, company, location, type, experience, posted, source };
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useJobFilters(filters);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useJobFilters(filters);
   const jobs = data?.pages.flat() ?? [];
 
   const { data: filterOptions } = useQuery<FilterOptions>({
