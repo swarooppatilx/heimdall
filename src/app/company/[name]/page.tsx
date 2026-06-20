@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { JsonLd } from "@/components/json-ld";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
+
+const companyStats = cache(getCompanyStats);
 
 function timeAgo(date: Date | string): string {
   const ms = Date.now() - new Date(date).getTime();
@@ -20,7 +23,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { name } = await params;
   const company = decodeURIComponent(name);
-  const stats = await getCompanyStats(company);
+  const stats = await companyStats(company);
   return {
     title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
     description: `Browse ${stats.total} fresh tech job openings at ${company}. Direct from the company career page.`,
@@ -41,7 +44,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
   const { name } = await params;
   const company = decodeURIComponent(name);
   const jobs = await getJobsByCompany(company);
-  const stats = await getCompanyStats(company);
+  const stats = await companyStats(company);
 
   if (jobs.length === 0) {
     return (
