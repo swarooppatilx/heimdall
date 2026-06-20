@@ -49,7 +49,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
     );
   }
 
-    const jsonLd = {
+  const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: company,

@@ -89,7 +89,7 @@ function JobsPage() {
 
   const filters = { q: query, company, location, type, experience, posted, source };
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useJobFilters(filters);
   const jobs = data?.pages.flat() ?? [];
 
@@ -118,7 +118,7 @@ function JobsPage() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [setQuery]);
 
-    const experienceFilters = [
+  const experienceFilters = [
     { value: "", label: "all" },
     { value: "intern", label: "intern" },
     { value: "entry", label: "entry" },
@@ -296,7 +296,11 @@ function JobsPage() {
           aria-live="polite"
           aria-atomic="true"
         >
-          {isLoading ? "loading..." : `${jobs.length} fresh jobs`}
+          {isLoading
+            ? "loading..."
+            : isError
+              ? "something went wrong fetching jobs — try again"
+              : `${jobs.length} fresh jobs`}
         </p>
 
         <ul id="job-results" className="flex flex-col gap-2">
