@@ -28,7 +28,15 @@ export function sweepSlice(entries: RegistryEntry[], now = Date.now()): Registry
   return entries.slice(start, end);
 }
 
-export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlResult[]> {
+export interface CrawlRun {
+  results: CrawlResult[];
+  discovered: number;
+  removed: number;
+  durationMs: number;
+}
+
+export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlRun> {
+  const start = Date.now();
   const registry = slice ?? getRegistry();
   const results: CrawlResult[] = [];
 
@@ -53,9 +61,12 @@ export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlResult[]> 
     }
   }
 
-  await deleteStaleJobs();
+  const removed = await deleteStaleJobs();
+  const discovered = results
+    .filter((r) => r.status === "ok")
+    .reduce((sum, r) => sum + r.jobsFound, 0);
 
-  return results;
+  return { results, discovered, removed, durationMs: Date.now() - start };
 }
 
 async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {

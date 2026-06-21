@@ -19,14 +19,18 @@ export default {
     ctx.waitUntil(
       (async () => {
         bindDb(env.DB);
-        const results = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
-        const failed = results.filter((r) => r.status === "error").length;
+        const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
+        const failed = run.results.filter((r) => r.status === "error").length;
         console.log(
           JSON.stringify({
             event: "scheduled_crawl",
             cron: controller.cron,
-            companies: results.length,
+            companies: run.results.length,
+            ok: run.results.length - failed,
             failed,
+            discovered: run.discovered,
+            removed: run.removed,
+            durationMs: run.durationMs,
           }),
         );
       })(),
