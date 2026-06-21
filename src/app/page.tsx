@@ -3,7 +3,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useDeferredValue, useEffect, useRef } from "react";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
@@ -87,7 +87,8 @@ function JobsPage() {
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
 
-  const filters = { q: query, company, location, type, experience, posted, source };
+  const deferredQuery = useDeferredValue(query);
+  const filters = { q: deferredQuery, company, location, type, experience, posted, source };
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useJobFilters(filters);
