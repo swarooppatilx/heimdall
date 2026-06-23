@@ -40,9 +40,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
 
   if (jobs.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black text-zinc-100">
-        <p className="text-zinc-500">No jobs found for {company}</p>
-        <Link href="/" className="mt-4 text-sm text-zinc-400 hover:text-zinc-200">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
+        <p className="text-muted-foreground">No jobs found for {company}</p>
+        <Link href="/" className="mt-4 text-sm text-muted-foreground hover:text-foreground">
           ← back to search
         </Link>
       </div>
@@ -62,13 +62,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
       <JsonLd data={jsonLd} />
       <a
         href="#job-results"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-zinc-800 focus:px-4 focus:py-2 focus:text-sm focus:text-zinc-100"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-foreground"
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-black/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
-          <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
+          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
             ← all jobs
           </Link>
         </div>
@@ -77,43 +77,43 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">{company}</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {stats.total} open position{stats.total === 1 ? "" : "s"}
           </p>
         </div>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-zinc-800 p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <div className="rounded-lg border border-border p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Departments
             </h2>
             <div className="flex flex-wrap gap-1.5">
               {stats.departments.map((d) => (
-                <span key={d} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                <span key={d} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
                   {d}
                 </span>
               ))}
             </div>
           </div>
-          <div className="rounded-lg border border-zinc-800 p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <div className="rounded-lg border border-border p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Locations
             </h2>
             <div className="flex flex-wrap gap-1.5">
               {stats.locations.map((l) => (
-                <span key={l} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                <span key={l} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
                   {l}
                 </span>
               ))}
             </div>
           </div>
-          <div className="rounded-lg border border-zinc-800 p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <div className="rounded-lg border border-border p-4">
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Sources
             </h2>
             <div className="flex flex-wrap gap-1.5">
               {stats.sources.map((s) => (
-                <span key={s} className="rounded bg-zinc-900 px-2 py-0.5 text-xs text-zinc-400">
+                <span key={s} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
                   {s}
                 </span>
               ))}
@@ -125,23 +125,21 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
           {jobs.map((job) => (
             <li
               key={job.id}
-              className="group rounded-lg border border-zinc-800/50 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/50 sm:p-4"
+              className="group rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/50 sm:p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
-                  <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">{job.location}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 sm:gap-2 sm:text-xs">
+                  <h2 className="text-sm font-medium text-foreground sm:text-base">{job.title}</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{job.location}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
                     {isRemoteLocation(job.location) && (
-                      <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
+                      <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">
                         remote
                       </span>
                     )}
-                    <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">{job.department}</span>
+                    <span className="rounded bg-muted px-1.5 py-0.5">{job.department}</span>
                     {job.experienceLevel && job.experienceLevel !== "mid" && (
-                      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">
-                        {job.experienceLevel}
-                      </span>
+                      <span className="rounded bg-muted px-1.5 py-0.5">{job.experienceLevel}</span>
                     )}
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
@@ -150,7 +148,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
                   href={job.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-zinc-300 sm:px-4 sm:py-2 sm:text-sm"
+                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4 sm:py-2 sm:text-sm"
                   aria-label={`Apply to ${job.title}`}
                 >
                   apply

@@ -140,21 +140,21 @@ function JobsPage() {
     <div className="flex min-h-screen flex-col">
       <a
         href="#job-results"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-zinc-800 focus:px-4 focus:py-2 focus:text-sm focus:text-zinc-100"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-foreground"
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-black/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-baseline gap-2">
             <h1 className="text-lg font-semibold tracking-tight">Heimdall</h1>
-            <span className="hidden text-xs text-zinc-500 sm:inline">
+            <span className="hidden text-xs text-muted-foreground sm:inline">
               fresh tech jobs, direct from source
             </span>
           </div>
           <div className="flex items-center gap-3">
             {crawlStatus?.latest && crawlStatus.latest.length > 0 && (
-              <span className="hidden text-[11px] text-zinc-500 sm:inline">
+              <span className="hidden text-[11px] text-muted-foreground sm:inline">
                 last sync {timeAgo(crawlStatus.latest[0]!.createdAt)}
               </span>
             )}
@@ -171,10 +171,10 @@ function JobsPage() {
               placeholder="search jobs..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 pr-16 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-border bg-card px-4 py-2.5 pr-16 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
               aria-label="Search jobs"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500">
+            <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
               /
             </kbd>
           </div>
@@ -184,7 +184,7 @@ function JobsPage() {
           <select
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
             aria-label="Filter by company"
           >
             <option value="">company</option>
@@ -197,7 +197,7 @@ function JobsPage() {
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
             aria-label="Filter by location"
           >
             <option value="">location</option>
@@ -210,7 +210,7 @@ function JobsPage() {
           <select
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 outline-none focus:border-zinc-600"
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
             aria-label="Filter by source"
           >
             <option value="">source</option>
@@ -220,7 +220,7 @@ function JobsPage() {
               </option>
             ))}
           </select>
-          <div className="hidden h-6 w-px bg-zinc-800 sm:block" aria-hidden="true" />
+          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
           <fieldset aria-label="Filter by experience level">
             {experienceFilters.map((e) => (
               <button
@@ -230,15 +230,15 @@ function JobsPage() {
                 aria-pressed={experience === e.value}
                 className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                   experience === e.value
-                    ? "bg-zinc-100 text-black"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {e.label}
               </button>
             ))}
           </fieldset>
-          <div className="hidden h-6 w-px bg-zinc-800 sm:block" aria-hidden="true" />
+          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
           <fieldset aria-label="Filter by posting date">
             {postedFilters.map((p) => (
               <button
@@ -248,8 +248,8 @@ function JobsPage() {
                 aria-pressed={posted === p.value}
                 className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                   posted === p.value
-                    ? "bg-zinc-100 text-black"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {p.label}
@@ -266,8 +266,8 @@ function JobsPage() {
               aria-pressed={type === "remote"}
               className={`rounded-full px-3 py-1 text-xs transition-colors ${
                 type === "remote"
-                  ? "bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/30"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-accent text-accent-foreground ring-1 ring-border"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               remote
@@ -283,7 +283,7 @@ function JobsPage() {
                   setPosted("");
                   setSource("");
                 }}
-                className="text-xs text-zinc-500 hover:text-zinc-300"
+                className="text-xs text-muted-foreground hover:text-foreground"
               >
                 clear all
               </button>
@@ -292,7 +292,7 @@ function JobsPage() {
         )}
 
         <p
-          className="mb-4 text-xs text-zinc-300"
+          className="mb-4 text-xs text-foreground"
           role="status"
           aria-live="polite"
           aria-atomic="true"
@@ -308,32 +308,30 @@ function JobsPage() {
           {jobs.map((job) => (
             <li
               key={job.id}
-              className="group rounded-lg border border-zinc-800/50 p-3 transition-colors hover:border-zinc-700 hover:bg-zinc-900/50 sm:p-4"
+              className="group rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/50 sm:p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-medium text-zinc-100 sm:text-base">{job.title}</h2>
-                  <p className="mt-0.5 text-xs text-zinc-400 sm:text-sm">
+                  <h2 className="text-sm font-medium text-foreground sm:text-base">{job.title}</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
                     <Link
                       href={`/company/${encodeURIComponent(job.company)}`}
-                      className="hover:text-zinc-200"
+                      className="hover:text-foreground"
                     >
                       {job.company}
                     </Link>
-                    <span className="text-zinc-500"> · </span>
+                    <span className="text-muted-foreground"> · </span>
                     {job.location}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 sm:gap-2 sm:text-xs">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
                     {isRemoteLocation(job.location) && (
-                      <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-blue-400">
+                      <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">
                         remote
                       </span>
                     )}
-                    <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">{job.source}</span>
+                    <span className="rounded bg-muted px-1.5 py-0.5">{job.source}</span>
                     {job.experienceLevel && job.experienceLevel !== "mid" && (
-                      <span className="rounded bg-zinc-800/50 px-1.5 py-0.5">
-                        {job.experienceLevel}
-                      </span>
+                      <span className="rounded bg-muted px-1.5 py-0.5">{job.experienceLevel}</span>
                     )}
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
@@ -342,7 +340,7 @@ function JobsPage() {
                   href={job.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-zinc-300 sm:px-4 sm:py-2 sm:text-sm"
+                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4 sm:py-2 sm:text-sm"
                   aria-label={`Apply to ${job.title} at ${job.company}`}
                 >
                   apply
@@ -359,7 +357,7 @@ function JobsPage() {
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
               aria-busy={isFetchingNextPage}
-              className="rounded-md border border-zinc-800 px-4 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+              className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground disabled:opacity-50"
             >
               {isFetchingNextPage ? "loading..." : "load more jobs"}
             </button>
