@@ -287,7 +287,7 @@ export async function recordCrawl(
   });
 }
 
-interface CrawlRecord {
+export interface CrawlRecord {
   company: string;
   status: string;
   jobsFound: number;

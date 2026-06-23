@@ -1,8 +1,26 @@
 import { NextResponse } from "next/server";
-import { getCrawlHistory, getLatestCrawls } from "@/lib/db";
+import { type CrawlRecord, getCrawlHistory, getLatestCrawls } from "@/lib/db";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+interface PublicCrawlStatus {
+  company: string;
+  status: string;
+  jobsFound: number;
+  durationMs: number;
+  createdAt: string;
+}
+
+function toPublic({
+  company,
+  status,
+  jobsFound,
+  durationMs,
+  createdAt,
+}: CrawlRecord): PublicCrawlStatus {
+  return { company, status, jobsFound, durationMs, createdAt };
+}
 
 export async function GET(request: Request) {
   const limit = await checkRateLimit(request, {
@@ -12,7 +30,9 @@ export async function GET(request: Request) {
   });
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
-  const latest = await getLatestCrawls();
-  const history = await getCrawlHistory();
-  return NextResponse.json({ latest, history });
+  const [latest, history] = await Promise.all([getLatestCrawls(), getCrawlHistory()]);
+  return NextResponse.json({
+    latest: latest.map(toPublic),
+    history: history.map(toPublic),
+  });
 }
