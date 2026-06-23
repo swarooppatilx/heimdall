@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Outfit, Raleway } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const ralewayHeading = Raleway({subsets:['latin'],variable:'--font-heading'});
+
+const outfit = Outfit({subsets:['latin'],variable:'--font-sans'});
 
 const geist = Geist({ subsets: ["latin"], display: "swap", variable: "--font-geist" });
 
@@ -59,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased dark`}>
+    <html lang="en" className={cn("h-full", "antialiased", "dark", geist.variable, "font-sans", outfit.variable, ralewayHeading.variable)}>
       <head>
         <JsonLd data={jsonLd} />
       </head>
