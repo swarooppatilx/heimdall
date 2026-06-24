@@ -2,7 +2,7 @@
   "name": "heimdall",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4000",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
@@ -11,8 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "NEXT_PUBLIC_SITE_URL=https://heimdall.daenerys.workers.dev opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "NEXT_PUBLIC_SITE_URL=https://heimdall.daenerys.workers.dev opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "build:worker": "NEXT_PUBLIC_SITE_URL=https://heimdall.daenerys.workers.dev opennextjs-cloudflare build",
+    "preview": "npm run build:worker && opennextjs-cloudflare preview",
+    "deploy": "npm run build:worker && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "devDependencies": {
