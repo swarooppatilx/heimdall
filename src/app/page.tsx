@@ -2,10 +2,10 @@
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useDeferredValue, useEffect, useRef } from "react";
-import type { Job } from "@/lib/job";
+import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
 
@@ -26,18 +26,38 @@ interface CrawlStatusEntry {
 
 function useQueryParam(key: string, initial: string): [string, (v: string) => void] {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const value = searchParams.get(key) ?? initial;
+  const [value, setValueState] = useState(
+    () => new URLSearchParams(window.location.search).get(key) ?? initial,
+  );
 
-  function setValue(v: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (v) {
-      params.set(key, v);
-    } else {
-      params.delete(key);
-    }
-    router.replace(`?${params.toString()}`);
-  }
+  const commit = useCallback(
+    (v: string) => {
+      const params = new URLSearchParams(window.location.search);
+      if ((params.get(key) ?? "") === v) return;
+      if (v) {
+        params.set(key, v);
+      } else {
+        params.delete(key);
+      }
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [key, router],
+  );
+
+  const setValue = useCallback(
+    (v: string) => {
+      setValueState(v);
+      commit(v);
+    },
+    [commit],
+  );
+
+  useEffect(() => {
+    const onPopState = () =>
+      setValueState(new URLSearchParams(window.location.search).get(key) ?? initial);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [key, initial]);
 
   return [value, setValue];
 }
@@ -78,6 +98,7 @@ function useJobFilters(filters: JobFiltersInput) {
 }
 
 function JobsPage() {
+  const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useQueryParam("q", "");
@@ -283,6 +304,7 @@ function JobsPage() {
                   setExperience("");
                   setPosted("");
                   setSource("");
+                  router.replace("?", { scroll: false });
                 }}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
