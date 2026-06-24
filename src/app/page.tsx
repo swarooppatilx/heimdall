@@ -20,15 +20,20 @@ interface CrawlStatusEntry {
   status: string;
   jobsFound: number;
   durationMs: number;
-  error: string | null;
   createdAt: string;
 }
 
-function useQueryParam(key: string, initial: string): [string, (v: string) => void] {
+interface QueryParamOptions {
+  deferCommit?: boolean;
+}
+
+function useQueryParam(
+  key: string,
+  initial: string,
+  opts?: QueryParamOptions,
+): [string, (v: string) => void, (v: string) => void] {
   const router = useRouter();
-  const [value, setValueState] = useState(
-    () => new URLSearchParams(window.location.search).get(key) ?? initial,
-  );
+  const [value, setValueState] = useState(initial);
 
   const commit = useCallback(
     (v: string) => {
@@ -47,19 +52,22 @@ function useQueryParam(key: string, initial: string): [string, (v: string) => vo
   const setValue = useCallback(
     (v: string) => {
       setValueState(v);
-      commit(v);
+      if (!opts?.deferCommit) {
+        commit(v);
+      }
     },
-    [commit],
+    [commit, opts?.deferCommit],
   );
 
   useEffect(() => {
-    const onPopState = () =>
+    const syncFromUrl = () =>
       setValueState(new URLSearchParams(window.location.search).get(key) ?? initial);
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
   }, [key, initial]);
 
-  return [value, setValue];
+  return [value, setValue, commit];
 }
 
 const PAGE_SIZE = 200;
@@ -101,7 +109,7 @@ function JobsPage() {
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [query, setQuery] = useQueryParam("q", "");
+  const [query, setQuery, commitQuery] = useQueryParam("q", "", { deferCommit: true });
   const [company, setCompany] = useQueryParam("company", "");
   const [location, setLocation] = useQueryParam("location", "");
   const [type, setType] = useQueryParam("type", "");
@@ -110,6 +118,11 @@ function JobsPage() {
   const [source, setSource] = useQueryParam("source", "");
 
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    commitQuery(deferredQuery);
+  }, [commitQuery, deferredQuery]);
+
   const filters = { q: deferredQuery, company, location, type, experience, posted, source };
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
