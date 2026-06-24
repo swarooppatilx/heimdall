@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useDeferredValue, useEffect, useRef } from "react";
 import type { Job } from "@/lib/job";
+import { Button } from "@/components/ui/button";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
 
@@ -336,15 +337,16 @@ function JobsPage() {
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
                 </div>
-                <a
-                  href={job.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4 sm:py-2 sm:text-sm"
-                  aria-label={`Apply to ${job.title} at ${job.company}`}
-                >
-                  apply
-                </a>
+                <Button asChild size="sm">
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Apply to ${job.title} at ${job.company}`}
+                  >
+                    apply
+                  </a>
+                </Button>
               </div>
             </li>
           ))}
@@ -352,15 +354,16 @@ function JobsPage() {
 
         {hasNextPage && (
           <div className="mt-4 flex justify-center">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
               aria-busy={isFetchingNextPage}
-              className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground disabled:opacity-50"
             >
               {isFetchingNextPage ? "loading..." : "load more jobs"}
-            </button>
+            </Button>
           </div>
         )}
       </main>

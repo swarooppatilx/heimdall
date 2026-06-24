@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
 import { JsonLd } from "@/components/json-ld";
+import { Button } from "@/components/ui/button";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
@@ -144,15 +145,16 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
                 </div>
-                <a
-                  href={job.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:px-4 sm:py-2 sm:text-sm"
-                  aria-label={`Apply to ${job.title}`}
-                >
-                  apply
-                </a>
+                <Button asChild size="sm">
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Apply to ${job.title}`}
+                  >
+                    apply
+                  </a>
+                </Button>
               </div>
             </li>
           ))}
