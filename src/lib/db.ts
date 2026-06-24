@@ -34,6 +34,11 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     url: row.url,
     postedAt: new Date(row.postedAt),
     source: row.source,
+    employmentType: row.employmentType,
+    salary: row.salary,
+    locations: JSON.parse(row.locations) as string[],
+    region: row.region,
+    isEarlyCareer: row.isEarlyCareer === 1,
     experienceLevel: row.experienceLevel,
   };
 }
@@ -131,7 +136,12 @@ function toRow(job: Job): typeof jobs.$inferInsert {
     url: job.url,
     postedAt: job.postedAt.toISOString(),
     source: job.source,
-    experienceLevel: detectExperienceLevel(job.title),
+    employmentType: job.employmentType ?? "",
+    salary: job.salary ?? "",
+    locations: JSON.stringify(job.locations ?? [job.location]),
+    region: job.region ?? "",
+    isEarlyCareer: job.isEarlyCareer ? 1 : 0,
+    experienceLevel: job.experienceLevel ?? detectExperienceLevel(job.title),
   };
 }
 
