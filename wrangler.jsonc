@@ -3,7 +3,8 @@
   "name": "heimdall",
   "main": "worker/index.ts",
   "compatibility_date": "2026-06-15",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public", "enable_request_signal"],
+  "upload_source_maps": true,
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://heimdall.daenerys.workers.dev"
   },
