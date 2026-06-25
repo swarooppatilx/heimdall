@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, asc, desc, eq, gte, inArray, like, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, like, lt, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
@@ -51,12 +51,18 @@ export interface JobFilters {
   type?: string;
   experience?: string;
   posted?: string;
+  department?: string;
+  employmentType?: string;
+  earlyCareer?: string;
+  sort?: string;
 }
 
 const POSTED_WINDOWS_MS: Record<string, number> = {
   today: 24 * 60 * 60 * 1000,
   week: 7 * 24 * 60 * 60 * 1000,
 };
+
+export type JobSort = "newest" | "company";
 
 export interface PageOptions {
   limit?: number;
@@ -98,6 +104,15 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   if (filters.experience) {
     conditions.push(eq(jobs.experienceLevel, filters.experience));
   }
+  if (filters.department) {
+    conditions.push(eq(jobs.department, filters.department));
+  }
+  if (filters.employmentType) {
+    conditions.push(eq(jobs.employmentType, filters.employmentType));
+  }
+  if (filters.earlyCareer === "true") {
+    conditions.push(eq(jobs.isEarlyCareer, 1));
+  }
   const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
   if (windowMs) {
     conditions.push(gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString()));
@@ -106,11 +121,14 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
 
+  const orderBy =
+    filters.sort === "company" ? [asc(jobs.company), desc(jobs.postedAt)] : [desc(jobs.postedAt)];
+
   const rows = await db
     .select()
     .from(jobs)
     .where(and(...conditions))
-    .orderBy(desc(jobs.postedAt))
+    .orderBy(...orderBy)
     .limit(limit)
     .offset(offset);
   return rows.map(toJob);
@@ -200,6 +218,8 @@ export async function getFilterOptions(): Promise<{
   companies: string[];
   locations: string[];
   sources: string[];
+  departments: string[];
+  employmentTypes: string[];
 }> {
   const db = await getDb();
   const fresh = gte(jobs.postedAt, freshnessCutoff());
@@ -219,11 +239,23 @@ export async function getFilterOptions(): Promise<{
     .from(jobs)
     .where(fresh)
     .orderBy(asc(jobs.source));
+  const departments = await db
+    .selectDistinct({ value: jobs.department })
+    .from(jobs)
+    .where(fresh)
+    .orderBy(asc(jobs.department));
+  const employmentTypes = await db
+    .selectDistinct({ value: jobs.employmentType })
+    .from(jobs)
+    .where(and(fresh, ne(jobs.employmentType, "")))
+    .orderBy(asc(jobs.employmentType));
 
   return {
     companies: companies.map((r) => r.value),
     locations: locations.map((r) => r.value),
     sources: sources.map((r) => r.value),
+    departments: departments.map((r) => r.value),
+    employmentTypes: employmentTypes.map((r) => r.value),
   };
 }
 

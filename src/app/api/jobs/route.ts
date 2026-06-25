@@ -26,6 +26,10 @@ export async function GET(request: Request) {
       type: searchParams.get("type") || undefined,
       experience: searchParams.get("experience")?.toLowerCase() || undefined,
       posted: searchParams.get("posted") || undefined,
+      department: searchParams.get("department")?.toLowerCase() || undefined,
+      employmentType: searchParams.get("employment_type") || undefined,
+      earlyCareer: searchParams.get("early_career") || undefined,
+      sort: searchParams.get("sort") || undefined,
     },
     { limit: parseIntParam("limit"), offset: parseIntParam("offset") },
   );

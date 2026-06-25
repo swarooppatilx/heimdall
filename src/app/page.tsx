@@ -3,7 +3,15 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
@@ -13,6 +21,8 @@ interface FilterOptions {
   companies: string[];
   locations: string[];
   sources: string[];
+  departments: string[];
+  employmentTypes: string[];
 }
 
 interface CrawlStatusEntry {
@@ -80,6 +90,10 @@ interface JobFiltersInput {
   experience: string;
   posted: string;
   source: string;
+  department: string;
+  employmentType: string;
+  earlyCareer: string;
+  sort: string;
 }
 
 function useJobFilters(filters: JobFiltersInput) {
@@ -94,6 +108,10 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.experience) params.set("experience", filters.experience);
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
+      if (filters.department) params.set("department", filters.department);
+      if (filters.employmentType) params.set("employment_type", filters.employmentType);
+      if (filters.earlyCareer) params.set("early_career", filters.earlyCareer);
+      if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
       const res = await fetch(`/api/jobs?${params}`);
@@ -116,6 +134,10 @@ function JobsPage() {
   const [experience, setExperience] = useQueryParam("experience", "");
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
+  const [department, setDepartment] = useQueryParam("department", "");
+  const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
+  const [earlyCareer, setEarlyCareer] = useQueryParam("early_career", "");
+  const [sort, setSort] = useQueryParam("sort", "");
 
   const deferredQuery = useDeferredValue(query);
 
@@ -123,11 +145,38 @@ function JobsPage() {
     commitQuery(deferredQuery);
   }, [commitQuery, deferredQuery]);
 
-  const filters = { q: deferredQuery, company, location, type, experience, posted, source };
+  const filters = {
+    q: deferredQuery,
+    company,
+    location,
+    type,
+    experience,
+    posted,
+    source,
+    department,
+    employmentType,
+    earlyCareer,
+    sort,
+  };
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useJobFilters(filters);
   const jobs = data?.pages.flat() ?? [];
+
+  const jobCards = useMemo(() => {
+    const primary = new Map<string, Job>();
+    const counts = new Map<string, number>();
+    for (const job of jobs) {
+      const key = `${job.company}|${job.title.toLowerCase()}`;
+      if (!primary.has(key)) primary.set(key, job);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...primary.entries()].map(([key, job]) => ({
+      key,
+      job,
+      openings: counts.get(key) ?? 1,
+    }));
+  }, [jobs]);
 
   const { data: filterOptions } = useQuery<FilterOptions>({
     queryKey: ["filters"],
@@ -169,7 +218,17 @@ function JobsPage() {
     { value: "week", label: "this week" },
   ];
 
-  const activeFilters = [company, location, type, experience, posted, source].filter(Boolean);
+  const activeFilters = [
+    company,
+    location,
+    type,
+    experience,
+    posted,
+    source,
+    department,
+    employmentType,
+    earlyCareer,
+  ].filter(Boolean);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -255,6 +314,41 @@ function JobsPage() {
               </option>
             ))}
           </select>
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            aria-label="Filter by department"
+          >
+            <option value="">department</option>
+            {filterOptions?.departments.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+          <select
+            value={employmentType}
+            onChange={(e) => setEmploymentType(e.target.value)}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            aria-label="Filter by employment type"
+          >
+            <option value="">employment</option>
+            {filterOptions?.employmentTypes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            aria-label="Sort jobs"
+          >
+            <option value="">newest first</option>
+            <option value="company">company a–z</option>
+          </select>
           <div className="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
           <fieldset aria-label="Filter by experience level">
             {experienceFilters.map((e) => (
@@ -307,6 +401,18 @@ function JobsPage() {
             >
               remote
             </button>
+            <button
+              type="button"
+              onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
+              aria-pressed={earlyCareer === "true"}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                earlyCareer
+                  ? "bg-accent text-accent-foreground ring-1 ring-border"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              early career
+            </button>
             {activeFilters.length > 0 && (
               <button
                 type="button"
@@ -317,6 +423,10 @@ function JobsPage() {
                   setExperience("");
                   setPosted("");
                   setSource("");
+                  setDepartment("");
+                  setEmploymentType("");
+                  setEarlyCareer("");
+                  setSort("");
                   router.replace("?", { scroll: false });
                 }}
                 className="text-xs text-muted-foreground hover:text-foreground"
@@ -337,11 +447,11 @@ function JobsPage() {
             ? "loading..."
             : isError
               ? "something went wrong fetching jobs — try again"
-              : `${jobs.length} fresh jobs`}
+              : `${jobCards.length} fresh roles`}
         </p>
 
         <ul id="job-results" className="flex flex-col gap-2">
-          {jobs.map((job) => (
+          {jobCards.map(({ job, openings }) => (
             <li
               key={job.id}
               className="group rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/50 sm:p-4"
@@ -356,6 +466,15 @@ function JobsPage() {
                     >
                       {job.company}
                     </Link>
+                    {openings > 1 && (
+                      <Link
+                        href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
+                        className="ml-1 rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground hover:text-foreground"
+                        aria-label={`${openings} openings for ${job.title}`}
+                      >
+                        · {openings} openings
+                      </Link>
+                    )}
                     <span className="text-muted-foreground"> · </span>
                     {job.location}
                   </p>
@@ -366,6 +485,14 @@ function JobsPage() {
                       </span>
                     )}
                     <span className="rounded bg-muted px-1.5 py-0.5">{job.source}</span>
+                    {job.employmentType && (
+                      <span className="rounded bg-muted px-1.5 py-0.5">{job.employmentType}</span>
+                    )}
+                    {job.salary && (
+                      <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
+                        {job.salary}
+                      </span>
+                    )}
                     {job.experienceLevel && job.experienceLevel !== "mid" && (
                       <span className="rounded bg-muted px-1.5 py-0.5">{job.experienceLevel}</span>
                     )}

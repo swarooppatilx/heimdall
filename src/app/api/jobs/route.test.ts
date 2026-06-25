@@ -56,6 +56,10 @@ describe("GET /api/jobs", () => {
         type: undefined,
         experience: undefined,
         posted: undefined,
+        department: undefined,
+        employmentType: undefined,
+        earlyCareer: undefined,
+        sort: undefined,
       },
       { limit: undefined, offset: undefined },
     );
@@ -75,6 +79,10 @@ describe("GET /api/jobs", () => {
         type: undefined,
         experience: undefined,
         posted: undefined,
+        department: undefined,
+        employmentType: undefined,
+        earlyCareer: undefined,
+        sort: undefined,
       },
       { limit: undefined, offset: undefined },
     );
@@ -91,6 +99,10 @@ describe("GET /api/jobs", () => {
         type: "remote",
         experience: "senior",
         posted: "week",
+        department: undefined,
+        employmentType: undefined,
+        earlyCareer: undefined,
+        sort: undefined,
       },
       { limit: undefined, offset: undefined },
     );
@@ -100,4 +112,24 @@ describe("GET /api/jobs", () => {
     await GET(makeRequest({ limit: "50", offset: "100" }));
     expect(mockSearchJobs).toHaveBeenCalledWith(expect.anything(), { limit: 50, offset: 100 });
   });
+});
+
+it("passes new facet filters through", async () => {
+  await GET(
+    makeRequest({
+      department: "engineering",
+      employment_type: "Full time",
+      early_career: "true",
+      sort: "company",
+    }),
+  );
+  expect(mockSearchJobs).toHaveBeenCalledWith(
+    expect.objectContaining({
+      department: "engineering",
+      employmentType: "Full time",
+      earlyCareer: "true",
+      sort: "company",
+    }),
+    { limit: undefined, offset: undefined },
+  );
 });
