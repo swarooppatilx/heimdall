@@ -61,8 +61,8 @@ describe("fetchSmartRecruitersJobs", () => {
       id: "sr-testco-sr-001",
       title: "Senior Engineer",
       company: "testco",
-      location: "London, United Kingdom",
-      locations: ["London, United Kingdom"],
+      location: "london, united kingdom",
+      locations: ["london, united kingdom"],
       department: "engineering",
       url: "https://careers.smartrecruiters.com/testco/aaaa-1111",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
@@ -91,7 +91,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
-    expect(jobs[1]!.location).toBe("Remote");
+    expect(jobs[1]!.location).toBe("remote");
   });
 
   it("paginates through multiple pages", async () => {

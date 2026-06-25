@@ -2,60 +2,60 @@ import { describe, expect, it } from "vitest";
 import { normalizeLocation } from "./normalize";
 
 describe("normalizeLocation", () => {
-  it("returns Unknown for empty input", () => {
-    expect(normalizeLocation("")).toBe("Unknown");
-    expect(normalizeLocation("   ")).toBe("Unknown");
+  it("returns unknown for empty input", () => {
+    expect(normalizeLocation("")).toBe("unknown");
+    expect(normalizeLocation("   ")).toBe("unknown");
   });
 
-  it("trims whitespace", () => {
-    expect(normalizeLocation("  San Francisco  ")).toBe("San Francisco");
+  it("trims and lowercases whitespace", () => {
+    expect(normalizeLocation("  San Francisco  ")).toBe("san francisco");
   });
 
   describe("remote locations", () => {
     it("normalizes Remote with country abbreviation", () => {
-      expect(normalizeLocation("Remote, US")).toBe("Remote — United States");
-      expect(normalizeLocation("Remote, USA")).toBe("Remote — United States");
-      expect(normalizeLocation("Remote, UK")).toBe("Remote — United Kingdom");
-      expect(normalizeLocation("Remote, UAE")).toBe("Remote — United Arab Emirates");
-      expect(normalizeLocation("Remote, KSA")).toBe("Remote — Saudi Arabia");
+      expect(normalizeLocation("Remote, US")).toBe("remote — united states");
+      expect(normalizeLocation("Remote, USA")).toBe("remote — united states");
+      expect(normalizeLocation("Remote, UK")).toBe("remote — united kingdom");
+      expect(normalizeLocation("Remote, UAE")).toBe("remote — united arab emirates");
+      expect(normalizeLocation("Remote, KSA")).toBe("remote — saudi arabia");
     });
 
     it("normalizes Remote with full country name", () => {
-      expect(normalizeLocation("Remote, United States")).toBe("Remote — United States");
-      expect(normalizeLocation("Remote, Canada")).toBe("Remote — Canada");
+      expect(normalizeLocation("Remote, United States")).toBe("remote — united states");
+      expect(normalizeLocation("Remote, Canada")).toBe("remote — canada");
     });
 
     it("normalizes Remote with dash separator", () => {
-      expect(normalizeLocation("Remote - US")).toBe("Remote — United States");
-      expect(normalizeLocation("Remote - United Kingdom")).toBe("Remote — United Kingdom");
+      expect(normalizeLocation("Remote - US")).toBe("remote — united states");
+      expect(normalizeLocation("Remote - United Kingdom")).toBe("remote — united kingdom");
     });
 
     it("normalizes Remote without country", () => {
-      expect(normalizeLocation("Remote")).toBe("Remote");
-      expect(normalizeLocation("remote")).toBe("Remote");
+      expect(normalizeLocation("Remote")).toBe("remote");
+      expect(normalizeLocation("remote")).toBe("remote");
     });
 
-    it("title-cases country names", () => {
-      expect(normalizeLocation("Remote, india")).toBe("Remote — India");
-      expect(normalizeLocation("Remote, GERMANY")).toBe("Remote — Germany");
+    it("title-cases country names then lowercases", () => {
+      expect(normalizeLocation("Remote, india")).toBe("remote — india");
+      expect(normalizeLocation("Remote, GERMANY")).toBe("remote — germany");
     });
   });
 
   describe("non-remote locations", () => {
-    it("preserves city and country", () => {
-      expect(normalizeLocation("Bangalore, India")).toBe("Bangalore, India");
-      expect(normalizeLocation("San Francisco, CA")).toBe("San Francisco, CA");
+    it("lowercases city and country", () => {
+      expect(normalizeLocation("Bangalore, India")).toBe("bangalore, india");
+      expect(normalizeLocation("San Francisco, CA")).toBe("san francisco, ca");
     });
 
     it("handles Bay Area locations", () => {
-      expect(normalizeLocation("San Francisco Bay Area")).toBe("San Francisco Bay Area");
+      expect(normalizeLocation("San Francisco Bay Area")).toBe("san francisco bay area");
     });
   });
 
   describe("multi-location strings", () => {
     it("takes the first location only", () => {
-      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("Remote — Canada");
-      expect(normalizeLocation("San Francisco; New York")).toBe("San Francisco");
+      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("remote — canada");
+      expect(normalizeLocation("San Francisco; New York")).toBe("san francisco");
     });
   });
 });

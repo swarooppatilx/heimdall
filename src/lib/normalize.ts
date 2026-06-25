@@ -20,7 +20,7 @@ function normalizeCountry(raw: string): string {
 
 export function normalizeLocation(raw: string): string {
   const trimmed = raw.trim();
-  if (!trimmed) return "Unknown";
+  if (!trimmed) return "unknown";
 
   const parts = trimmed
     .split(/\s*;\s*/)
@@ -33,18 +33,19 @@ export function normalizeLocation(raw: string): string {
 
   if (isRemote) {
     const withoutRemote = first.replace(/^remote\s*[-,.\s]?\s*/i, "").trim();
-    if (!withoutRemote) return "Remote";
+    if (!withoutRemote) return "remote";
     const countries = withoutRemote
       .split(/\s*,\s*/)
-      .map((c) => normalizeCountry(c))
+      .map((c) => normalizeCountry(c).toLowerCase())
       .filter(Boolean);
-    if (countries.length === 0) return "Remote";
-    return `Remote — ${countries.join(", ")}`;
+    if (countries.length === 0) return "remote";
+    return `remote — ${countries.join(", ")}`;
   }
 
   return first
     .split(/\s*,\s*/)
     .map((s) => s.trim())
     .filter(Boolean)
-    .join(", ");
+    .join(", ")
+    .toLowerCase();
 }

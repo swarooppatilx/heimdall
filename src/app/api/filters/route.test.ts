@@ -21,7 +21,7 @@ function readFilters(res: Response): Promise<{
 vi.mock("@/lib/db", () => ({
   getFilterOptions: async () => ({
     companies: ["gitlab", "discord"],
-    locations: ["Remote — United States", "San Francisco Bay Area"],
+    locations: ["remote — united states", "san francisco bay area"],
     sources: ["greenhouse", "ashby"],
     departments: ["engineering", "design", "sales"],
     employmentTypes: ["full time", "contract"],
@@ -42,7 +42,7 @@ describe("GET /api/filters", () => {
     const data = await readFilters(res);
 
     expect(data.companies).toEqual(["gitlab", "discord"]);
-    expect(data.locations).toContain("Remote — United States");
+    expect(data.locations).toContain("remote — united states");
     expect(data.sources).toEqual(["greenhouse", "ashby"]);
     expect(data.departments).toEqual(["engineering", "design", "sales"]);
     expect(data.employmentTypes).toEqual(["full time", "contract"]);

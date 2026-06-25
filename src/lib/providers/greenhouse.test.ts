@@ -55,8 +55,8 @@ describe("fetchGreenhouseJobs", () => {
       id: "gh-gitlab-123",
       title: "Software Engineer",
       company: "gitlab",
-      location: "Remote — United States",
-      locations: ["Remote — United States"],
+      location: "remote — united states",
+      locations: ["remote — united states"],
       department: "engineering",
       url: "https://boards.greenhouse.io/gitlab/jobs/123",
       postedAt: new Date("2026-08-12T09:00:00.000Z"),
@@ -109,7 +109,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[0]!.location).toBe("Remote — United States");
-    expect(jobs[1]!.location).toBe("San Francisco, CA");
+    expect(jobs[0]!.location).toBe("remote — united states");
+    expect(jobs[1]!.location).toBe("san francisco, ca");
   });
 });

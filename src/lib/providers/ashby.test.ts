@@ -48,8 +48,8 @@ describe("fetchAshbyJobs", () => {
       id: "ab-testco-ash-001",
       title: "Frontend Engineer",
       company: "testco",
-      location: "Remote — United States",
-      locations: ["Remote — United States"],
+      location: "remote — united states",
+      locations: ["remote — united states"],
       department: "engineering",
       employmentType: "full-time",
       url: "https://jobs.ashbyhq.com/testco/ash-001",
@@ -77,8 +77,8 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[0]!.location).toBe("Remote — United States");
-    expect(jobs[1]!.location).toBe("San Francisco Bay Area");
+    expect(jobs[0]!.location).toBe("remote — united states");
+    expect(jobs[1]!.location).toBe("san francisco bay area");
   });
 
   it("throws on HTTP error", async () => {

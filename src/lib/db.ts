@@ -236,7 +236,7 @@ export async function getFilterOptions(): Promise<{
   const locations = await db
     .selectDistinct({ value: jobs.location })
     .from(jobs)
-    .where(and(ne(jobs.location, ""), ne(jobs.location, "Unknown")))
+    .where(and(ne(jobs.location, ""), ne(jobs.location, "unknown")))
     .orderBy(asc(jobs.location));
   const sources = await db
     .selectDistinct({ value: jobs.source })
