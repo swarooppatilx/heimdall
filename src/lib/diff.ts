@@ -12,7 +12,12 @@ function samePosting(a: Job, b: Job): boolean {
     a.location === b.location &&
     a.department === b.department &&
     a.url === b.url &&
-    a.postedAt.getTime() === b.postedAt.getTime()
+    a.postedAt.getTime() === b.postedAt.getTime() &&
+    (a.employmentType ?? "") === (b.employmentType ?? "") &&
+    (a.salary ?? "") === (b.salary ?? "") &&
+    JSON.stringify(a.locations ?? []) === JSON.stringify(b.locations ?? []) &&
+    (a.region ?? "") === (b.region ?? "") &&
+    Boolean(a.isEarlyCareer) === Boolean(b.isEarlyCareer)
   );
 }
 

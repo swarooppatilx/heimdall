@@ -1,4 +1,5 @@
 import type { Job } from "../job";
+import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
 
 interface AshbyJob {
@@ -8,18 +9,28 @@ interface AshbyJob {
   location: string;
   publishedAt: string;
   jobUrl: string;
+  employmentType?: string;
+  isRemote?: boolean;
 }
 
 function mapJob(raw: AshbyJob, company: string): Job {
+  const baseLocation = raw.isRemote
+    ? raw.location.toLowerCase().startsWith("remote")
+      ? raw.location
+      : `Remote — ${raw.location}`
+    : raw.location;
+
   return {
     id: `ab-${company}-${raw.id}`,
     title: raw.title,
     company,
-    location: normalizeLocation(raw.location),
+    location: normalizeLocation(baseLocation),
+    locations: splitLocations(baseLocation).map((part) => normalizeLocation(part)),
     department: raw.department || "General",
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),
     source: "ashby",
+    employmentType: raw.employmentType ?? "",
   };
 }
 

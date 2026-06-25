@@ -1,4 +1,5 @@
 import type { Job } from "../job";
+import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
 
 interface GreenhouseJob {
@@ -6,21 +7,34 @@ interface GreenhouseJob {
   title: string;
   location: { name: string };
   updated_at: string;
+  first_published?: string;
   absolute_url: string;
-  departments: { name: string }[];
+  metadata?: { name: string; value: unknown; value_type: string }[];
 }
 
-function mapJob(raw: GreenhouseJob, board: string): Job {
-  return {
-    id: `gh-${board}-${raw.id}`,
-    title: raw.title,
-    company: board,
-    location: normalizeLocation(raw.location.name),
-    department: raw.departments?.[0]?.name ?? "General",
-    url: raw.absolute_url,
-    postedAt: new Date(raw.updated_at),
-    source: "greenhouse",
-  };
+interface MetaMatch {
+  value: string;
+  salary: string;
+}
+
+function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp): MetaMatch {
+  const entry = job.metadata?.find(
+    (m) => keyPattern.test(m.name) && (!typePattern || typePattern.test(m.value_type)),
+  );
+  if (entry?.value == null || entry.value === "") return { value: "", salary: "" };
+
+  if (entry.value_type === "currency_range" && typeof entry.value === "object") {
+    const range = entry.value as { min?: number; max?: number; currency?: string };
+    const currency = range.currency ?? "";
+    const unit = currency === "USD" ? "$" : `${currency} `;
+    const salary =
+      range.min != null && range.max != null
+        ? `${unit}${range.min.toLocaleString()} – ${unit}${range.max.toLocaleString()}`
+        : "";
+    return { value: salary, salary };
+  }
+
+  return { value: String(entry.value), salary: "" };
 }
 
 export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
@@ -33,4 +47,32 @@ export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
 
   const data = (await res.json()) as { jobs: GreenhouseJob[] };
   return data.jobs.map((j: GreenhouseJob) => mapJob(j, board));
+}
+
+export function mapJob(raw: GreenhouseJob, board: string): Job {
+  const locationParts = splitLocations(raw.location.name);
+  const primary = normalizeLocation(locationParts[0] ?? "");
+  const department = metaValue(raw, /department|categor|^area\b|team/i).value;
+  const employmentType = metaValue(raw, /^(time|employment) ?type$/i).value;
+  const pay = metaValue(raw, /pay|salary|compensation/i, /currency|range/);
+  const region = metaValue(raw, /geography|region|country/i).value;
+  const earlyCareerMeta = raw.metadata?.some(
+    (m) => /early career/i.test(m.name) && Boolean(m.value),
+  );
+
+  return {
+    id: `gh-${board}-${raw.id}`,
+    title: raw.title,
+    company: board,
+    location: primary,
+    locations: locationParts.map((part) => normalizeLocation(part)),
+    department: department || "General",
+    url: raw.absolute_url,
+    postedAt: new Date(raw.first_published ?? raw.updated_at),
+    source: "greenhouse",
+    employmentType,
+    salary: pay.salary,
+    region,
+    isEarlyCareer: earlyCareerMeta,
+  };
 }

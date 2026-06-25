@@ -62,10 +62,13 @@ describe("fetchSmartRecruitersJobs", () => {
       title: "Senior Engineer",
       company: "testco",
       location: "London, United Kingdom",
+      locations: ["London, United Kingdom"],
       department: "Engineering",
       url: "https://careers.smartrecruiters.com/testco/aaaa-1111",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
       source: "smartrecruiters",
+      employmentType: "",
+      isEarlyCareer: false,
     });
   });
 
