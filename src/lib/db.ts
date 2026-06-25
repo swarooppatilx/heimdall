@@ -54,6 +54,7 @@ export interface JobFilters {
   department?: string;
   employmentType?: string;
   earlyCareer?: string;
+  region?: string;
   sort?: string;
 }
 
@@ -112,6 +113,9 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   }
   if (filters.earlyCareer === "true") {
     conditions.push(eq(jobs.isEarlyCareer, 1));
+  }
+  if (filters.region) {
+    conditions.push(eq(jobs.region, filters.region));
   }
   const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
   if (windowMs) {
@@ -220,6 +224,7 @@ export async function getFilterOptions(): Promise<{
   sources: string[];
   departments: string[];
   employmentTypes: string[];
+  regions: string[];
 }> {
   const db = await getDb();
   const fresh = gte(jobs.postedAt, freshnessCutoff());
@@ -249,6 +254,11 @@ export async function getFilterOptions(): Promise<{
     .from(jobs)
     .where(and(fresh, ne(jobs.employmentType, "")))
     .orderBy(asc(jobs.employmentType));
+  const regions = await db
+    .selectDistinct({ value: jobs.region })
+    .from(jobs)
+    .where(and(fresh, ne(jobs.region, "")))
+    .orderBy(asc(jobs.region));
 
   return {
     companies: companies.map((r) => r.value),
@@ -256,6 +266,7 @@ export async function getFilterOptions(): Promise<{
     sources: sources.map((r) => r.value),
     departments: departments.map((r) => r.value),
     employmentTypes: employmentTypes.map((r) => r.value),
+    regions: regions.map((r) => r.value),
   };
 }
 

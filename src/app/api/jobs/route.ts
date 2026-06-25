@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       department: searchParams.get("department")?.toLowerCase() || undefined,
       employmentType: searchParams.get("employment_type") || undefined,
       earlyCareer: searchParams.get("early_career") || undefined,
+      region: searchParams.get("region")?.toLowerCase() || undefined,
       sort: searchParams.get("sort") || undefined,
     },
     { limit: parseIntParam("limit"), offset: parseIntParam("offset") },

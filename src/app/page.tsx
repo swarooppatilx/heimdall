@@ -23,6 +23,7 @@ interface FilterOptions {
   sources: string[];
   departments: string[];
   employmentTypes: string[];
+  regions: string[];
 }
 
 interface CrawlStatusEntry {
@@ -93,6 +94,7 @@ interface JobFiltersInput {
   department: string;
   employmentType: string;
   earlyCareer: string;
+  region: string;
   sort: string;
 }
 
@@ -111,6 +113,7 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.department) params.set("department", filters.department);
       if (filters.employmentType) params.set("employment_type", filters.employmentType);
       if (filters.earlyCareer) params.set("early_career", filters.earlyCareer);
+      if (filters.region) params.set("region", filters.region);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
@@ -137,6 +140,7 @@ function JobsPage() {
   const [department, setDepartment] = useQueryParam("department", "");
   const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [earlyCareer, setEarlyCareer] = useQueryParam("early_career", "");
+  const [region, setRegion] = useQueryParam("region", "");
   const [sort, setSort] = useQueryParam("sort", "");
 
   const deferredQuery = useDeferredValue(query);
@@ -156,6 +160,7 @@ function JobsPage() {
     department,
     employmentType,
     earlyCareer,
+    region,
     sort,
   };
 
@@ -228,6 +233,7 @@ function JobsPage() {
     department,
     employmentType,
     earlyCareer,
+    region,
   ].filter(Boolean);
 
   return (
@@ -341,6 +347,19 @@ function JobsPage() {
             ))}
           </select>
           <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            aria-label="Filter by region"
+          >
+            <option value="">region</option>
+            {filterOptions?.regions.map((rg) => (
+              <option key={rg} value={rg}>
+                {rg}
+              </option>
+            ))}
+          </select>
+          <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
@@ -426,6 +445,7 @@ function JobsPage() {
                   setDepartment("");
                   setEmploymentType("");
                   setEarlyCareer("");
+                  setRegion("");
                   setSort("");
                   router.replace("?", { scroll: false });
                 }}
