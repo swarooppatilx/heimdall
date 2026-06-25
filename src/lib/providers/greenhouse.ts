@@ -53,10 +53,12 @@ export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
 export function mapJob(raw: GreenhouseJob, board: string): Job {
   const locationParts = splitLocations(raw.location.name);
   const primary = normalizeLocation(locationParts[0] ?? "");
-  const department = metaValue(raw, /department|categor|^area\b|team/i).value;
-  const employmentType = metaValue(raw, /^(time|employment) ?type$/i).value;
+  const department = (
+    metaValue(raw, /department|categor|^area\b|team/i).value || inferDepartment(raw.title)
+  ).toLowerCase();
+  const employmentType = metaValue(raw, /^(time|employment) ?type$/i).value.toLowerCase();
   const pay = metaValue(raw, /pay|salary|compensation/i, /currency|range/);
-  const region = metaValue(raw, /geography|region|country/i).value;
+  const region = metaValue(raw, /geography|region|country/i).value.toLowerCase();
   const earlyCareerMeta = raw.metadata?.some(
     (m) => /early career/i.test(m.name) && Boolean(m.value),
   );
@@ -67,7 +69,7 @@ export function mapJob(raw: GreenhouseJob, board: string): Job {
     company: board,
     location: primary,
     locations: locationParts.map((part) => normalizeLocation(part)),
-    department: department || inferDepartment(raw.title),
+    department,
     url: raw.absolute_url,
     postedAt: new Date(raw.first_published ?? raw.updated_at),
     source: "greenhouse",

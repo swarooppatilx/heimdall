@@ -227,37 +227,36 @@ export async function getFilterOptions(): Promise<{
   regions: string[];
 }> {
   const db = await getDb();
-  const fresh = gte(jobs.postedAt, freshnessCutoff());
 
   const companies = await db
     .selectDistinct({ value: jobs.company })
     .from(jobs)
-    .where(fresh)
+    .where(ne(jobs.company, ""))
     .orderBy(asc(jobs.company));
   const locations = await db
     .selectDistinct({ value: jobs.location })
     .from(jobs)
-    .where(fresh)
+    .where(and(ne(jobs.location, ""), ne(jobs.location, "Unknown")))
     .orderBy(asc(jobs.location));
   const sources = await db
     .selectDistinct({ value: jobs.source })
     .from(jobs)
-    .where(fresh)
+    .where(ne(jobs.source, ""))
     .orderBy(asc(jobs.source));
   const departments = await db
     .selectDistinct({ value: jobs.department })
     .from(jobs)
-    .where(fresh)
+    .where(ne(jobs.department, ""))
     .orderBy(asc(jobs.department));
   const employmentTypes = await db
     .selectDistinct({ value: jobs.employmentType })
     .from(jobs)
-    .where(and(fresh, ne(jobs.employmentType, "")))
+    .where(ne(jobs.employmentType, ""))
     .orderBy(asc(jobs.employmentType));
   const regions = await db
     .selectDistinct({ value: jobs.region })
     .from(jobs)
-    .where(and(fresh, ne(jobs.region, "")))
+    .where(ne(jobs.region, ""))
     .orderBy(asc(jobs.region));
 
   return {

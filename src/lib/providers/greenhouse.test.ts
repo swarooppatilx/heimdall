@@ -57,13 +57,13 @@ describe("fetchGreenhouseJobs", () => {
       company: "gitlab",
       location: "Remote — United States",
       locations: ["Remote — United States"],
-      department: "Engineering",
+      department: "engineering",
       url: "https://boards.greenhouse.io/gitlab/jobs/123",
       postedAt: new Date("2026-08-12T09:00:00.000Z"),
       source: "greenhouse",
-      employmentType: "Full time",
+      employmentType: "full time",
       salary: "$120,000 – $160,000",
-      region: "AMER",
+      region: "amer",
       isEarlyCareer: false,
     });
   });
@@ -98,7 +98,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[1]!.department).toBe("Product");
+    expect(jobs[1]!.department).toBe("product");
   });
 
   it("normalizes location", async () => {

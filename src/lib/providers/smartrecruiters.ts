@@ -40,14 +40,15 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
     company,
     location: normalizeLocation(locationStr),
     locations: splitLocations(locationStr).map((part) => normalizeLocation(part)),
-    department:
+    department: (
       ("label" in raw.department && raw.department.label) ||
       ("label" in raw.function && raw.function.label) ||
-      inferDepartment(raw.name),
+      inferDepartment(raw.name)
+    ).toLowerCase(),
     url: `https://careers.smartrecruiters.com/${company}/${raw.uuid}`,
     postedAt: new Date(raw.releasedDate),
     source: "smartrecruiters",
-    employmentType: raw.typeOfEmployment?.label ?? "",
+    employmentType: (raw.typeOfEmployment?.label ?? "").toLowerCase(),
     isEarlyCareer: /intern|graduate|entry|junior/i.test(
       `${raw.experienceLevel?.label ?? ""} ${raw.name}`,
     ),

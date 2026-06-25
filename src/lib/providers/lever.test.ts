@@ -47,7 +47,7 @@ describe("fetchLeverJobs", () => {
       title: "Backend Engineer",
       company: "example",
       location: "Remote — United States",
-      department: "Engineering",
+      department: "engineering",
       url: "https://jobs.lever.co/example/abc-123",
       postedAt: new Date(1724160000000),
       source: "lever",
@@ -63,7 +63,7 @@ describe("fetchLeverJobs", () => {
     const jobs = await fetchLeverJobs("example");
 
     expect(jobs[1]!.location).toBe("Unknown");
-    expect(jobs[1]!.department).toBe("General");
+    expect(jobs[1]!.department).toBe("design");
   });
 
   it("throws on HTTP error", async () => {

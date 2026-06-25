@@ -50,8 +50,8 @@ describe("fetchAshbyJobs", () => {
       company: "testco",
       location: "Remote — United States",
       locations: ["Remote — United States"],
-      department: "Engineering",
-      employmentType: "Full-time",
+      department: "engineering",
+      employmentType: "full-time",
       url: "https://jobs.ashbyhq.com/testco/ash-001",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
       source: "ashby",
@@ -66,7 +66,7 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[1]!.department).toBe("Engineering");
+    expect(jobs[1]!.department).toBe("engineering");
   });
 
   it("normalizes location", async () => {

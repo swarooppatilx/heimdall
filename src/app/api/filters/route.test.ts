@@ -4,11 +4,17 @@ function readFilters(res: Response): Promise<{
   companies: string[];
   locations: string[];
   sources: string[];
+  departments: string[];
+  employmentTypes: string[];
+  regions: string[];
 }> {
   return res.json() as Promise<{
     companies: string[];
     locations: string[];
     sources: string[];
+    departments: string[];
+    employmentTypes: string[];
+    regions: string[];
   }>;
 }
 
@@ -17,6 +23,9 @@ vi.mock("@/lib/db", () => ({
     companies: ["gitlab", "discord"],
     locations: ["Remote — United States", "San Francisco Bay Area"],
     sources: ["greenhouse", "ashby"],
+    departments: ["engineering", "design", "sales"],
+    employmentTypes: ["full time", "contract"],
+    regions: ["north america"],
   }),
 }));
 
@@ -26,7 +35,7 @@ vi.mock("@/lib/rate-limit", () => ({
 }));
 
 describe("GET /api/filters", () => {
-  it("returns filter options from db", async () => {
+  it("returns all filter options from db", async () => {
     const { GET } = await import("./route");
     const req = new Request("http://localhost/api/filters");
     const res = await GET(req);
@@ -35,5 +44,8 @@ describe("GET /api/filters", () => {
     expect(data.companies).toEqual(["gitlab", "discord"]);
     expect(data.locations).toContain("Remote — United States");
     expect(data.sources).toEqual(["greenhouse", "ashby"]);
+    expect(data.departments).toEqual(["engineering", "design", "sales"]);
+    expect(data.employmentTypes).toEqual(["full time", "contract"]);
+    expect(data.regions).toEqual(["north america"]);
   });
 });

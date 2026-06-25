@@ -63,7 +63,7 @@ describe("fetchSmartRecruitersJobs", () => {
       company: "testco",
       location: "London, United Kingdom",
       locations: ["London, United Kingdom"],
-      department: "Engineering",
+      department: "engineering",
       url: "https://careers.smartrecruiters.com/testco/aaaa-1111",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
       source: "smartrecruiters",
@@ -80,7 +80,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
-    expect(jobs[1]!.department).toBe("Product");
+    expect(jobs[1]!.department).toBe("product");
   });
 
   it("normalizes remote locations", async () => {

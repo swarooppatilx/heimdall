@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       experience: searchParams.get("experience")?.toLowerCase() || undefined,
       posted: searchParams.get("posted") || undefined,
       department: searchParams.get("department")?.toLowerCase() || undefined,
-      employmentType: searchParams.get("employment_type") || undefined,
+      employmentType: searchParams.get("employment_type")?.toLowerCase() || undefined,
       earlyCareer: searchParams.get("early_career") || undefined,
       region: searchParams.get("region")?.toLowerCase() || undefined,
       sort: searchParams.get("sort") || undefined,

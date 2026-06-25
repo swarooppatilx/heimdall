@@ -27,11 +27,11 @@ function mapJob(raw: AshbyJob, company: string): Job {
     company,
     location: normalizeLocation(baseLocation),
     locations: splitLocations(baseLocation).map((part) => normalizeLocation(part)),
-    department: raw.department || inferDepartment(raw.title),
+    department: (raw.department || inferDepartment(raw.title)).toLowerCase(),
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),
     source: "ashby",
-    employmentType: raw.employmentType ?? "",
+    employmentType: (raw.employmentType ?? "").toLowerCase(),
   };
 }
 
