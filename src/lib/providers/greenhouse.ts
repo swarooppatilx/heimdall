@@ -1,3 +1,4 @@
+import { inferDepartment } from "../department";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -66,7 +67,7 @@ export function mapJob(raw: GreenhouseJob, board: string): Job {
     company: board,
     location: primary,
     locations: locationParts.map((part) => normalizeLocation(part)),
-    department: department || "General",
+    department: department || inferDepartment(raw.title),
     url: raw.absolute_url,
     postedAt: new Date(raw.first_published ?? raw.updated_at),
     source: "greenhouse",

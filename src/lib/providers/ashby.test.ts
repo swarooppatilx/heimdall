@@ -58,7 +58,7 @@ describe("fetchAshbyJobs", () => {
     });
   });
 
-  it("defaults department to General when empty", async () => {
+  it("infers department from title when empty", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockResponse),
@@ -66,7 +66,7 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[1]!.department).toBe("General");
+    expect(jobs[1]!.department).toBe("Engineering");
   });
 
   it("normalizes location", async () => {

@@ -1,3 +1,4 @@
+import { inferDepartment } from "../department";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -42,7 +43,7 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
     department:
       ("label" in raw.department && raw.department.label) ||
       ("label" in raw.function && raw.function.label) ||
-      "General",
+      inferDepartment(raw.name),
     url: `https://careers.smartrecruiters.com/${company}/${raw.uuid}`,
     postedAt: new Date(raw.releasedDate),
     source: "smartrecruiters",

@@ -90,7 +90,7 @@ describe("fetchGreenhouseJobs", () => {
     expect(jobs[1]!.postedAt.toISOString()).toBe("2026-08-19T10:00:00.000Z");
   });
 
-  it("defaults department to General when metadata is absent", async () => {
+  it("infers department from title when metadata is absent", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockResponse),
@@ -98,7 +98,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[1]!.department).toBe("General");
+    expect(jobs[1]!.department).toBe("Product");
   });
 
   it("normalizes location", async () => {

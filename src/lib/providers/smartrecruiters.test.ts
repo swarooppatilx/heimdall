@@ -72,7 +72,7 @@ describe("fetchSmartRecruitersJobs", () => {
     });
   });
 
-  it("defaults department to General when empty", async () => {
+  it("infers department when department and function are empty", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockResponse),
@@ -80,7 +80,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
-    expect(jobs[1]!.department).toBe("General");
+    expect(jobs[1]!.department).toBe("Product");
   });
 
   it("normalizes remote locations", async () => {
