@@ -272,7 +272,7 @@ function JobsPage() {
               placeholder="search jobs..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-4 py-2.5 pr-16 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring"
+              className="w-full rounded-lg border border-border bg-card px-4 py-3 pr-16 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
               aria-label="Search jobs"
             />
             <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
@@ -281,47 +281,53 @@ function JobsPage() {
           </div>
         </div>
 
-        <fieldset className="mb-3 flex flex-wrap gap-2" aria-label="Filters">
+        <fieldset className="mb-2 flex flex-wrap gap-2" aria-label="Filters">
           <FilterSelect
             value={company}
             onChange={setCompany}
             options={filterOptions?.companies ?? []}
             placeholder="company"
+            aria-label="Filter by company"
           />
           <FilterSelect
             value={location}
             onChange={setLocation}
             options={filterOptions?.locations ?? []}
             placeholder="location"
+            aria-label="Filter by location"
           />
           <FilterSelect
             value={source}
             onChange={setSource}
             options={filterOptions?.sources ?? []}
             placeholder="source"
+            aria-label="Filter by source"
           />
           <FilterSelect
             value={department}
             onChange={setDepartment}
             options={filterOptions?.departments ?? []}
             placeholder="department"
+            aria-label="Filter by department"
           />
           <FilterSelect
             value={employmentType}
             onChange={setEmploymentType}
             options={filterOptions?.employmentTypes ?? []}
             placeholder="employment"
+            aria-label="Filter by employment type"
           />
           <FilterSelect
             value={region}
             onChange={setRegion}
             options={filterOptions?.regions ?? []}
             placeholder="region"
+            aria-label="Filter by region"
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            className="min-h-11 rounded-md border border-border bg-card px-2.5 py-2.5 text-xs text-foreground outline-none focus:border-ring"
             aria-label="Sort jobs"
           >
             <option value="">newest first</option>
@@ -335,7 +341,7 @@ function JobsPage() {
                 type="button"
                 onClick={() => setExperience(e.value)}
                 aria-pressed={experience === e.value}
-                className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+                className={`min-h-11 rounded-md px-2.5 py-2 text-xs transition-colors ${
                   experience === e.value
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -353,7 +359,7 @@ function JobsPage() {
                 type="button"
                 onClick={() => setPosted(p.value)}
                 aria-pressed={posted === p.value}
-                className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+                className={`min-h-11 rounded-md px-2.5 py-2 text-xs transition-colors ${
                   posted === p.value
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -371,7 +377,7 @@ function JobsPage() {
               type="button"
               onClick={() => setType(type ? "" : "remote")}
               aria-pressed={type === "remote"}
-              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+              className={`min-h-11 rounded-full px-3 py-2 text-xs transition-colors ${
                 type === "remote"
                   ? "bg-accent text-accent-foreground ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
@@ -383,7 +389,7 @@ function JobsPage() {
               type="button"
               onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
               aria-pressed={earlyCareer === "true"}
-              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+              className={`min-h-11 rounded-full px-3 py-2 text-xs transition-colors ${
                 earlyCareer
                   ? "bg-accent text-accent-foreground ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground"
@@ -408,7 +414,7 @@ function JobsPage() {
                   setSort("");
                   router.replace("?", { scroll: false });
                 }}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="min-h-11 text-xs text-muted-foreground hover:text-foreground"
               >
                 clear all
               </button>
