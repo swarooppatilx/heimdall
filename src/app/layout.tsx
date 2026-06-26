@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Raleway } from "next/font/google";
+import { Outfit } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const ralewayHeading = Raleway({ subsets: ["latin"], variable: "--font-heading" });
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -62,17 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html
-      lang="en"
-      className={cn(
-        "h-full",
-        "antialiased",
-        "dark",
-        "font-sans",
-        outfit.variable,
-        ralewayHeading.variable,
-      )}
-    >
+    <html lang="en" className={cn("h-full", "antialiased", "dark", "font-sans", outfit.variable)}>
       <head>
         <JsonLd data={jsonLd} />
       </head>
