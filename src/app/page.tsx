@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { FilterSelect } from "@/components/filter-select";
 import { Button } from "@/components/ui/button";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
@@ -281,84 +282,42 @@ function JobsPage() {
         </div>
 
         <fieldset className="mb-3 flex flex-wrap gap-2" aria-label="Filters">
-          <select
+          <FilterSelect
             value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by company"
-          >
-            <option value="">company</option>
-            {filterOptions?.companies.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setCompany}
+            options={filterOptions?.companies ?? []}
+            placeholder="company"
+          />
+          <FilterSelect
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by location"
-          >
-            <option value="">location</option>
-            {filterOptions?.locations.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setLocation}
+            options={filterOptions?.locations ?? []}
+            placeholder="location"
+          />
+          <FilterSelect
             value={source}
-            onChange={(e) => setSource(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by source"
-          >
-            <option value="">source</option>
-            {filterOptions?.sources.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setSource}
+            options={filterOptions?.sources ?? []}
+            placeholder="source"
+          />
+          <FilterSelect
             value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by department"
-          >
-            <option value="">department</option>
-            {filterOptions?.departments.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setDepartment}
+            options={filterOptions?.departments ?? []}
+            placeholder="department"
+          />
+          <FilterSelect
             value={employmentType}
-            onChange={(e) => setEmploymentType(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by employment type"
-          >
-            <option value="">employment</option>
-            {filterOptions?.employmentTypes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setEmploymentType}
+            options={filterOptions?.employmentTypes ?? []}
+            placeholder="employment"
+          />
+          <FilterSelect
             value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Filter by region"
-          >
-            <option value="">region</option>
-            {filterOptions?.regions.map((rg) => (
-              <option key={rg} value={rg}>
-                {rg}
-              </option>
-            ))}
-          </select>
+            onChange={setRegion}
+            options={filterOptions?.regions ?? []}
+            placeholder="region"
+          />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
