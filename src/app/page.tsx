@@ -554,6 +554,23 @@ function JobsPage() {
               : `${jobCards.length} fresh roles`}
         </p>
 
+        {!isLoading && !isError && jobCards.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border p-8 text-center">
+            <p className="text-sm text-muted-foreground">no roles match these filters</p>
+            {chips.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                className="mt-4"
+              >
+                clear all filters
+              </Button>
+            )}
+          </div>
+        )}
+
         <ul id="job-results" className="flex flex-col gap-2">
           {jobCards.map(({ job, openings }) => (
             <li
