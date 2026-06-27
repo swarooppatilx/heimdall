@@ -7,9 +7,11 @@ function readJobs(res: Response): Promise<Job[]> {
 }
 
 const mockSearchJobs = vi.fn();
+const mockCountJobs = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   searchJobs: (...args: unknown[]) => mockSearchJobs(...args),
+  countJobs: (...args: unknown[]) => mockCountJobs(...args),
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -43,6 +45,8 @@ describe("GET /api/jobs", () => {
   beforeEach(() => {
     mockSearchJobs.mockReset();
     mockSearchJobs.mockResolvedValue(jobs);
+    mockCountJobs.mockReset();
+    mockCountJobs.mockResolvedValue(jobs.length);
   });
 
   it("searches with empty filters when no params are given", async () => {

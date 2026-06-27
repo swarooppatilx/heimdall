@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, asc, desc, eq, gte, inArray, like, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, like, lt, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
@@ -73,9 +73,7 @@ export interface PageOptions {
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 500;
 
-export async function searchJobs(filters: JobFilters, page?: PageOptions): Promise<Job[]> {
-  const db = await getDb();
-
+function jobConditions(filters: JobFilters) {
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
   if (filters.q) {
@@ -121,6 +119,20 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   if (windowMs) {
     conditions.push(gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString()));
   }
+  return conditions;
+}
+
+export async function countJobs(filters: JobFilters): Promise<number> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(jobs)
+    .where(and(...jobConditions(filters)));
+  return row?.value ?? 0;
+}
+
+export async function searchJobs(filters: JobFilters, page?: PageOptions): Promise<Job[]> {
+  const db = await getDb();
 
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
@@ -131,7 +143,7 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   const rows = await db
     .select()
     .from(jobs)
-    .where(and(...conditions))
+    .where(and(...jobConditions(filters)))
     .orderBy(...orderBy)
     .limit(limit)
     .offset(offset);

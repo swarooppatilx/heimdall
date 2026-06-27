@@ -99,10 +99,15 @@ interface JobFiltersInput {
   sort: string;
 }
 
+interface JobPage {
+  jobs: Job[];
+  total: number;
+}
+
 function useJobFilters(filters: JobFiltersInput) {
   return useInfiniteQuery({
     queryKey: ["jobs", filters],
-    queryFn: async ({ pageParam }): Promise<Job[]> => {
+    queryFn: async ({ pageParam }): Promise<JobPage> => {
       const params = new URLSearchParams();
       if (filters.q) params.set("q", filters.q);
       if (filters.company) params.set("company", filters.company);
@@ -119,11 +124,12 @@ function useJobFilters(filters: JobFiltersInput) {
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
       const res = await fetch(`/api/jobs?${params}`);
-      return res.json();
+      const jobs = (await res.json()) as Job[];
+      return { jobs, total: Number(res.headers.get("X-Total-Count") ?? 0) };
     },
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
+      lastPage.jobs.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
   });
 }
 
@@ -167,7 +173,8 @@ function JobsPage() {
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useJobFilters(filters);
-  const jobs = data?.pages.flat() ?? [];
+  const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
+  const total = data?.pages[0]?.total ?? 0;
 
   const jobCards = useMemo(() => {
     const primary = new Map<string, Job>();
@@ -319,6 +326,17 @@ function JobsPage() {
     setEarlyCareer,
   ]);
 
+  const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
+  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > 24 * 3_600_000 : false;
+
+  const countLabel = isLoading
+    ? "loading..."
+    : isError
+      ? "something went wrong fetching jobs — try again"
+      : total > jobs.length
+        ? `showing ${jobs.length} of ${total} fresh roles`
+        : `${jobCards.length} fresh role${jobCards.length === 1 ? "" : "s"}`;
+
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -334,13 +352,6 @@ function JobsPage() {
             <span className="hidden text-xs text-muted-foreground sm:inline">
               fresh tech jobs, direct from source
             </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {crawlStatus?.latest && crawlStatus.latest.length > 0 && (
-              <span className="hidden text-[11px] text-muted-foreground sm:inline">
-                last sync {timeAgo(crawlStatus.latest[0]!.createdAt)}
-              </span>
-            )}
           </div>
         </div>
       </header>
@@ -542,16 +553,17 @@ function JobsPage() {
         )}
 
         <p
-          className="mb-4 text-xs text-foreground"
+          className="mb-4 flex flex-wrap items-baseline gap-x-3 text-xs text-foreground"
           role="status"
           aria-live="polite"
           aria-atomic="true"
         >
-          {isLoading
-            ? "loading..."
-            : isError
-              ? "something went wrong fetching jobs — try again"
-              : `${jobCards.length} fresh roles`}
+          <span>{countLabel}</span>
+          {syncedAt && (
+            <span className={syncStale ? "text-amber-400" : "text-muted-foreground"}>
+              synced {timeAgo(syncedAt)}
+            </span>
+          )}
         </p>
 
         {!isLoading && !isError && jobCards.length === 0 && (
