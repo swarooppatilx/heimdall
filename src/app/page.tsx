@@ -128,6 +128,7 @@ function useJobFilters(filters: JobFiltersInput) {
 }
 
 function JobsPage() {
+  const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery, commitQuery] = useQueryParam("q", "", { deferCommit: true });
@@ -222,6 +223,101 @@ function JobsPage() {
     { value: "today", label: "today" },
     { value: "week", label: "this week" },
   ];
+
+  const clearAllFilters = useCallback(() => {
+    setCompany("");
+    setLocation("");
+    setType("");
+    setExperience("");
+    setPosted("");
+    setSource("");
+    setDepartment("");
+    setEmploymentType("");
+    setEarlyCareer("");
+    setRegion("");
+    setSort("");
+    commitQuery("");
+    router.replace("?", { scroll: false });
+  }, [
+    commitQuery,
+    router,
+    setCompany,
+    setLocation,
+    setType,
+    setExperience,
+    setPosted,
+    setSource,
+    setDepartment,
+    setEmploymentType,
+    setEarlyCareer,
+    setRegion,
+    setSort,
+  ]);
+
+  const chips = useMemo(() => {
+    const list: { key: string; label: string; onRemove: () => void }[] = [];
+    if (company)
+      list.push({ key: "company", label: `company: ${company}`, onRemove: () => setCompany("") });
+    if (location)
+      list.push({
+        key: "location",
+        label: `location: ${location}`,
+        onRemove: () => setLocation(""),
+      });
+    if (source)
+      list.push({ key: "source", label: `source: ${source}`, onRemove: () => setSource("") });
+    if (department)
+      list.push({
+        key: "department",
+        label: `department: ${department}`,
+        onRemove: () => setDepartment(""),
+      });
+    if (employmentType)
+      list.push({
+        key: "employment",
+        label: `employment: ${employmentType}`,
+        onRemove: () => setEmploymentType(""),
+      });
+    if (region)
+      list.push({ key: "region", label: `region: ${region}`, onRemove: () => setRegion("") });
+    if (experience)
+      list.push({
+        key: "experience",
+        label: `seniority: ${experience}`,
+        onRemove: () => setExperience(""),
+      });
+    if (posted)
+      list.push({
+        key: "posted",
+        label: `posted: ${posted === "week" ? "this week" : posted}`,
+        onRemove: () => setPosted(""),
+      });
+    if (type) list.push({ key: "type", label: "remote", onRemove: () => setType("") });
+    if (earlyCareer)
+      list.push({ key: "early_career", label: "early career", onRemove: () => setEarlyCareer("") });
+    return list;
+  }, [
+    company,
+    location,
+    source,
+    department,
+    employmentType,
+    region,
+    experience,
+    posted,
+    type,
+    earlyCareer,
+    setCompany,
+    setLocation,
+    setSource,
+    setDepartment,
+    setEmploymentType,
+    setRegion,
+    setExperience,
+    setPosted,
+    setType,
+    setEarlyCareer,
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -415,6 +511,35 @@ function JobsPage() {
             </fieldset>
           </div>
         </section>
+
+        {chips.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {chips.map((chip) => (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={chip.onRemove}
+                className="group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-secondary px-3 text-xs text-secondary-foreground transition-colors hover:border-ring/60 hover:text-foreground"
+                aria-label={`Remove filter ${chip.label}`}
+              >
+                {chip.label}
+                <span
+                  aria-hidden="true"
+                  className="text-muted-foreground group-hover:text-foreground"
+                >
+                  ✕
+                </span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="min-h-9 px-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              clear all
+            </button>
+          </div>
+        )}
 
         <p
           className="mb-4 text-xs text-foreground"
