@@ -128,7 +128,6 @@ function useJobFilters(filters: JobFiltersInput) {
 }
 
 function JobsPage() {
-  const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery, commitQuery] = useQueryParam("q", "", { deferCommit: true });
@@ -224,19 +223,6 @@ function JobsPage() {
     { value: "week", label: "this week" },
   ];
 
-  const activeFilters = [
-    company,
-    location,
-    type,
-    experience,
-    posted,
-    source,
-    department,
-    employmentType,
-    earlyCareer,
-    region,
-  ].filter(Boolean);
-
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -264,8 +250,11 @@ function JobsPage() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
-        <div className="mb-4">
-          <div className="relative">
+        <section
+          aria-label="Search and filters"
+          className="mb-6 rounded-xl border border-border bg-card/40 p-3 sm:p-4"
+        >
+          <div className="relative mb-4">
             <input
               ref={searchRef}
               type="text"
@@ -279,148 +268,153 @@ function JobsPage() {
               /
             </kbd>
           </div>
-        </div>
 
-        <fieldset className="mb-2 flex flex-wrap gap-2" aria-label="Filters">
-          <FilterSelect
-            value={company}
-            onChange={setCompany}
-            options={filterOptions?.companies ?? []}
-            placeholder="company"
-            aria-label="Filter by company"
-          />
-          <FilterSelect
-            value={location}
-            onChange={setLocation}
-            options={filterOptions?.locations ?? []}
-            placeholder="location"
-            aria-label="Filter by location"
-          />
-          <FilterSelect
-            value={source}
-            onChange={setSource}
-            options={filterOptions?.sources ?? []}
-            placeholder="source"
-            aria-label="Filter by source"
-          />
-          <FilterSelect
-            value={department}
-            onChange={setDepartment}
-            options={filterOptions?.departments ?? []}
-            placeholder="department"
-            aria-label="Filter by department"
-          />
-          <FilterSelect
-            value={employmentType}
-            onChange={setEmploymentType}
-            options={filterOptions?.employmentTypes ?? []}
-            placeholder="employment"
-            aria-label="Filter by employment type"
-          />
-          <FilterSelect
-            value={region}
-            onChange={setRegion}
-            options={filterOptions?.regions ?? []}
-            placeholder="region"
-            aria-label="Filter by region"
-          />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="min-h-11 rounded-md border border-border bg-card px-2.5 py-2.5 text-xs text-foreground outline-none focus:border-ring"
-            aria-label="Sort jobs"
-          >
-            <option value="">newest first</option>
-            <option value="company">company a–z</option>
-          </select>
-          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
-          <fieldset aria-label="Filter by experience level">
-            {experienceFilters.map((e) => (
-              <button
-                key={e.value}
-                type="button"
-                onClick={() => setExperience(e.value)}
-                aria-pressed={experience === e.value}
-                className={`min-h-11 rounded-md px-2.5 py-2 text-xs transition-colors ${
-                  experience === e.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {e.label}
-              </button>
-            ))}
-          </fieldset>
-          <div className="hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
-          <fieldset aria-label="Filter by posting date">
-            {postedFilters.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                onClick={() => setPosted(p.value)}
-                aria-pressed={posted === p.value}
-                className={`min-h-11 rounded-md px-2.5 py-2 text-xs transition-colors ${
-                  posted === p.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </fieldset>
-        </fieldset>
-
-        {(type || activeFilters.length > 0) && (
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setType(type ? "" : "remote")}
-              aria-pressed={type === "remote"}
-              className={`min-h-11 rounded-full px-3 py-2 text-xs transition-colors ${
-                type === "remote"
-                  ? "bg-accent text-accent-foreground ring-1 ring-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              remote
-            </button>
-            <button
-              type="button"
-              onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
-              aria-pressed={earlyCareer === "true"}
-              className={`min-h-11 rounded-full px-3 py-2 text-xs transition-colors ${
-                earlyCareer
-                  ? "bg-accent text-accent-foreground ring-1 ring-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              early career
-            </button>
-            {activeFilters.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setCompany("");
-                  setLocation("");
-                  setType("");
-                  setExperience("");
-                  setPosted("");
-                  setSource("");
-                  setDepartment("");
-                  setEmploymentType("");
-                  setEarlyCareer("");
-                  setRegion("");
-                  setSort("");
-                  router.replace("?", { scroll: false });
-                }}
-                className="min-h-11 text-xs text-muted-foreground hover:text-foreground"
-              >
-                clear all
-              </button>
-            )}
+          <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+            <fieldset aria-label="Filter by company place and source">
+              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                company &amp; place
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                <FilterSelect
+                  value={company}
+                  onChange={setCompany}
+                  options={filterOptions?.companies ?? []}
+                  placeholder="company"
+                  aria-label="Filter by company"
+                />
+                <FilterSelect
+                  value={location}
+                  onChange={setLocation}
+                  options={filterOptions?.locations ?? []}
+                  placeholder="location"
+                  aria-label="Filter by location"
+                />
+                <FilterSelect
+                  value={source}
+                  onChange={setSource}
+                  options={filterOptions?.sources ?? []}
+                  placeholder="source"
+                  aria-label="Filter by source"
+                />
+              </div>
+            </fieldset>
+            <fieldset aria-label="Filter by role attributes">
+              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                role
+              </legend>
+              <div className="flex flex-wrap items-center gap-2">
+                <FilterSelect
+                  value={department}
+                  onChange={setDepartment}
+                  options={filterOptions?.departments ?? []}
+                  placeholder="department"
+                  aria-label="Filter by department"
+                />
+                <FilterSelect
+                  value={employmentType}
+                  onChange={setEmploymentType}
+                  options={filterOptions?.employmentTypes ?? []}
+                  placeholder="employment"
+                  aria-label="Filter by employment type"
+                />
+                <FilterSelect
+                  value={region}
+                  onChange={setRegion}
+                  options={filterOptions?.regions ?? []}
+                  placeholder="region"
+                  aria-label="Filter by region"
+                />
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="h-9 min-h-11 rounded-md border border-border bg-card px-2.5 py-0 text-xs text-foreground outline-none focus:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  aria-label="Sort jobs"
+                >
+                  <option value="">newest first</option>
+                  <option value="company">company a–z</option>
+                </select>
+              </div>
+            </fieldset>
           </div>
-        )}
+
+          <div className="mt-4 grid gap-x-6 gap-y-4 sm:grid-cols-3">
+            <fieldset aria-label="Filter by seniority">
+              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                seniority
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {experienceFilters.map((e) => (
+                  <button
+                    key={e.value}
+                    type="button"
+                    onClick={() => setExperience(e.value)}
+                    aria-pressed={experience === e.value}
+                    className={`min-h-11 rounded-md px-2.5 text-xs transition-colors ${
+                      experience === e.value
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {e.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset aria-label="Filter by posting date">
+              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                posted
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {postedFilters.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setPosted(p.value)}
+                    aria-pressed={posted === p.value}
+                    className={`min-h-11 rounded-md px-2.5 text-xs transition-colors ${
+                      posted === p.value
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset aria-label="Filter by work mode">
+              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                work mode
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setType(type ? "" : "remote")}
+                  aria-pressed={type === "remote"}
+                  className={`min-h-11 rounded-full px-3 text-xs transition-colors ${
+                    type === "remote"
+                      ? "bg-accent text-accent-foreground ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  remote
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
+                  aria-pressed={earlyCareer === "true"}
+                  className={`min-h-11 rounded-full px-3 text-xs transition-colors ${
+                    earlyCareer
+                      ? "bg-accent text-accent-foreground ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  early career
+                </button>
+              </div>
+            </fieldset>
+          </div>
+        </section>
 
         <p
           className="mb-4 text-xs text-foreground"
