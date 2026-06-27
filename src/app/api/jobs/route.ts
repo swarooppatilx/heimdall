@@ -23,13 +23,11 @@ export async function GET(request: Request) {
     company: searchParams.get("company")?.toLowerCase() || undefined,
     location: searchParams.get("location")?.toLowerCase() || undefined,
     source: searchParams.get("source")?.toLowerCase() || undefined,
-    type: searchParams.get("type") || undefined,
     experience: searchParams.get("experience")?.toLowerCase() || undefined,
     posted: searchParams.get("posted") || undefined,
     department: searchParams.get("department")?.toLowerCase() || undefined,
     employmentType: searchParams.get("employment_type")?.toLowerCase() || undefined,
     earlyCareer: searchParams.get("early_career") || undefined,
-    region: searchParams.get("region")?.toLowerCase() || undefined,
     sort: searchParams.get("sort") || undefined,
   };
 

@@ -57,14 +57,12 @@ describe("GET /api/jobs", () => {
         company: undefined,
         location: undefined,
         source: undefined,
-        type: undefined,
         experience: undefined,
         posted: undefined,
         department: undefined,
         employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
-        region: undefined,
       },
       { limit: undefined, offset: undefined },
     );
@@ -81,35 +79,31 @@ describe("GET /api/jobs", () => {
         company: "discord",
         location: "remote",
         source: "ashby",
-        type: undefined,
         experience: undefined,
         posted: undefined,
         department: undefined,
         employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
-        region: undefined,
       },
       { limit: undefined, offset: undefined },
     );
   });
 
   it("passes through enum filters untouched", async () => {
-    await GET(makeRequest({ type: "remote", experience: "senior", posted: "week" }));
+    await GET(makeRequest({ experience: "senior", posted: "week" }));
     expect(mockSearchJobs).toHaveBeenCalledWith(
       {
         q: undefined,
         company: undefined,
         location: undefined,
         source: undefined,
-        type: "remote",
         experience: "senior",
         posted: "week",
         department: undefined,
         employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
-        region: undefined,
       },
       { limit: undefined, offset: undefined },
     );
@@ -127,7 +121,6 @@ describe("GET /api/jobs", () => {
         employment_type: "full time",
         early_career: "true",
         sort: "company",
-        region: "north america",
       }),
     );
     expect(mockSearchJobs).toHaveBeenCalledWith(
@@ -136,25 +129,22 @@ describe("GET /api/jobs", () => {
         employmentType: "full time",
         earlyCareer: "true",
         sort: "company",
-        region: "north america",
       }),
       { limit: undefined, offset: undefined },
     );
   });
 
-  it("lowercases department region and employmentType consistently", async () => {
+  it("lowercases department and employmentType consistently", async () => {
     await GET(
       makeRequest({
         department: "Engineering",
         employment_type: "Full Time",
-        region: "North America",
       }),
     );
     expect(mockSearchJobs).toHaveBeenCalledWith(
       expect.objectContaining({
         department: "engineering",
         employmentType: "full time",
-        region: "north america",
       }),
       { limit: undefined, offset: undefined },
     );

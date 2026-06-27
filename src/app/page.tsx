@@ -1,5 +1,7 @@
 "use client";
 
+import { Sorting02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +16,13 @@ import {
 } from "react";
 import { FilterSelect } from "@/components/filter-select";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
@@ -88,14 +97,12 @@ interface JobFiltersInput {
   q: string;
   company: string;
   location: string;
-  type: string;
   experience: string;
   posted: string;
   source: string;
   department: string;
   employmentType: string;
   earlyCareer: string;
-  region: string;
   sort: string;
 }
 
@@ -112,14 +119,12 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.q) params.set("q", filters.q);
       if (filters.company) params.set("company", filters.company);
       if (filters.location) params.set("location", filters.location);
-      if (filters.type) params.set("type", filters.type);
       if (filters.experience) params.set("experience", filters.experience);
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
       if (filters.department) params.set("department", filters.department);
       if (filters.employmentType) params.set("employment_type", filters.employmentType);
       if (filters.earlyCareer) params.set("early_career", filters.earlyCareer);
-      if (filters.region) params.set("region", filters.region);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
@@ -140,15 +145,14 @@ function JobsPage() {
   const [query, setQuery, commitQuery] = useQueryParam("q", "", { deferCommit: true });
   const [company, setCompany] = useQueryParam("company", "");
   const [location, setLocation] = useQueryParam("location", "");
-  const [type, setType] = useQueryParam("type", "");
   const [experience, setExperience] = useQueryParam("experience", "");
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
   const [department, setDepartment] = useQueryParam("department", "");
   const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [earlyCareer, setEarlyCareer] = useQueryParam("early_career", "");
-  const [region, setRegion] = useQueryParam("region", "");
   const [sort, setSort] = useQueryParam("sort", "");
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const deferredQuery = useDeferredValue(query);
 
@@ -160,14 +164,12 @@ function JobsPage() {
     q: deferredQuery,
     company,
     location,
-    type,
     experience,
     posted,
     source,
     department,
     employmentType,
     earlyCareer,
-    region,
     sort,
   };
 
@@ -216,33 +218,15 @@ function JobsPage() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [setQuery]);
 
-  const experienceFilters = [
-    { value: "", label: "all" },
-    { value: "intern", label: "intern" },
-    { value: "entry", label: "entry" },
-    { value: "mid", label: "mid" },
-    { value: "senior", label: "senior" },
-    { value: "staff", label: "staff" },
-  ];
-
-  const postedFilters = [
-    { value: "", label: "any time" },
-    { value: "today", label: "today" },
-    { value: "week", label: "this week" },
-  ];
-
   const clearAllFilters = useCallback(() => {
     setCompany("");
     setLocation("");
-    setType("");
     setExperience("");
     setPosted("");
     setSource("");
     setDepartment("");
     setEmploymentType("");
     setEarlyCareer("");
-    setRegion("");
-    setSort("");
     commitQuery("");
     router.replace("?", { scroll: false });
   }, [
@@ -250,15 +234,12 @@ function JobsPage() {
     router,
     setCompany,
     setLocation,
-    setType,
     setExperience,
     setPosted,
     setSource,
     setDepartment,
     setEmploymentType,
     setEarlyCareer,
-    setRegion,
-    setSort,
   ]);
 
   const chips = useMemo(() => {
@@ -285,8 +266,6 @@ function JobsPage() {
         label: `employment: ${employmentType}`,
         onRemove: () => setEmploymentType(""),
       });
-    if (region)
-      list.push({ key: "region", label: `region: ${region}`, onRemove: () => setRegion("") });
     if (experience)
       list.push({
         key: "experience",
@@ -299,7 +278,6 @@ function JobsPage() {
         label: `posted: ${posted === "week" ? "this week" : posted}`,
         onRemove: () => setPosted(""),
       });
-    if (type) list.push({ key: "type", label: "remote", onRemove: () => setType("") });
     if (earlyCareer)
       list.push({ key: "early_career", label: "early career", onRemove: () => setEarlyCareer("") });
     return list;
@@ -309,20 +287,16 @@ function JobsPage() {
     source,
     department,
     employmentType,
-    region,
     experience,
     posted,
-    type,
     earlyCareer,
     setCompany,
     setLocation,
     setSource,
     setDepartment,
     setEmploymentType,
-    setRegion,
     setExperience,
     setPosted,
-    setType,
     setEarlyCareer,
   ]);
 
@@ -357,11 +331,8 @@ function JobsPage() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
-        <section
-          aria-label="Search and filters"
-          className="mb-6 rounded-xl border border-border bg-card/40 p-3 sm:p-4"
-        >
-          <div className="relative mb-4">
+        <section aria-label="Search and filters" className="mb-6">
+          <div className="relative mb-3">
             <input
               ref={searchRef}
               type="text"
@@ -376,151 +347,100 @@ function JobsPage() {
             </kbd>
           </div>
 
-          <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-            <fieldset aria-label="Filter by company place and source">
-              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                company &amp; place
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                <FilterSelect
-                  value={company}
-                  onChange={setCompany}
-                  options={filterOptions?.companies ?? []}
-                  placeholder="company"
-                  aria-label="Filter by company"
-                />
-                <FilterSelect
-                  value={location}
-                  onChange={setLocation}
-                  options={filterOptions?.locations ?? []}
-                  placeholder="location"
-                  aria-label="Filter by location"
-                />
-                <FilterSelect
-                  value={source}
-                  onChange={setSource}
-                  options={filterOptions?.sources ?? []}
-                  placeholder="source"
-                  aria-label="Filter by source"
-                />
-              </div>
-            </fieldset>
-            <fieldset aria-label="Filter by role attributes">
-              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                role
-              </legend>
-              <div className="flex flex-wrap items-center gap-2">
-                <FilterSelect
-                  value={department}
-                  onChange={setDepartment}
-                  options={filterOptions?.departments ?? []}
-                  placeholder="department"
-                  aria-label="Filter by department"
-                />
-                <FilterSelect
-                  value={employmentType}
-                  onChange={setEmploymentType}
-                  options={filterOptions?.employmentTypes ?? []}
-                  placeholder="employment"
-                  aria-label="Filter by employment type"
-                />
-                <FilterSelect
-                  value={region}
-                  onChange={setRegion}
-                  options={filterOptions?.regions ?? []}
-                  placeholder="region"
-                  aria-label="Filter by region"
-                />
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="h-9 min-h-11 rounded-md border border-border bg-card px-2.5 py-0 text-xs text-foreground outline-none focus:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  aria-label="Sort jobs"
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterSelect
+              value={company}
+              onChange={setCompany}
+              options={filterOptions?.companies ?? []}
+              placeholder="company"
+              aria-label="Filter by company"
+            />
+            <FilterSelect
+              value={location}
+              onChange={setLocation}
+              options={["remote", ...(filterOptions?.locations ?? [])]}
+              placeholder="location"
+              aria-label="Filter by location"
+            />
+            <FilterSelect
+              value={department}
+              onChange={setDepartment}
+              options={filterOptions?.departments ?? []}
+              placeholder="role"
+              aria-label="Filter by role"
+            />
+            <FilterSelect
+              value={experience}
+              onChange={setExperience}
+              options={["intern", "entry", "mid", "senior", "staff"]}
+              placeholder="seniority"
+              aria-label="Filter by seniority"
+            />
+            <FilterSelect
+              value={posted === "week" ? "this week" : posted}
+              onChange={(v) => setPosted(v === "this week" ? "week" : v)}
+              options={["today", "this week"]}
+              placeholder="posted"
+              aria-label="Filter by posting date"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowMoreFilters(!showMoreFilters)}
+              aria-expanded={showMoreFilters}
+              className="min-h-9 rounded-md border border-dashed border-border px-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showMoreFilters ? "less −" : "more +"}
+            </button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="size-9" aria-label="Sort jobs">
+                  <HugeiconsIcon icon={Sorting02Icon} strokeWidth={2} className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuRadioGroup
+                  value={sort || "newest"}
+                  onValueChange={(v) => setSort(v === "newest" ? "" : v)}
                 >
-                  <option value="">newest first</option>
-                  <option value="company">company a–z</option>
-                </select>
-              </div>
-            </fieldset>
+                  <DropdownMenuRadioItem value="newest">newest first</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="company">company a–z</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="mt-4 grid gap-x-6 gap-y-4 sm:grid-cols-3">
-            <fieldset aria-label="Filter by seniority">
-              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                seniority
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {experienceFilters.map((e) => (
-                  <button
-                    key={e.value}
-                    type="button"
-                    onClick={() => setExperience(e.value)}
-                    aria-pressed={experience === e.value}
-                    className={`min-h-11 rounded-md px-2.5 text-xs transition-colors ${
-                      experience === e.value
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {e.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset aria-label="Filter by posting date">
-              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                posted
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {postedFilters.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPosted(p.value)}
-                    aria-pressed={posted === p.value}
-                    className={`min-h-11 rounded-md px-2.5 text-xs transition-colors ${
-                      posted === p.value
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset aria-label="Filter by work mode">
-              <legend className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                work mode
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setType(type ? "" : "remote")}
-                  aria-pressed={type === "remote"}
-                  className={`min-h-11 rounded-full px-3 text-xs transition-colors ${
-                    type === "remote"
-                      ? "bg-accent text-accent-foreground ring-1 ring-border"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  remote
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
-                  aria-pressed={earlyCareer === "true"}
-                  className={`min-h-11 rounded-full px-3 text-xs transition-colors ${
-                    earlyCareer
-                      ? "bg-accent text-accent-foreground ring-1 ring-border"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  early career
-                </button>
-              </div>
-            </fieldset>
-          </div>
+          {showMoreFilters && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <FilterSelect
+                value={source}
+                onChange={setSource}
+                options={filterOptions?.sources ?? []}
+                placeholder="source"
+                aria-label="Filter by source"
+              />
+              <FilterSelect
+                value={employmentType}
+                onChange={setEmploymentType}
+                options={filterOptions?.employmentTypes ?? []}
+                placeholder="employment"
+                aria-label="Filter by employment type"
+              />
+              <button
+                type="button"
+                onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
+                aria-pressed={earlyCareer === "true"}
+                className={`min-h-9 rounded-full px-3 text-xs transition-colors ${
+                  earlyCareer
+                    ? "bg-accent text-accent-foreground ring-1 ring-border"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                early career
+              </button>
+            </div>
+          )}
         </section>
 
         {chips.length > 0 && (

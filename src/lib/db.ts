@@ -48,13 +48,11 @@ export interface JobFilters {
   company?: string;
   location?: string;
   source?: string;
-  type?: string;
   experience?: string;
   posted?: string;
   department?: string;
   employmentType?: string;
   earlyCareer?: string;
-  region?: string;
   sort?: string;
 }
 
@@ -97,9 +95,6 @@ function jobConditions(filters: JobFilters) {
   if (filters.source) {
     conditions.push(eq(jobs.source, filters.source));
   }
-  if (filters.type === "remote") {
-    conditions.push(like(jobs.location, "remote%"));
-  }
   if (filters.experience) {
     conditions.push(eq(jobs.experienceLevel, filters.experience));
   }
@@ -111,9 +106,6 @@ function jobConditions(filters: JobFilters) {
   }
   if (filters.earlyCareer === "true") {
     conditions.push(eq(jobs.isEarlyCareer, 1));
-  }
-  if (filters.region) {
-    conditions.push(eq(jobs.region, filters.region));
   }
   const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
   if (windowMs) {
@@ -236,7 +228,6 @@ export async function getFilterOptions(): Promise<{
   sources: string[];
   departments: string[];
   employmentTypes: string[];
-  regions: string[];
 }> {
   const db = await getDb();
 
@@ -265,19 +256,12 @@ export async function getFilterOptions(): Promise<{
     .from(jobs)
     .where(ne(jobs.employmentType, ""))
     .orderBy(asc(jobs.employmentType));
-  const regions = await db
-    .selectDistinct({ value: jobs.region })
-    .from(jobs)
-    .where(ne(jobs.region, ""))
-    .orderBy(asc(jobs.region));
-
   return {
     companies: companies.map((r) => r.value),
     locations: locations.map((r) => r.value),
     sources: sources.map((r) => r.value),
     departments: departments.map((r) => r.value),
     employmentTypes: employmentTypes.map((r) => r.value),
-    regions: regions.map((r) => r.value),
   };
 }
 

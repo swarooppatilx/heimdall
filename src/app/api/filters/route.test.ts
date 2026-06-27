@@ -6,7 +6,6 @@ function readFilters(res: Response): Promise<{
   sources: string[];
   departments: string[];
   employmentTypes: string[];
-  regions: string[];
 }> {
   return res.json() as Promise<{
     companies: string[];
@@ -14,7 +13,6 @@ function readFilters(res: Response): Promise<{
     sources: string[];
     departments: string[];
     employmentTypes: string[];
-    regions: string[];
   }>;
 }
 
@@ -25,7 +23,6 @@ vi.mock("@/lib/db", () => ({
     sources: ["greenhouse", "ashby"],
     departments: ["engineering", "design", "sales"],
     employmentTypes: ["full time", "contract"],
-    regions: ["north america"],
   }),
 }));
 
@@ -46,6 +43,5 @@ describe("GET /api/filters", () => {
     expect(data.sources).toEqual(["greenhouse", "ashby"]);
     expect(data.departments).toEqual(["engineering", "design", "sales"]);
     expect(data.employmentTypes).toEqual(["full time", "contract"]);
-    expect(data.regions).toEqual(["north america"]);
   });
 });
