@@ -450,7 +450,7 @@ function JobsPage() {
                 key={chip.key}
                 type="button"
                 onClick={chip.onRemove}
-                className="group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-secondary px-3 text-xs text-secondary-foreground transition-colors hover:border-ring/60 hover:text-foreground"
+                className="group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-ring/30 bg-ring/10 px-3 text-xs text-ring transition-colors hover:border-ring/60"
                 aria-label={`Remove filter ${chip.label}`}
               >
                 {chip.label}
