@@ -1,6 +1,6 @@
 "use client";
 
-import { Sorting02Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -392,23 +392,6 @@ function JobsPage() {
             >
               {showMoreFilters ? "less −" : "more +"}
             </button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="size-9" aria-label="Sort jobs">
-                  <HugeiconsIcon icon={Sorting02Icon} strokeWidth={2} className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuRadioGroup
-                  value={sort || "newest"}
-                  onValueChange={(v) => setSort(v === "newest" ? "" : v)}
-                >
-                  <DropdownMenuRadioItem value="newest">newest first</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="company">company a–z</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
           {showMoreFilters && (
@@ -472,19 +455,42 @@ function JobsPage() {
           </div>
         )}
 
-        <p
-          className="mb-4 flex flex-wrap items-baseline gap-x-3 text-xs text-foreground"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <span>{countLabel}</span>
-          {syncedAt && (
-            <span className={syncStale ? "text-amber-400" : "text-muted-foreground"}>
-              synced {timeAgo(syncedAt)}
-            </span>
-          )}
-        </p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-3">
+          <p
+            className="flex flex-wrap items-baseline gap-x-3 text-xs text-foreground"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span>{countLabel}</span>
+            {syncedAt && (
+              <span className={syncStale ? "text-amber-400" : "text-muted-foreground"}>
+                synced {timeAgo(syncedAt)}
+              </span>
+            )}
+          </p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Sort jobs"
+              >
+                Sort: {sort === "company" ? "Company A–Z" : "Newest"}
+                <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuRadioGroup
+                value={sort || "newest"}
+                onValueChange={(v) => setSort(v === "newest" ? "" : v)}
+              >
+                <DropdownMenuRadioItem value="newest">Newest first</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="company">Company A–Z</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {!isLoading && !isError && jobCards.length === 0 && (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
