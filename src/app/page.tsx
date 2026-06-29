@@ -342,7 +342,7 @@ function JobsPage() {
               placeholder="Search jobs, companies, skills..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-4 py-3 pr-16 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus-visible:border-ring focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/40 sm:text-base"
+              className="w-full rounded-lg border border-border bg-card px-4 py-3 pr-16 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:text-base"
               aria-label="Search jobs"
             />
             <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
