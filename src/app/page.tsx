@@ -23,6 +23,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
@@ -152,8 +153,6 @@ function JobsPage() {
   const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [earlyCareer, setEarlyCareer] = useQueryParam("early_career", "");
   const [sort, setSort] = useQueryParam("sort", "");
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
-
   const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
@@ -241,6 +240,10 @@ function JobsPage() {
     setEmploymentType,
     setEarlyCareer,
   ]);
+
+  const advancedCount = [company, posted, source, employmentType, earlyCareer].filter(
+    Boolean,
+  ).length;
 
   const chips = useMemo(() => {
     const list: { key: string; label: string; onRemove: () => void }[] = [];
@@ -349,13 +352,6 @@ function JobsPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <FilterSelect
-              value={company}
-              onChange={setCompany}
-              options={filterOptions?.companies ?? []}
-              placeholder="company"
-              aria-label="Filter by company"
-            />
-            <FilterSelect
               value={location}
               onChange={setLocation}
               options={["remote", ...(filterOptions?.locations ?? [])]}
@@ -376,54 +372,89 @@ function JobsPage() {
               placeholder="seniority"
               aria-label="Filter by seniority"
             />
-            <FilterSelect
-              value={posted === "week" ? "this week" : posted}
-              onChange={(v) => setPosted(v === "this week" ? "week" : v)}
-              options={["today", "this week"]}
-              placeholder="posted"
-              aria-label="Filter by posting date"
-            />
 
-            <button
-              type="button"
-              onClick={() => setShowMoreFilters(!showMoreFilters)}
-              aria-expanded={showMoreFilters}
-              className="min-h-9 rounded-md border border-dashed border-border px-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {showMoreFilters ? "less −" : "more +"}
-            </button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`min-h-9 rounded-md border px-2.5 text-xs transition-colors ${
+                    advancedCount > 0
+                      ? "border-ring/40 bg-ring/10 text-ring"
+                      : "border-dashed border-border text-muted-foreground hover:border-ring/50 hover:text-foreground"
+                  }`}
+                >
+                  {advancedCount > 0 ? `More filters · ${advancedCount}` : "+ More filters"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-80 p-4">
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">company</p>
+                    <FilterSelect
+                      value={company}
+                      onChange={setCompany}
+                      options={filterOptions?.companies ?? []}
+                      placeholder="any company"
+                      aria-label="Filter by company"
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">posted</p>
+                    <FilterSelect
+                      value={posted === "week" ? "this week" : posted}
+                      onChange={(v) => setPosted(v === "this week" ? "week" : v)}
+                      options={["today", "this week"]}
+                      placeholder="any time"
+                      aria-label="Filter by posting date"
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">source</p>
+                    <FilterSelect
+                      value={source}
+                      onChange={setSource}
+                      options={filterOptions?.sources ?? []}
+                      placeholder="any source"
+                      aria-label="Filter by source"
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">employment</p>
+                    <FilterSelect
+                      value={employmentType}
+                      onChange={setEmploymentType}
+                      options={filterOptions?.employmentTypes ?? []}
+                      placeholder="any type"
+                      aria-label="Filter by employment type"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
+                    aria-pressed={earlyCareer === "true"}
+                    className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs transition-colors ${
+                      earlyCareer
+                        ? "bg-accent text-accent-foreground ring-1 ring-border"
+                        : "border border-dashed border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    early career only
+                  </button>
+                </div>
+                {advancedCount > 0 && (
+                  <div className="mt-4 flex justify-end border-t border-border pt-3">
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      clear all filters
+                    </button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
-
-          {showMoreFilters && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <FilterSelect
-                value={source}
-                onChange={setSource}
-                options={filterOptions?.sources ?? []}
-                placeholder="source"
-                aria-label="Filter by source"
-              />
-              <FilterSelect
-                value={employmentType}
-                onChange={setEmploymentType}
-                options={filterOptions?.employmentTypes ?? []}
-                placeholder="employment"
-                aria-label="Filter by employment type"
-              />
-              <button
-                type="button"
-                onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
-                aria-pressed={earlyCareer === "true"}
-                className={`min-h-9 rounded-full px-3 text-xs transition-colors ${
-                  earlyCareer
-                    ? "bg-accent text-accent-foreground ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                early career
-              </button>
-            </div>
-          )}
         </section>
 
         {chips.length > 0 && (
