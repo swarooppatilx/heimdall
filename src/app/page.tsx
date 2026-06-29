@@ -544,12 +544,14 @@ function JobsPage() {
           {jobCards.map(({ job, openings }) => (
             <li
               key={job.id}
-              className="group rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/50 sm:p-4"
+              className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-medium text-foreground sm:text-base">{job.title}</h2>
-                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                  <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                    {job.title}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                     <Link
                       href={`/company/${encodeURIComponent(job.company)}`}
                       className="hover:text-foreground"
@@ -559,7 +561,7 @@ function JobsPage() {
                     {openings > 1 && (
                       <Link
                         href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
-                        className="ml-1 rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground hover:text-foreground"
+                        className="ml-1 text-ring transition-colors hover:text-foreground"
                         aria-label={`${openings} openings for ${job.title}`}
                       >
                         · {openings} openings
@@ -568,28 +570,35 @@ function JobsPage() {
                     <span className="text-muted-foreground"> · </span>
                     {job.location}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                     {isRemoteLocation(job.location) && (
-                      <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
                         remote
                       </span>
                     )}
-                    <span className="rounded bg-muted px-1.5 py-0.5">{job.source}</span>
-                    {job.employmentType && (
-                      <span className="rounded bg-muted px-1.5 py-0.5">{job.employmentType}</span>
-                    )}
+                    <span>
+                      {[
+                        job.source,
+                        job.experienceLevel === "mid" ? null : job.experienceLevel,
+                        job.employmentType,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                     {job.salary && (
                       <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
                         {job.salary}
                       </span>
                     )}
-                    {job.experienceLevel && job.experienceLevel !== "mid" && (
-                      <span className="rounded bg-muted px-1.5 py-0.5">{job.experienceLevel}</span>
-                    )}
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
                 </div>
-                <Button asChild size="sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-primary hover:text-primary-foreground"
+                >
                   <a
                     href={job.url}
                     target="_blank"

@@ -126,26 +126,34 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
           {jobs.map((job) => (
             <li
               key={job.id}
-              className="group rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/50 sm:p-4"
+              className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-medium text-foreground sm:text-base">{job.title}</h2>
-                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{job.location}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
+                  <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                    {job.title}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{job.location}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                     {isRemoteLocation(job.location) && (
-                      <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
                         remote
                       </span>
                     )}
-                    <span className="rounded bg-muted px-1.5 py-0.5">{job.department}</span>
-                    {job.experienceLevel && job.experienceLevel !== "mid" && (
-                      <span className="rounded bg-muted px-1.5 py-0.5">{job.experienceLevel}</span>
-                    )}
+                    <span>
+                      {[job.department, job.experienceLevel === "mid" ? null : job.experienceLevel]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                     <span>{timeAgo(job.postedAt)}</span>
                   </div>
                 </div>
-                <Button asChild size="sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-primary hover:text-primary-foreground"
+                >
                   <a
                     href={job.url}
                     target="_blank"
