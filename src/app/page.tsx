@@ -398,7 +398,11 @@ function JobsPage() {
           >
             <span>{countLabel}</span>
             {syncedAt && (
-              <span className={syncStale ? "text-amber-400" : "text-muted-foreground"}>
+              <span
+                className={
+                  syncStale ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+                }
+              >
                 synced {timeAgo(syncedAt)}
               </span>
             )}

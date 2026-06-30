@@ -60,7 +60,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className={cn("h-full", "antialiased", "dark", "font-sans", outfit.variable)}>
+    <html
+      lang="en"
+      className={cn("h-full", "antialiased", "font-sans", outfit.variable)}
+      suppressHydrationWarning
+    >
       <head>
         <JsonLd data={jsonLd} />
       </head>
