@@ -1,9 +1,14 @@
+import { detectExperienceLevel } from "./experience";
 import type { Job } from "./job";
 
 export interface JobDiff {
   inserts: Job[];
   updates: Job[];
   deletedIds: string[];
+}
+
+function effectiveLevel(job: Job): string {
+  return job.experienceLevel ?? detectExperienceLevel(job.title);
 }
 
 function samePosting(a: Job, b: Job): boolean {
@@ -17,7 +22,8 @@ function samePosting(a: Job, b: Job): boolean {
     (a.salary ?? "") === (b.salary ?? "") &&
     JSON.stringify(a.locations ?? []) === JSON.stringify(b.locations ?? []) &&
     (a.region ?? "") === (b.region ?? "") &&
-    Boolean(a.isEarlyCareer) === Boolean(b.isEarlyCareer)
+    Boolean(a.isEarlyCareer) === Boolean(b.isEarlyCareer) &&
+    effectiveLevel(a) === effectiveLevel(b)
   );
 }
 
