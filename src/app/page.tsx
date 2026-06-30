@@ -15,6 +15,7 @@ import {
   useState,
 } from "react";
 import { FilterSelect } from "@/components/filter-select";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -304,6 +305,7 @@ function JobsPage() {
               fresh tech jobs, direct from source
             </span>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
