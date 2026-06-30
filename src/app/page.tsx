@@ -102,8 +102,6 @@ interface JobFiltersInput {
   posted: string;
   source: string;
   department: string;
-  employmentType: string;
-  earlyCareer: string;
   sort: string;
 }
 
@@ -124,8 +122,6 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
       if (filters.department) params.set("department", filters.department);
-      if (filters.employmentType) params.set("employment_type", filters.employmentType);
-      if (filters.earlyCareer) params.set("early_career", filters.earlyCareer);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
@@ -150,8 +146,6 @@ function JobsPage() {
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
   const [department, setDepartment] = useQueryParam("department", "");
-  const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
-  const [earlyCareer, setEarlyCareer] = useQueryParam("early_career", "");
   const [sort, setSort] = useQueryParam("sort", "");
   const deferredQuery = useDeferredValue(query);
 
@@ -167,8 +161,6 @@ function JobsPage() {
     posted,
     source,
     department,
-    employmentType,
-    earlyCareer,
     sort,
   };
 
@@ -224,8 +216,6 @@ function JobsPage() {
     setPosted("");
     setSource("");
     setDepartment("");
-    setEmploymentType("");
-    setEarlyCareer("");
     commitQuery("");
     router.replace("?", { scroll: false });
   }, [
@@ -237,11 +227,9 @@ function JobsPage() {
     setPosted,
     setSource,
     setDepartment,
-    setEmploymentType,
-    setEarlyCareer,
   ]);
 
-  const advancedCount = [company, posted, source, employmentType, earlyCareer].filter(
+  const advancedCount = [company, posted, source].filter(
     Boolean,
   ).length;
 
@@ -263,12 +251,6 @@ function JobsPage() {
         label: `department: ${department}`,
         onRemove: () => setDepartment(""),
       });
-    if (employmentType)
-      list.push({
-        key: "employment",
-        label: `employment: ${employmentType}`,
-        onRemove: () => setEmploymentType(""),
-      });
     if (experience)
       list.push({
         key: "experience",
@@ -281,26 +263,20 @@ function JobsPage() {
         label: `posted: ${posted === "week" ? "this week" : posted}`,
         onRemove: () => setPosted(""),
       });
-    if (earlyCareer)
-      list.push({ key: "early_career", label: "early career", onRemove: () => setEarlyCareer("") });
     return list;
   }, [
     company,
     location,
     source,
     department,
-    employmentType,
     experience,
     posted,
-    earlyCareer,
     setCompany,
     setLocation,
     setSource,
     setDepartment,
-    setEmploymentType,
     setExperience,
     setPosted,
-    setEarlyCareer,
   ]);
 
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
@@ -418,28 +394,6 @@ function JobsPage() {
                       aria-label="Filter by source"
                     />
                   </div>
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">employment</p>
-                    <FilterSelect
-                      value={employmentType}
-                      onChange={setEmploymentType}
-                      options={filterOptions?.employmentTypes ?? []}
-                      placeholder="any type"
-                      aria-label="Filter by employment type"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEarlyCareer(earlyCareer ? "" : "true")}
-                    aria-pressed={earlyCareer === "true"}
-                    className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs transition-colors ${
-                      earlyCareer
-                        ? "bg-accent text-accent-foreground ring-1 ring-border"
-                        : "border border-dashed border-border text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    early career only
-                  </button>
                 </div>
                 {advancedCount > 0 && (
                   <div className="mt-4 flex justify-end border-t border-border pt-3">
