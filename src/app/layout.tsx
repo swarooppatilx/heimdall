@@ -15,21 +15,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Heimdall — Fresh Tech Jobs",
-    template: "%s | Heimdall",
+    default: "heimdall — fresh tech jobs",
+    template: "%s | heimdall",
   },
   description:
-    "Fresh, verified tech job opportunities from official company career pages. No stale listings, no ghost jobs.",
+    "fresh, verified tech job opportunities from official company career pages. no stale listings, no ghost jobs.",
   openGraph: {
-    title: "Heimdall — Fresh Tech Jobs",
-    description: "Fresh, verified tech job opportunities from official company career pages.",
+    title: "heimdall — fresh tech jobs",
+    description: "fresh, verified tech job opportunities from official company career pages.",
     type: "website",
-    siteName: "Heimdall",
+    siteName: "heimdall",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Heimdall — Fresh Tech Jobs",
-    description: "Fresh, verified tech job opportunities from official company career pages.",
+    title: "heimdall — fresh tech jobs",
+    description: "fresh, verified tech job opportunities from official company career pages.",
   },
   robots: {
     index: true,
@@ -49,9 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Heimdall",
+    name: "heimdall",
     url: SITE_URL,
-    description: "Fresh, verified tech job opportunities from official company career pages.",
+    description: "fresh, verified tech job opportunities from official company career pages.",
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/?q={search_term_string}`,

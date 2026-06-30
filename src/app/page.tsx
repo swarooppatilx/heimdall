@@ -299,7 +299,7 @@ function JobsPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-baseline gap-2">
-            <h1 className="text-lg font-semibold tracking-tight">Heimdall</h1>
+            <h1 className="text-lg font-semibold tracking-tight">heimdall</h1>
             <span className="hidden text-xs text-muted-foreground sm:inline">
               fresh tech jobs, direct from source
             </span>

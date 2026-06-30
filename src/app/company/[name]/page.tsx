@@ -19,15 +19,15 @@ export async function generateMetadata({
   const stats = await companyStats(company);
   return {
     title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
-    description: `Browse ${stats.total} fresh tech job openings at ${company}. Direct from the company career page.`,
+    description: `browse ${stats.total} fresh tech job openings at ${company}. direct from the company career page.`,
     openGraph: {
-      title: `${company} — Fresh Tech Jobs`,
+      title: `${company} — fresh tech jobs`,
       description: `${stats.total} open positions at ${company}.`,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${company} — Fresh Tech Jobs`,
+      title: `${company} — fresh tech jobs`,
       description: `${stats.total} open positions at ${company}.`,
     },
   };
