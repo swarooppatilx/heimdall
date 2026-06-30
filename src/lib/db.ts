@@ -206,6 +206,11 @@ export async function updateJobs(items: Job[]): Promise<void> {
           department: values.department,
           url: values.url,
           postedAt: values.postedAt,
+          employmentType: values.employmentType,
+          salary: values.salary,
+          locations: values.locations,
+          region: values.region,
+          isEarlyCareer: values.isEarlyCareer,
           experienceLevel: values.experienceLevel,
         })
         .where(eq(jobs.id, job.id));
