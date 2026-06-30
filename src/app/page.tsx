@@ -229,9 +229,7 @@ function JobsPage() {
     setDepartment,
   ]);
 
-  const advancedCount = [company, posted, source].filter(
-    Boolean,
-  ).length;
+  const advancedCount = [company, posted, source].filter(Boolean).length;
 
   const chips = useMemo(() => {
     const list: { key: string; label: string; onRemove: () => void }[] = [];
@@ -328,18 +326,20 @@ function JobsPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <FilterSelect
+              value={company}
+              onChange={setCompany}
+              options={filterOptions?.companies ?? []}
+              placeholder="company"
+              aria-label="Filter by company"
+              className="flex-1"
+            />
+            <FilterSelect
               value={location}
               onChange={setLocation}
               options={["remote", ...(filterOptions?.locations ?? [])]}
               placeholder="location"
               aria-label="Filter by location"
-            />
-            <FilterSelect
-              value={department}
-              onChange={setDepartment}
-              options={filterOptions?.departments ?? []}
-              placeholder="role"
-              aria-label="Filter by role"
+              className="flex-1"
             />
             <FilterSelect
               value={experience}
@@ -347,67 +347,16 @@ function JobsPage() {
               options={["intern", "entry", "mid", "senior", "staff"]}
               placeholder="seniority"
               aria-label="Filter by seniority"
+              className="flex-1"
             />
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={`min-h-9 rounded-md border px-2.5 text-xs transition-colors ${
-                    advancedCount > 0
-                      ? "border-ring/40 bg-ring/10 text-ring"
-                      : "border-dashed border-border text-muted-foreground hover:border-ring/50 hover:text-foreground"
-                  }`}
-                >
-                  {advancedCount > 0 ? `More filters · ${advancedCount}` : "+ More filters"}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-80 p-4">
-                <div className="space-y-4">
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">company</p>
-                    <FilterSelect
-                      value={company}
-                      onChange={setCompany}
-                      options={filterOptions?.companies ?? []}
-                      placeholder="any company"
-                      aria-label="Filter by company"
-                    />
-                  </div>
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">posted</p>
-                    <FilterSelect
-                      value={posted === "week" ? "this week" : posted}
-                      onChange={(v) => setPosted(v === "this week" ? "week" : v)}
-                      options={["today", "this week"]}
-                      placeholder="any time"
-                      aria-label="Filter by posting date"
-                    />
-                  </div>
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">source</p>
-                    <FilterSelect
-                      value={source}
-                      onChange={setSource}
-                      options={filterOptions?.sources ?? []}
-                      placeholder="any source"
-                      aria-label="Filter by source"
-                    />
-                  </div>
-                </div>
-                {advancedCount > 0 && (
-                  <div className="mt-4 flex justify-end border-t border-border pt-3">
-                    <button
-                      type="button"
-                      onClick={clearAllFilters}
-                      className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                    >
-                      clear all filters
-                    </button>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
+            <FilterSelect
+              value={posted === "week" ? "this week" : posted}
+              onChange={(v) => setPosted(v === "this week" ? "week" : v)}
+              options={["today", "this week"]}
+              placeholder="posted"
+              aria-label="Filter by posting date"
+              className="flex-1"
+            />
           </div>
         </section>
 
@@ -454,27 +403,79 @@ function JobsPage() {
               </span>
             )}
           </p>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Sort jobs"
-              >
-                Sort: {sort === "company" ? "Company A–Z" : "Newest"}
-                <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuRadioGroup
-                value={sort || "newest"}
-                onValueChange={(v) => setSort(v === "newest" ? "" : v)}
-              >
-                <DropdownMenuRadioItem value="newest">Newest first</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="company">Company A–Z</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`min-h-9 rounded-md border px-2.5 text-xs transition-colors ${
+                    advancedCount > 0
+                      ? "border-ring/40 bg-ring/10 text-ring"
+                      : "border-dashed border-border text-muted-foreground hover:border-ring/50 hover:text-foreground"
+                  }`}
+                >
+                  {advancedCount > 0 ? `More filters · ${advancedCount}` : "+ More filters"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-4">
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">role</p>
+                    <FilterSelect
+                      value={department}
+                      onChange={setDepartment}
+                      options={filterOptions?.departments ?? []}
+                      placeholder="any role"
+                      aria-label="Filter by role"
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">source</p>
+                    <FilterSelect
+                      value={source}
+                      onChange={setSource}
+                      options={filterOptions?.sources ?? []}
+                      placeholder="any source"
+                      aria-label="Filter by source"
+                    />
+                  </div>
+                </div>
+                {advancedCount > 0 && (
+                  <div className="mt-4 flex justify-end border-t border-border pt-3">
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      clear all filters
+                    </button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Sort jobs"
+                >
+                  Sort: {sort === "company" ? "Company A–Z" : "Newest"}
+                  <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuRadioGroup
+                  value={sort || "newest"}
+                  onValueChange={(v) => setSort(v === "newest" ? "" : v)}
+                >
+                  <DropdownMenuRadioItem value="newest">Newest first</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="company">Company A–Z</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {!isLoading && !isError && jobCards.length === 0 && (
