@@ -313,7 +313,7 @@ function JobsPage() {
             <input
               ref={searchRef}
               type="text"
-              placeholder="Search jobs, companies, skills..."
+              placeholder="search jobs, companies, skills..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full rounded-lg border border-border bg-card px-4 py-3 pr-16 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:text-base"
@@ -414,7 +414,7 @@ function JobsPage() {
                       : "border-dashed border-border text-muted-foreground hover:border-ring/50 hover:text-foreground"
                   }`}
                 >
-                  {advancedCount > 0 ? `More filters · ${advancedCount}` : "+ More filters"}
+                  {advancedCount > 0 ? `more filters · ${advancedCount}` : "+ more filters"}
                 </button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-80 p-4">
@@ -461,7 +461,7 @@ function JobsPage() {
                   className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
                   aria-label="Sort jobs"
                 >
-                  Sort: {sort === "company" ? "Company A–Z" : "Newest"}
+                  sort · {sort === "company" ? "company a–z" : "newest first"}
                   <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -470,8 +470,8 @@ function JobsPage() {
                   value={sort || "newest"}
                   onValueChange={(v) => setSort(v === "newest" ? "" : v)}
                 >
-                  <DropdownMenuRadioItem value="newest">Newest first</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="company">Company A–Z</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="newest">newest first</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="company">company a–z</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
