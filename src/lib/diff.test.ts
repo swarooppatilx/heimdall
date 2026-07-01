@@ -47,6 +47,27 @@ describe("diffJobs", () => {
     expect(diff.updates).toHaveLength(1);
   });
 
+  it("ignores sub-minute postedAt drift", () => {
+    const stored = job("a");
+    const drifted = job("a", { postedAt: new Date("2026-08-20T00:00:30.000Z") });
+    const diff = diffJobs([stored], [drifted]);
+    expect(diff.updates).toHaveLength(0);
+  });
+
+  it("flags experience level changes as updates", () => {
+    const stored = job("a");
+    const promoted = job("a", { title: "Staff Role" });
+    const diff = diffJobs([stored], [promoted]);
+    expect(diff.updates).toHaveLength(1);
+  });
+
+  it("treats stored and inferred experience levels as equal", () => {
+    const stored = job("a", { title: "Senior Engineer", experienceLevel: "senior" });
+    const fetched = job("a", { title: "Senior Engineer" });
+    const diff = diffJobs([stored], [fetched]);
+    expect(diff.updates).toHaveLength(0);
+  });
+
   it("reports stored jobs missing from the fetch as deleted ids", () => {
     const diff = diffJobs([job("a"), job("gone")], [job("a")]);
     expect(diff.deletedIds).toEqual(["gone"]);
