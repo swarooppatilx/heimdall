@@ -185,9 +185,28 @@ export async function insertJobs(items: Job[]): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements = page.map((job) =>
-      db.insert(jobs).values(toRow(job)).onConflictDoNothing({ target: jobs.id }),
-    );
+    const statements = page.map((job) => {
+      const values = toRow(job);
+      return db
+        .insert(jobs)
+        .values(values)
+        .onConflictDoUpdate({
+          target: jobs.id,
+          set: {
+            title: values.title,
+            location: values.location,
+            department: values.department,
+            url: values.url,
+            postedAt: values.postedAt,
+            employmentType: values.employmentType,
+            salary: values.salary,
+            locations: values.locations,
+            region: values.region,
+            isEarlyCareer: values.isEarlyCareer,
+            experienceLevel: values.experienceLevel,
+          },
+        });
+    });
     await db.batch(statements as never);
   }
 }
