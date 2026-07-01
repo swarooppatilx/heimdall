@@ -7,6 +7,8 @@ export interface JobDiff {
   deletedIds: string[];
 }
 
+const DRIFT_MS = 60 * 1000;
+
 function effectiveLevel(job: Job): string {
   return job.experienceLevel ?? detectExperienceLevel(job.title);
 }
@@ -17,7 +19,7 @@ function samePosting(a: Job, b: Job): boolean {
     a.location === b.location &&
     a.department === b.department &&
     a.url === b.url &&
-    a.postedAt.getTime() === b.postedAt.getTime() &&
+    Math.abs(a.postedAt.getTime() - b.postedAt.getTime()) < DRIFT_MS &&
     (a.employmentType ?? "") === (b.employmentType ?? "") &&
     (a.salary ?? "") === (b.salary ?? "") &&
     JSON.stringify(a.locations ?? []) === JSON.stringify(b.locations ?? []) &&
