@@ -49,3 +49,13 @@ export function normalizeLocation(raw: string): string {
     .join(", ")
     .toLowerCase();
 }
+
+export function regionFromLocation(raw: string): string {
+  const withoutRemote = raw
+    .trim()
+    .replace(/^remote\s*[-—,.]?\s*/i, "")
+    .replace(/,\s*remote\s*$/i, "");
+  const parts = withoutRemote.split(/\s*,\s*/).filter(Boolean);
+  const last = parts[parts.length - 1]?.trim();
+  return last ? normalizeCountry(last).toLowerCase() : "";
+}
