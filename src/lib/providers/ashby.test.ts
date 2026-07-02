@@ -49,6 +49,7 @@ describe("fetchAshbyJobs", () => {
       title: "Frontend Engineer",
       company: "testco",
       location: "remote — united states",
+      region: "united states",
       locations: ["remote — united states"],
       department: "engineering",
       employmentType: "full-time",
