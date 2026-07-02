@@ -55,13 +55,15 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
   };
 }
 
+const PAGE_SIZE = 100;
+const MAX_PAGES = 50;
+
 export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> {
   const allJobs: Job[] = [];
-  let offset = 0;
-  const limit = 100;
 
-  while (true) {
-    const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${limit}&offset=${offset}`;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const offset = page * PAGE_SIZE;
+    const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${PAGE_SIZE}&offset=${offset}`;
     const res = await fetch(url);
 
     if (!res.ok) {
@@ -71,8 +73,7 @@ export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> 
     const data: SmartRecruitersResponse = await res.json();
     allJobs.push(...data.content.map((j) => mapJob(j, company)));
 
-    if (offset + limit >= data.totalFound || data.content.length === 0) break;
-    offset += limit;
+    if (offset + PAGE_SIZE >= data.totalFound || data.content.length === 0) break;
   }
 
   return allJobs;
