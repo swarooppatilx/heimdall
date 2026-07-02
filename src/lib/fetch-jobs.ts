@@ -1,3 +1,4 @@
+import { detectExperienceLevel } from "./experience";
 import { FRESHNESS_DAYS } from "./freshness";
 import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
@@ -15,6 +16,15 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   smartrecruiters: fetchSmartRecruitersJobs,
 };
 
+function withSeniority(job: Job): Job {
+  const level = job.experienceLevel ?? detectExperienceLevel(job.title);
+  return {
+    ...job,
+    experienceLevel: level,
+    isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
+  };
+}
+
 export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   const fetchProviderJobs = PROVIDERS[entry.provider];
 
@@ -24,9 +34,11 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
 
   const jobs = await fetchProviderJobs(entry.board);
 
-  return jobs.filter((job) => {
-    const ageMs = Date.now() - job.postedAt.getTime();
-    const ageDays = ageMs / (1000 * 60 * 60 * 24);
-    return ageDays <= FRESHNESS_DAYS;
-  });
+  return jobs
+    .filter((job) => {
+      const ageMs = Date.now() - job.postedAt.getTime();
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
+      return ageDays <= FRESHNESS_DAYS;
+    })
+    .map(withSeniority);
 }
