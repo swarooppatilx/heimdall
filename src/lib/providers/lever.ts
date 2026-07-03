@@ -1,5 +1,6 @@
 import { inferDepartment } from "../department";
 import type { Job } from "../job";
+import { splitLocations } from "../locations";
 import { normalizeLocation, regionFromLocation } from "../normalize";
 
 interface LeverPosting {
@@ -19,6 +20,7 @@ function mapJob(raw: LeverPosting, company: string): Job {
     title: raw.text,
     company,
     location: normalizeLocation(raw.categories.location ?? ""),
+    locations: splitLocations(raw.categories.location ?? "").map((part) => normalizeLocation(part)),
     region: regionFromLocation(raw.categories.location ?? ""),
     department: (raw.categories.department || inferDepartment(raw.text)).toLowerCase(),
     url: raw.hostedUrl,

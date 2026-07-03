@@ -47,6 +47,7 @@ describe("fetchLeverJobs", () => {
       title: "Backend Engineer",
       company: "example",
       location: "remote — united states",
+      locations: ["remote — united states"],
       region: "united states",
       department: "engineering",
       url: "https://jobs.lever.co/example/abc-123",
