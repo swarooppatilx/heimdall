@@ -36,6 +36,7 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
 
   return jobs
     .filter((job) => {
+      if (Number.isNaN(job.postedAt.getTime())) return false;
       const ageMs = Date.now() - job.postedAt.getTime();
       const ageDays = ageMs / (1000 * 60 * 60 * 24);
       return ageDays <= FRESHNESS_DAYS;

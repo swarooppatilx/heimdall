@@ -89,4 +89,28 @@ describe("fetchJobs", () => {
 
     expect(jobs).toHaveLength(0);
   });
+
+  it("drops jobs with invalid dates", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            jobs: [
+              {
+                id: 4000,
+                title: "Broken Posting",
+                location: { name: "Remote" },
+                absolute_url: "https://boards.greenhouse.io/testco/jobs/4000",
+              },
+            ],
+          }),
+      }),
+    );
+
+    const jobs = await fetchJobs(entry);
+
+    expect(jobs).toHaveLength(0);
+  });
 });
