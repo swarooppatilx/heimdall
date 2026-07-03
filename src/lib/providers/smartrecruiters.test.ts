@@ -172,6 +172,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     expect(fetch).toHaveBeenCalledWith(
       "https://api.smartrecruiters.com/v1/companies/mycompany/postings?limit=100&offset=0",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 });

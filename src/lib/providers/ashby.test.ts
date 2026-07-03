@@ -99,6 +99,9 @@ describe("fetchAshbyJobs", () => {
 
     await fetchAshbyJobs("mycompany");
 
-    expect(fetch).toHaveBeenCalledWith("https://api.ashbyhq.com/posting-api/job-board/mycompany");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.ashbyhq.com/posting-api/job-board/mycompany",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 });

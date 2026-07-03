@@ -85,6 +85,9 @@ describe("fetchLeverJobs", () => {
 
     await fetchLeverJobs("testco");
 
-    expect(fetch).toHaveBeenCalledWith("https://api.lever.co/v0/postings/testco");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.lever.co/v0/postings/testco",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 });

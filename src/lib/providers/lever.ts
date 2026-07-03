@@ -1,4 +1,5 @@
 import { inferDepartment } from "../department";
+import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation, regionFromLocation } from "../normalize";
@@ -31,12 +32,6 @@ function mapJob(raw: LeverPosting, company: string): Job {
 
 export async function fetchLeverJobs(company: string): Promise<Job[]> {
   const url = `https://api.lever.co/v0/postings/${company}`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);
-  }
-
-  const data = (await res.json()) as LeverPosting[];
+  const data = await fetchJson<LeverPosting[]>(url, company);
   return data.map((p: LeverPosting) => mapJob(p, company));
 }

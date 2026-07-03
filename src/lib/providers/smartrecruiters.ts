@@ -1,4 +1,5 @@
 import { inferDepartment } from "../department";
+import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -65,13 +66,7 @@ export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> 
   for (let page = 0; page < MAX_PAGES; page++) {
     const offset = page * PAGE_SIZE;
     const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${PAGE_SIZE}&offset=${offset}`;
-    const res = await fetch(url);
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);
-    }
-
-    const data: SmartRecruitersResponse = await res.json();
+    const data = await fetchJson<SmartRecruitersResponse>(url, company);
     allJobs.push(...data.content.map((j) => mapJob(j, company)));
 
     if (offset + PAGE_SIZE >= data.totalFound || data.content.length === 0) break;

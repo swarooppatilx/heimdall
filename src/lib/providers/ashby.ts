@@ -1,4 +1,5 @@
 import { inferDepartment } from "../department";
+import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation, regionFromLocation } from "../normalize";
@@ -38,12 +39,6 @@ function mapJob(raw: AshbyJob, company: string): Job {
 
 export async function fetchAshbyJobs(company: string): Promise<Job[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${company}`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch jobs from ${company}: ${res.status}`);
-  }
-
-  const data = (await res.json()) as { jobs: AshbyJob[] };
+  const data = await fetchJson<{ jobs: AshbyJob[] }>(url, company);
   return data.jobs.map((j: AshbyJob) => mapJob(j, company));
 }

@@ -1,4 +1,5 @@
 import { inferDepartment } from "../department";
+import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -40,13 +41,7 @@ function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp)
 
 export async function fetchGreenhouseJobs(board: string): Promise<Job[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch jobs from ${board}: ${res.status}`);
-  }
-
-  const data = (await res.json()) as { jobs: GreenhouseJob[] };
+  const data = await fetchJson<{ jobs: GreenhouseJob[] }>(url, board);
   return data.jobs.map((j: GreenhouseJob) => mapJob(j, board));
 }
 
