@@ -1,11 +1,4 @@
-import {
-  deleteJobsByIds,
-  deleteStaleJobs,
-  getJobsByIds,
-  insertJobs,
-  recordCrawl,
-  updateJobs,
-} from "./db";
+import { deleteJobsByIds, getJobsByIds, insertJobs, recordCrawl, updateJobs } from "./db";
 import { diffJobs } from "./diff";
 import { fetchJobs } from "./fetch-jobs";
 import { getRegistry, type RegistryEntry } from "./registry";
@@ -21,8 +14,12 @@ export interface CrawlResult {
 const TICK_MS = 15 * 60 * 1000;
 const TICKS_PER_SWEEP = 8;
 
+export function sweepOrdinal(now = Date.now()): number {
+  return Math.floor(now / TICK_MS) % TICKS_PER_SWEEP;
+}
+
 export function sweepSlice(entries: RegistryEntry[], now = Date.now()): RegistryEntry[] {
-  const ordinal = Math.floor(now / TICK_MS) % TICKS_PER_SWEEP;
+  const ordinal = sweepOrdinal(now);
   const start = Math.floor((ordinal * entries.length) / TICKS_PER_SWEEP);
   const end = Math.floor(((ordinal + 1) * entries.length) / TICKS_PER_SWEEP);
   return entries.slice(start, end);
@@ -31,7 +28,6 @@ export function sweepSlice(entries: RegistryEntry[], now = Date.now()): Registry
 export interface CrawlRun {
   results: CrawlResult[];
   discovered: number;
-  removed: number;
   durationMs: number;
 }
 
@@ -61,12 +57,11 @@ export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlRun> {
     }
   }
 
-  const removed = await deleteStaleJobs();
   const discovered = results
     .filter((r) => r.status === "ok")
     .reduce((sum, r) => sum + r.jobsFound, 0);
 
-  return { results, discovered, removed, durationMs: Date.now() - start };
+  return { results, discovered, durationMs: Date.now() - start };
 }
 
 async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {

@@ -1,5 +1,5 @@
-import { crawlAll, sweepSlice } from "../src/lib/crawler";
-import { bindDb } from "../src/lib/db";
+import { crawlAll, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
+import { bindDb, deleteStaleJobs } from "../src/lib/db";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -20,6 +20,7 @@ export default {
       (async () => {
         bindDb(env.DB);
         const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
+        const removed = sweepOrdinal(controller.scheduledTime) === 0 ? await deleteStaleJobs() : 0;
         const failed = run.results.filter((r) => r.status === "error").length;
         console.log(
           JSON.stringify({
@@ -29,7 +30,7 @@ export default {
             ok: run.results.length - failed,
             failed,
             discovered: run.discovered,
-            removed: run.removed,
+            removed,
             durationMs: run.durationMs,
           }),
         );
