@@ -68,6 +68,11 @@ async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {
   const start = Date.now();
   try {
     const jobs = await fetchJobs(entry);
+    if (jobs.length === 0) {
+      const durationMs = Date.now() - start;
+      await recordCrawl(entry.name, "ok", 0, durationMs);
+      return { company: entry.name, status: "ok", jobsFound: 0, durationMs };
+    }
     const existing = await getJobsByIds(jobs.map((job) => job.id));
     const diff = diffJobs(existing, jobs);
     await insertJobs(diff.inserts);
