@@ -359,6 +359,15 @@ export async function recordCrawl(
   });
 }
 
+export async function getLatestCrawlUnix(): Promise<number | null> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ latest: sql<string | null>`strftime('%s', max(${crawls.createdAt}))` })
+    .from(crawls);
+  const latest = row?.latest;
+  return latest ? Number(latest) * 1000 : null;
+}
+
 export interface CrawlRecord {
   company: string;
   status: string;
