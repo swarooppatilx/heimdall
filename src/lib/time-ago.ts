@@ -5,5 +5,5 @@ export function timeAgo(date: Date | string): string {
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return `${days}d ${hours % 24}h`;
 }
