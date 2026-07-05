@@ -32,7 +32,7 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
 
-  const jobs = await fetchProviderJobs(entry.board);
+  const jobs = await fetchProviderJobs(entry.name);
 
   return jobs
     .filter((job) => {

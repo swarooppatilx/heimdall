@@ -4,7 +4,6 @@ import { sweepSlice } from "./crawler";
 const registry = Array.from({ length: 19 }, (_, i) => ({
   name: `c${i}`,
   provider: "greenhouse",
-  board: `b${i}`,
 }));
 
 function sweep(ticks = 8): string[] {

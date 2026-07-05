@@ -12,8 +12,8 @@ describe("registry", () => {
     }
   });
 
-  it("has unique board tokens per provider", () => {
-    const keys = registry.map((entry) => `${entry.provider}:${entry.board}`);
+  it("has unique names per provider", () => {
+    const keys = registry.map((entry) => `${entry.provider}:${entry.name}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
@@ -25,7 +25,6 @@ describe("registry", () => {
   it("has non-empty fields on every entry", () => {
     for (const entry of registry) {
       expect(entry.name.trim()).not.toBe("");
-      expect(entry.board.trim()).not.toBe("");
     }
   });
 });
