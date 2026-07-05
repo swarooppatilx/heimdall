@@ -399,6 +399,7 @@ export async function getLatestCrawls(): Promise<CrawlRecord[]> {
   const rows = await db
     .select()
     .from(crawls)
-    .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`);
+    .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`)
+    .orderBy(desc(crawls.createdAt));
   return rows.map(toCrawlRecord);
 }
