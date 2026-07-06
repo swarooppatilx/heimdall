@@ -5,15 +5,17 @@ import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
 import { fetchLeverJobs } from "./providers/lever";
 import { fetchSmartRecruitersJobs } from "./providers/smartrecruiters";
+import { fetchWorkdayJobs } from "./providers/workday";
 import type { RegistryEntry } from "./registry";
 
-export type ProviderFetcher = (board: string) => Promise<Job[]>;
+export type ProviderFetcher = (entry: RegistryEntry) => Promise<Job[]>;
 
 const PROVIDERS: Record<string, ProviderFetcher> = {
-  greenhouse: fetchGreenhouseJobs,
-  lever: fetchLeverJobs,
-  ashby: fetchAshbyJobs,
-  smartrecruiters: fetchSmartRecruitersJobs,
+  greenhouse: (entry) => fetchGreenhouseJobs(entry.name),
+  lever: (entry) => fetchLeverJobs(entry.name),
+  ashby: (entry) => fetchAshbyJobs(entry.name),
+  smartrecruiters: (entry) => fetchSmartRecruitersJobs(entry.name),
+  workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
 };
 
 function withSeniority(job: Job): Job {
@@ -32,7 +34,7 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
 
-  const jobs = await fetchProviderJobs(entry.name);
+  const jobs = await fetchProviderJobs(entry);
 
   return jobs
     .filter((job) => {

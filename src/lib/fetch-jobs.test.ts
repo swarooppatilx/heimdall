@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchJobs } from "./fetch-jobs";
 
-const entry = { name: "testco", provider: "greenhouse", board: "testco" };
+const entry = { name: "testco", provider: "greenhouse" };
 
 function boardResponse(titles: string[]) {
   return {
