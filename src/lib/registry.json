@@ -966,5 +966,140 @@
   {
     "name": "wise",
     "provider": "smartrecruiters"
+  },
+  {
+    "name": "micron",
+    "provider": "workday",
+    "apiUrl": "https://micron.wd1.myworkdayjobs.com/wday/cxs/micron/External/jobs"
+  },
+  {
+    "name": "nvidia",
+    "provider": "workday",
+    "apiUrl": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs"
+  },
+  {
+    "name": "amat",
+    "provider": "workday",
+    "apiUrl": "https://amat.wd1.myworkdayjobs.com/wday/cxs/amat/External/jobs"
+  },
+  {
+    "name": "salesforce",
+    "provider": "workday",
+    "apiUrl": "https://salesforce.wd12.myworkdayjobs.com/wday/cxs/salesforce/External_Career_Site/jobs"
+  },
+  {
+    "name": "blueorigin",
+    "provider": "workday",
+    "apiUrl": "https://blueorigin.wd5.myworkdayjobs.com/wday/cxs/blueorigin/BlueOrigin/jobs"
+  },
+  {
+    "name": "verizon",
+    "provider": "workday",
+    "apiUrl": "https://verizon.wd12.myworkdayjobs.com/wday/cxs/verizon/verizon-careers/jobs"
+  },
+  {
+    "name": "cisco",
+    "provider": "workday",
+    "apiUrl": "https://cisco.wd5.myworkdayjobs.com/wday/cxs/cisco/Cisco_Careers/jobs"
+  },
+  {
+    "name": "medtronic",
+    "provider": "workday",
+    "apiUrl": "https://medtronic.wd1.myworkdayjobs.com/wday/cxs/medtronic/MedtronicCareers/jobs"
+  },
+  {
+    "name": "analogdevices",
+    "provider": "workday",
+    "apiUrl": "https://analogdevices.wd1.myworkdayjobs.com/wday/cxs/analogdevices/External/jobs"
+  },
+  {
+    "name": "kla",
+    "provider": "workday",
+    "apiUrl": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs"
+  },
+  {
+    "name": "motorolasolutions",
+    "provider": "workday",
+    "apiUrl": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers/jobs"
+  },
+  {
+    "name": "nxp",
+    "provider": "workday",
+    "apiUrl": "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/jobs"
+  },
+  {
+    "name": "hp",
+    "provider": "workday",
+    "apiUrl": "https://hp.wd5.myworkdayjobs.com/wday/cxs/hp/ExternalCareerSite/jobs"
+  },
+  {
+    "name": "relx",
+    "provider": "workday",
+    "apiUrl": "https://relx.wd3.myworkdayjobs.com/wday/cxs/relx/relx/jobs"
+  },
+  {
+    "name": "adobe",
+    "provider": "workday",
+    "apiUrl": "https://adobe.wd5.myworkdayjobs.com/wday/cxs/adobe/external_experienced/jobs"
+  },
+  {
+    "name": "sec",
+    "provider": "workday",
+    "apiUrl": "https://sec.wd3.myworkdayjobs.com/wday/cxs/sec/Samsung_Careers/jobs"
+  },
+  {
+    "name": "intel",
+    "provider": "workday",
+    "apiUrl": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs"
+  },
+  {
+    "name": "cadence",
+    "provider": "workday",
+    "apiUrl": "https://cadence.wd1.myworkdayjobs.com/wday/cxs/cadence/External_Careers/jobs"
+  },
+  {
+    "name": "crowdstrike",
+    "provider": "workday",
+    "apiUrl": "https://crowdstrike.wd5.myworkdayjobs.com/wday/cxs/crowdstrike/crowdstrikecareers/jobs"
+  },
+  {
+    "name": "autodesk",
+    "provider": "workday",
+    "apiUrl": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext/jobs"
+  },
+  {
+    "name": "marvell",
+    "provider": "workday",
+    "apiUrl": "https://marvell.wd1.myworkdayjobs.com/wday/cxs/marvell/MarvellCareers/jobs"
+  },
+  {
+    "name": "workday",
+    "provider": "workday",
+    "apiUrl": "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday/jobs"
+  },
+  {
+    "name": "broadcom",
+    "provider": "workday",
+    "apiUrl": "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career/jobs"
+  },
+  {
+    "name": "trimble",
+    "provider": "workday",
+    "apiUrl": "https://trimble.wd1.myworkdayjobs.com/wday/cxs/trimble/TrimbleCareers/jobs"
+  },
+  {
+    "name": "ffive",
+    "provider": "workday",
+    "apiUrl": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs/jobs"
+  },
+  {
+    "name": "illumina",
+    "provider": "workday",
+    "apiUrl": "https://illumina.wd1.myworkdayjobs.com/wday/cxs/illumina/illumina-careers/jobs"
+  },
+  {
+    "name": "ciena",
+    "provider": "workday",
+    "apiUrl": "https://ciena.wd5.myworkdayjobs.com/wday/cxs/ciena/Careers/jobs"
   }
 ]
