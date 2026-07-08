@@ -93,7 +93,8 @@ function useQueryParam(
   return [value, setValue, commit];
 }
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 50;
+const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 interface JobFiltersInput {
   q: string;
@@ -136,6 +137,16 @@ function useJobFilters(filters: JobFiltersInput) {
   });
 }
 
+function JobCardSkeleton() {
+  return (
+    <li className="rounded-lg border border-border/60 p-4" aria-hidden="true">
+      <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+      <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-muted" />
+      <div className="mt-3 h-3 w-1/4 animate-pulse rounded bg-muted" />
+    </li>
+  );
+}
+
 function JobsPage() {
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -169,6 +180,22 @@ function JobsPage() {
     useJobFilters(filters);
   const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const jobCards = useMemo(() => {
     const primary = new Map<string, Job>();
@@ -502,91 +529,94 @@ function JobsPage() {
         )}
 
         <ul id="job-results" className="flex flex-col gap-2">
-          {jobCards.map(({ job, openings }) => (
-            <li
-              key={job.id}
-              className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-semibold text-foreground sm:text-base">
-                    {job.title}
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                    <Link
-                      href={`/company/${encodeURIComponent(job.company)}`}
-                      className="hover:text-foreground"
-                    >
-                      {job.company}
-                    </Link>
-                    {openings > 1 && (
+          {isLoading && SKELETON_KEYS.map((key) => <JobCardSkeleton key={key} />)}
+          {!isLoading &&
+            jobCards.map(({ job, openings }) => (
+              <li
+                key={job.id}
+                className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-sm font-semibold text-foreground sm:text-base">
+                      {job.title}
+                    </h2>
+                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                       <Link
-                        href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
-                        className="ml-1 text-ring transition-colors hover:text-foreground"
-                        aria-label={`${openings} openings for ${job.title}`}
+                        href={`/company/${encodeURIComponent(job.company)}`}
+                        className="hover:text-foreground"
                       >
-                        · {openings} openings
+                        {job.company}
                       </Link>
-                    )}
-                    <span className="text-muted-foreground"> · </span>
-                    {job.location}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    {isRemoteLocation(job.location) && (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
-                        remote
+                      {openings > 1 && (
+                        <Link
+                          href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
+                          className="ml-1 text-ring transition-colors hover:text-foreground"
+                          aria-label={`${openings} openings for ${job.title}`}
+                        >
+                          · {openings} openings
+                        </Link>
+                      )}
+                      <span className="text-muted-foreground"> · </span>
+                      {job.location}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                      {isRemoteLocation(job.location) && (
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
+                          remote
+                        </span>
+                      )}
+                      <span>
+                        {[
+                          job.source,
+                          job.experienceLevel === "mid" ? null : job.experienceLevel,
+                          job.employmentType,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </span>
-                    )}
-                    <span>
-                      {[
-                        job.source,
-                        job.experienceLevel === "mid" ? null : job.experienceLevel,
-                        job.employmentType,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                    {job.salary && (
-                      <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
-                        {job.salary}
-                      </span>
-                    )}
-                    <span>{timeAgo(job.postedAt)}</span>
+                      {job.salary && (
+                        <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
+                          {job.salary}
+                        </span>
+                      )}
+                      <span>{timeAgo(job.postedAt)}</span>
+                    </div>
                   </div>
-                </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-primary hover:text-primary-foreground"
-                >
-                  <a
-                    href={job.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Apply to ${job.title} at ${job.company}`}
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="hover:bg-primary hover:text-primary-foreground"
                   >
-                    apply
-                  </a>
-                </Button>
-              </div>
-            </li>
-          ))}
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Apply to ${job.title} at ${job.company}`}
+                    >
+                      apply
+                    </a>
+                  </Button>
+                </div>
+              </li>
+            ))}
         </ul>
 
-        {hasNextPage && (
-          <div className="mt-4 flex justify-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              aria-busy={isFetchingNextPage}
-            >
-              {isFetchingNextPage ? "loading..." : "load more jobs"}
-            </Button>
-          </div>
+        <div ref={sentinelRef} aria-hidden="true" className="h-1" />
+
+        {isFetchingNextPage && (
+          <ul className="mt-2 flex flex-col gap-2">
+            {SKELETON_KEYS.slice(0, 4).map((key) => (
+              <JobCardSkeleton key={key} />
+            ))}
+          </ul>
+        )}
+
+        {!hasNextPage && jobCards.length > 0 && !isLoading && !isError && (
+          <p className="mt-6 text-center text-xs text-muted-foreground" role="status">
+            you've reached the end — {jobCards.length} role{jobCards.length === 1 ? "" : "s"} shown
+          </p>
         )}
       </main>
     </div>
