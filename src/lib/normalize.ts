@@ -28,26 +28,18 @@ export function normalizeLocation(raw: string): string {
     .filter(Boolean);
   const first = parts[0] ?? trimmed;
 
-  const lower = first.toLowerCase();
-  const isRemote = lower.startsWith("remote");
+  if (/^remote\b/i.test(first)) return "remote";
 
-  if (isRemote) {
-    const withoutRemote = first.replace(/^remote\s*[-,.\s]?\s*/i, "").trim();
-    if (!withoutRemote) return "remote";
-    const countries = withoutRemote
-      .split(/\s*,\s*/)
-      .map((c) => normalizeCountry(c).toLowerCase())
-      .filter(Boolean);
-    if (countries.length === 0) return "remote";
-    return `remote — ${countries.join(", ")}`;
-  }
-
-  return first
+  const segments = first
     .split(/\s*,\s*/)
     .map((s) => s.trim())
     .filter(Boolean)
-    .join(", ")
-    .toLowerCase();
+    .filter((s) => !/^remote$/i.test(s));
+  const deduped = segments.filter(
+    (s, i) => i === 0 || s.toLowerCase() !== segments[i - 1]!.toLowerCase(),
+  );
+  if (deduped.length === 0) return "unknown";
+  return deduped.join(", ").toLowerCase();
 }
 
 export function regionFromLocation(raw: string): string {

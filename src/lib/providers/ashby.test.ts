@@ -48,9 +48,9 @@ describe("fetchAshbyJobs", () => {
       id: "ab-testco-ash-001",
       title: "Frontend Engineer",
       company: "testco",
-      location: "remote — united states",
+      location: "remote",
       region: "united states",
-      locations: ["remote — united states"],
+      locations: ["remote"],
       department: "engineering",
       employmentType: "full-time",
       url: "https://jobs.ashbyhq.com/testco/ash-001",
@@ -78,7 +78,7 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[0]!.location).toBe("remote — united states");
+    expect(jobs[0]!.location).toBe("remote");
     expect(jobs[1]!.location).toBe("san francisco bay area");
   });
 

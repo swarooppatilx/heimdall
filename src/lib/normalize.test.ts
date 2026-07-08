@@ -12,32 +12,13 @@ describe("normalizeLocation", () => {
   });
 
   describe("remote locations", () => {
-    it("normalizes Remote with country abbreviation", () => {
-      expect(normalizeLocation("Remote, US")).toBe("remote — united states");
-      expect(normalizeLocation("Remote, USA")).toBe("remote — united states");
-      expect(normalizeLocation("Remote, UK")).toBe("remote — united kingdom");
-      expect(normalizeLocation("Remote, UAE")).toBe("remote — united arab emirates");
-      expect(normalizeLocation("Remote, KSA")).toBe("remote — saudi arabia");
-    });
-
-    it("normalizes Remote with full country name", () => {
-      expect(normalizeLocation("Remote, United States")).toBe("remote — united states");
-      expect(normalizeLocation("Remote, Canada")).toBe("remote — canada");
-    });
-
-    it("normalizes Remote with dash separator", () => {
-      expect(normalizeLocation("Remote - US")).toBe("remote — united states");
-      expect(normalizeLocation("Remote - United Kingdom")).toBe("remote — united kingdom");
-    });
-
-    it("normalizes Remote without country", () => {
+    it("collapses every remote variant into one bucket", () => {
       expect(normalizeLocation("Remote")).toBe("remote");
       expect(normalizeLocation("remote")).toBe("remote");
-    });
-
-    it("title-cases country names then lowercases", () => {
-      expect(normalizeLocation("Remote, india")).toBe("remote — india");
-      expect(normalizeLocation("Remote, GERMANY")).toBe("remote — germany");
+      expect(normalizeLocation("Remote, US")).toBe("remote");
+      expect(normalizeLocation("Remote, United States")).toBe("remote");
+      expect(normalizeLocation("Remote - United Kingdom")).toBe("remote");
+      expect(normalizeLocation("REMOTE — India")).toBe("remote");
     });
   });
 
@@ -50,11 +31,18 @@ describe("normalizeLocation", () => {
     it("handles Bay Area locations", () => {
       expect(normalizeLocation("San Francisco Bay Area")).toBe("san francisco bay area");
     });
+
+    it("drops stray remote segments and duplicate segments", () => {
+      expect(normalizeLocation("California, USA, Remote")).toBe("california, usa");
+      expect(normalizeLocation("New York, New York, USA")).toBe("new york, usa");
+      expect(normalizeLocation("Singapore, Singapore")).toBe("singapore");
+      expect(normalizeLocation("Chile, Remote")).toBe("chile");
+    });
   });
 
   describe("multi-location strings", () => {
     it("takes the first location only", () => {
-      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("remote — canada");
+      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("remote");
       expect(normalizeLocation("San Francisco; New York")).toBe("san francisco");
     });
   });
