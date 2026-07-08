@@ -68,6 +68,16 @@ describe("fetchWorkdayJobs", () => {
     });
   });
 
+  it("treats multi-location placeholders as unknown", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      page(2, [posting(9, { locationsText: "2 Locations" })]) as never,
+    );
+
+    const jobs = await fetchWorkdayJobs(ENDPOINT);
+
+    expect(jobs[0]).toMatchObject({ location: "unknown", region: "" });
+  });
+
   it("posts json pages and paginates until total", async () => {
     const mock = vi.mocked(fetch);
     mock.mockImplementation((_url, init) => {

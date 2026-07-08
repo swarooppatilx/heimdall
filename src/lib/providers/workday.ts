@@ -45,8 +45,11 @@ function publicUrl(endpoint: string, path: string): string {
   return `${url.origin}/en-US/${site}${path}`;
 }
 
+const PLACEHOLDER_LOCATION = /^\d+\s+locations?$/i;
+
 function mapJob(raw: WorkdayPosting, tenant: string, endpoint: string): Job {
-  const location = raw.locationsText ?? "";
+  const text = raw.locationsText ?? "";
+  const location = PLACEHOLDER_LOCATION.test(text) ? "" : text;
   return {
     id: `wd-${tenant}-${idFrom(raw.externalPath)}`,
     title: raw.title,
