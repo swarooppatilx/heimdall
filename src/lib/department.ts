@@ -24,3 +24,12 @@ export function inferDepartment(title: string): string {
   }
   return "general";
 }
+
+const BUCKETS = new Set([...RULES.map(([, department]) => department), "general"]);
+
+export function normalizeDepartment(raw: string): string {
+  const value = raw.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!value) return "general";
+  if (BUCKETS.has(value)) return value;
+  return inferDepartment(value);
+}
