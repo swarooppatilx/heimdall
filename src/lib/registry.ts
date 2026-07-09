@@ -3,6 +3,7 @@ import registryData from "./registry.json";
 export interface RegistryEntry {
   name: string;
   provider: string;
+  label?: string;
   apiUrl?: string;
 }
 

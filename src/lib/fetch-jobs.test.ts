@@ -39,6 +39,12 @@ describe("fetchJobs", () => {
     expect(jobs[1]).toMatchObject({ experienceLevel: "staff", isEarlyCareer: false });
   });
 
+  it("uses the registry label as company when present", async () => {
+    const jobs = await fetchJobs({ ...entry, label: "TestCo Inc" });
+
+    expect(jobs[0]?.company).toBe("TestCo Inc");
+  });
+
   it("keeps explicit early career flags from the provider", async () => {
     vi.stubGlobal(
       "fetch",

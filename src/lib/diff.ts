@@ -15,6 +15,7 @@ function effectiveLevel(job: Job): string {
 
 function samePosting(a: Job, b: Job): boolean {
   return (
+    a.company === b.company &&
     a.title === b.title &&
     a.location === b.location &&
     a.department === b.department &&

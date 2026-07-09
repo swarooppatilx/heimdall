@@ -68,6 +68,13 @@ describe("diffJobs", () => {
     expect(diff.updates).toHaveLength(0);
   });
 
+  it("flags company renames as updates", () => {
+    const stored = job("a", { company: "acme" });
+    const renamed = job("a", { company: "Acme Corp" });
+    const diff = diffJobs([stored], [renamed]);
+    expect(diff.updates).toHaveLength(1);
+  });
+
   it("reports stored jobs missing from the fetch as deleted ids", () => {
     const diff = diffJobs([job("a"), job("gone")], [job("a")]);
     expect(diff.deletedIds).toEqual(["gone"]);

@@ -37,6 +37,7 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   }
 
   const jobs = await fetchProviderJobs(entry);
+  const company = entry.label ?? entry.name;
 
   return jobs
     .filter((job) => {
@@ -45,5 +46,5 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
       const ageDays = ageMs / (1000 * 60 * 60 * 24);
       return ageDays <= FRESHNESS_DAYS;
     })
-    .map(deriveFields);
+    .map((job) => deriveFields({ ...job, company }));
 }
