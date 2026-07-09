@@ -336,6 +336,29 @@ export async function getJobCount(): Promise<number> {
   return Number(rows[0]?.count ?? 0);
 }
 
+export async function getJobQuality(): Promise<{
+  total: number;
+  distinctLocations: number;
+  unknownLocationShare: number;
+  generalDepartmentShare: number;
+}> {
+  const db = await getDb();
+  const [row] = await db
+    .select({
+      total: sql<number>`count(*)`,
+      distinctLocations: sql<number>`count(distinct ${jobs.location})`,
+      unknownLocationShare: sql<number>`avg(case when ${jobs.location} = 'unknown' then 1.0 else 0 end)`,
+      generalDepartmentShare: sql<number>`avg(case when ${jobs.department} = 'general' then 1.0 else 0 end)`,
+    })
+    .from(jobs);
+  return {
+    total: Number(row?.total ?? 0),
+    distinctLocations: Number(row?.distinctLocations ?? 0),
+    unknownLocationShare: Number(row?.unknownLocationShare ?? 0),
+    generalDepartmentShare: Number(row?.generalDepartmentShare ?? 0),
+  };
+}
+
 export async function deleteStaleJobs(): Promise<number> {
   const db = await getDb();
   const result = await db.delete(jobs).where(lt(jobs.postedAt, freshnessCutoff()));

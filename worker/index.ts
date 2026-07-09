@@ -1,5 +1,5 @@
 import { crawlAll, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
-import { bindDb, deleteStaleJobs, getLatestCrawlUnix } from "../src/lib/db";
+import { bindDb, deleteStaleJobs, getJobQuality, getLatestCrawlUnix } from "../src/lib/db";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -22,7 +22,8 @@ export default {
       (async () => {
         bindDb(env.DB);
         const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
-        const removed = sweepOrdinal(controller.scheduledTime) === 0 ? await deleteStaleJobs() : 0;
+        const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
+        const removed = sweepStart ? await deleteStaleJobs() : 0;
         const failed = run.results.filter((r) => r.status === "error").length;
         console.log(
           JSON.stringify({
@@ -40,6 +41,10 @@ export default {
         const stalenessMs = lastCrawlAt ? Date.now() - lastCrawlAt : null;
         if (stalenessMs === null || stalenessMs > STALE_ALERT_MS) {
           console.log(JSON.stringify({ event: "crawl_stale", lastCrawlAt, stalenessMs }));
+        }
+        if (sweepStart) {
+          const quality = await getJobQuality();
+          console.log(JSON.stringify({ event: "job_quality", ...quality }));
         }
       })(),
     );
