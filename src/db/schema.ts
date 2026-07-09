@@ -18,11 +18,15 @@ export const jobs = sqliteTable(
     region: text("region").notNull().default(""),
     isEarlyCareer: integer("is_early_career").notNull().default(0),
     experienceLevel: text("experience_level").notNull().default("mid"),
+    city: text("city"),
+    country: text("country"),
+    normVersion: integer("norm_version").notNull().default(0),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   },
   (table) => [
     index("idx_jobs_posted_at").on(table.postedAt),
     index("idx_jobs_company_posted_at").on(table.company, table.postedAt),
+    index("idx_jobs_city_country").on(table.city, table.country),
   ],
 );
 
