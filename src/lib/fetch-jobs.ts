@@ -1,4 +1,5 @@
 import { normalizeDepartment } from "./department";
+import { resolveEmploymentType } from "./employment";
 import { detectExperienceLevel } from "./experience";
 import { FRESHNESS_DAYS } from "./freshness";
 import { formatPlace, resolvePlace } from "./gazetteer";
@@ -31,6 +32,7 @@ function deriveFields(job: Job): Job {
     region: country?.toLowerCase() ?? "",
     city,
     country,
+    employmentType: resolveEmploymentType(job.employmentType),
     experienceLevel: level,
     isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
     department: normalizeDepartment(job.department),
