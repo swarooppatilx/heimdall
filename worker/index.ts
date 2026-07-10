@@ -1,5 +1,5 @@
 import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
-import { bindDb, deleteStaleJobs, getJobQuality, getLatestCrawlUnix } from "../src/lib/db";
+import { bindDb, dedupeCrossSourceJobs, deleteStaleJobs, getJobQuality, getLatestCrawlUnix } from "../src/lib/db";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -25,6 +25,7 @@ export default {
         const renormalized = await renormalizeStaleJobs();
         const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
         const removed = sweepStart ? await deleteStaleJobs() : 0;
+        const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
         const failed = run.results.filter((r) => r.status === "error").length;
         console.log(
           JSON.stringify({
@@ -35,6 +36,7 @@ export default {
             failed,
             discovered: run.discovered,
             removed,
+            deduped,
             renormalized,
             durationMs: run.durationMs,
           }),

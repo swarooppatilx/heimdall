@@ -419,6 +419,29 @@ export async function deleteStaleJobs(): Promise<number> {
   return result.meta.changes ?? 0;
 }
 
+export async function dedupeCrossSourceJobs(): Promise<number> {
+  const db = await getDb();
+  const cutoff = freshnessCutoff();
+  const result = await db.run(sql`
+    DELETE FROM jobs WHERE id IN (
+      SELECT id FROM (
+        SELECT
+          id,
+          row_number() OVER (
+            PARTITION BY company, lower(title), city
+            ORDER BY posted_at ASC, source ASC, id ASC
+          ) AS rn,
+          min(source) OVER (PARTITION BY company, lower(title), city) AS lo,
+          max(source) OVER (PARTITION BY company, lower(title), city) AS hi
+        FROM jobs
+        WHERE city IS NOT NULL AND country IS NOT NULL AND posted_at >= ${cutoff}
+      )
+      WHERE rn > 1 AND lo != hi
+    )
+  `);
+  return result.meta.changes ?? 0;
+}
+
 export async function recordCrawl(
   company: string,
   status: string,
