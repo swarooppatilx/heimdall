@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
 import { freshnessCutoff } from "./freshness";
+import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 
 type Db = ReturnType<typeof drizzle>;
@@ -77,12 +78,14 @@ function jobConditions(filters: JobFilters) {
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
   if (filters.q) {
-    const needle = `%${filters.q}%`;
+    const needle = `%${filters.q.toLowerCase()}%`;
     const matchesAnyColumn = or(
       like(jobs.title, needle),
       like(jobs.company, needle),
       like(jobs.location, needle),
       like(jobs.department, needle),
+      like(jobs.city, needle),
+      like(jobs.country, needle),
     );
     if (matchesAnyColumn) {
       conditions.push(matchesAnyColumn);
@@ -92,7 +95,19 @@ function jobConditions(filters: JobFilters) {
     conditions.push(eq(jobs.company, filters.company));
   }
   if (filters.location) {
-    conditions.push(like(jobs.location, `%${filters.location}%`));
+    const place = resolvePlace(filters.location);
+    if (place?.remote) {
+      conditions.push(eq(jobs.location, "Remote"));
+    } else if (place?.city) {
+      conditions.push(eq(jobs.city, place.city));
+      if (place.country) {
+        conditions.push(eq(jobs.country, place.country));
+      }
+    } else if (place?.country) {
+      conditions.push(eq(jobs.country, place.country));
+    } else {
+      conditions.push(like(jobs.location, `%${filters.location}%`));
+    }
   }
   if (filters.source) {
     conditions.push(eq(jobs.source, filters.source));
