@@ -1,5 +1,11 @@
 import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
-import { bindDb, dedupeCrossSourceJobs, deleteStaleJobs, getJobQuality, getLatestCrawlUnix } from "../src/lib/db";
+import {
+  bindDb,
+  dedupeCrossSourceJobs,
+  deleteStaleJobs,
+  getJobQuality,
+  getLatestCrawlUnix,
+} from "../src/lib/db";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
