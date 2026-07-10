@@ -40,6 +40,8 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     region: row.region,
     isEarlyCareer: row.isEarlyCareer === 1,
     experienceLevel: row.experienceLevel,
+    city: row.city ?? undefined,
+    country: row.country ?? undefined,
   };
 }
 
@@ -168,6 +170,8 @@ function toRow(job: Job): typeof jobs.$inferInsert {
     region: job.region ?? "",
     isEarlyCareer: job.isEarlyCareer ? 1 : 0,
     experienceLevel: job.experienceLevel ?? detectExperienceLevel(job.title),
+    city: job.city ?? null,
+    country: job.country ?? null,
   };
 }
 
@@ -204,6 +208,8 @@ export async function insertJobs(items: Job[]): Promise<void> {
             region: values.region,
             isEarlyCareer: values.isEarlyCareer,
             experienceLevel: values.experienceLevel,
+            city: values.city,
+            country: values.country,
           },
         });
     });
@@ -231,6 +237,8 @@ export async function updateJobs(items: Job[]): Promise<void> {
           region: values.region,
           isEarlyCareer: values.isEarlyCareer,
           experienceLevel: values.experienceLevel,
+          city: values.city,
+          country: values.country,
         })
         .where(eq(jobs.id, job.id));
     });

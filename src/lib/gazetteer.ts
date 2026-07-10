@@ -1,0 +1,498 @@
+export interface Place {
+  city?: string;
+  country?: string;
+  remote?: boolean;
+}
+
+const COUNTRY_CANONICAL: Record<string, string> = {
+  usa: "United States",
+  "u.s.": "United States",
+  us: "United States",
+  "united states of america": "United States",
+  america: "United States",
+  uk: "United Kingdom",
+  "great britain": "United Kingdom",
+  england: "United Kingdom",
+  scotland: "United Kingdom",
+  wales: "United Kingdom",
+  "u.a.e": "United Arab Emirates",
+  uae: "United Arab Emirates",
+  emirates: "United Arab Emirates",
+  india: "India",
+  bharat: "India",
+  canada: "Canada",
+  deutschland: "Germany",
+};
+
+const COUNTRIES = new Set([
+  "argentina",
+  "australia",
+  "austria",
+  "belgium",
+  "brazil",
+  "bulgaria",
+  "chile",
+  "china",
+  "colombia",
+  "czechia",
+  "czech republic",
+  "denmark",
+  "egypt",
+  "estonia",
+  "finland",
+  "france",
+  "germany",
+  "greece",
+  "hong kong",
+  "hungary",
+  "iceland",
+  "indonesia",
+  "ireland",
+  "israel",
+  "italy",
+  "japan",
+  "kenya",
+  "latvia",
+  "lithuania",
+  "malaysia",
+  "malta",
+  "mexico",
+  "morocco",
+  "netherlands",
+  "new zealand",
+  "nigeria",
+  "norway",
+  "peru",
+  "philippines",
+  "poland",
+  "portugal",
+  "qatar",
+  "romania",
+  "saudi arabia",
+  "serbia",
+  "singapore",
+  "slovakia",
+  "slovenia",
+  "south africa",
+  "south korea",
+  "korea",
+  "spain",
+  "sweden",
+  "switzerland",
+  "taiwan",
+  "thailand",
+  "turkey",
+  "vietnam",
+]);
+
+const CITY_ALIASES: Record<string, [string, string]> = {
+  bangalore: ["Bengaluru", "India"],
+  bengaluru: ["Bengaluru", "India"],
+  hsr: ["Bengaluru", "India"],
+  "hsr layout": ["Bengaluru", "India"],
+  koramangala: ["Bengaluru", "India"],
+  whitefield: ["Bengaluru", "India"],
+  "electronic city": ["Bengaluru", "India"],
+  indiranagar: ["Bengaluru", "India"],
+  bellandur: ["Bengaluru", "India"],
+  hebbal: ["Bengaluru", "India"],
+  devanahalli: ["Bengaluru", "India"],
+  hyderabad: ["Hyderabad", "India"],
+  secunderabad: ["Hyderabad", "India"],
+  gachibowli: ["Hyderabad", "India"],
+  hitec: ["Hyderabad", "India"],
+  madhapur: ["Hyderabad", "India"],
+  chennai: ["Chennai", "India"],
+  coimbatore: ["Coimbatore", "India"],
+  pune: ["Pune", "India"],
+  mumbai: ["Mumbai", "India"],
+  "navi mumbai": ["Mumbai", "India"],
+  thane: ["Mumbai", "India"],
+  gurgaon: ["Gurugram", "India"],
+  gurugram: ["Gurugram", "India"],
+  noida: ["Noida", "India"],
+  delhi: ["Delhi", "India"],
+  "new delhi": ["Delhi", "India"],
+  faridabad: ["Delhi", "India"],
+  ghaziabad: ["Delhi", "India"],
+  kolkata: ["Kolkata", "India"],
+  ahmedabad: ["Ahmedabad", "India"],
+  jaipur: ["Jaipur", "India"],
+  indore: ["Indore", "India"],
+  kochi: ["Kochi", "India"],
+  cochin: ["Kochi", "India"],
+  chandigarh: ["Chandigarh", "India"],
+  mohali: ["Chandigarh", "India"],
+  bhubaneswar: ["Bhubaneswar", "India"],
+  nagpur: ["Nagpur", "India"],
+  trivandrum: ["Thiruvananthapuram", "India"],
+  thiruvananthapuram: ["Thiruvananthapuram", "India"],
+  visakhapatnam: ["Visakhapatnam", "India"],
+  "san francisco": ["San Francisco", "United States"],
+  sf: ["San Francisco", "United States"],
+  "bay area": ["San Francisco", "United States"],
+  "silicon valley": ["San Francisco", "United States"],
+  "san jose": ["San Jose", "United States"],
+  "rio robles": ["San Jose", "United States"],
+  "santa clara": ["Santa Clara", "United States"],
+  sunnyvale: ["Sunnyvale", "United States"],
+  "mountain view": ["Mountain View", "United States"],
+  "palo alto": ["Palo Alto", "United States"],
+  "redwood city": ["Redwood City", "United States"],
+  "san mateo": ["San Mateo", "United States"],
+  oakland: ["Oakland", "United States"],
+  berkeley: ["Berkeley", "United States"],
+  fremont: ["Fremont", "United States"],
+  "los angeles": ["Los Angeles", "United States"],
+  la: ["Los Angeles", "United States"],
+  "santa monica": ["Los Angeles", "United States"],
+  sandiego: ["San Diego", "United States"],
+  "san diego": ["San Diego", "United States"],
+  irvine: ["Irvine", "United States"],
+  sacramento: ["Sacramento", "United States"],
+  seattle: ["Seattle", "United States"],
+  bellevue: ["Bellevue", "United States"],
+  redmond: ["Redmond", "United States"],
+  portland: ["Portland", "United States"],
+  denver: ["Denver", "United States"],
+  boulder: ["Denver", "United States"],
+  austin: ["Austin", "United States"],
+  dallas: ["Dallas", "United States"],
+  houston: ["Houston", "United States"],
+  "salt lake city": ["Salt Lake City", "United States"],
+  lehi: ["Salt Lake City", "United States"],
+  "cottonwood heights": ["Salt Lake City", "United States"],
+  chicago: ["Chicago", "United States"],
+  boston: ["Boston", "United States"],
+  cambridge: ["Cambridge", "United States"],
+  "new york": ["New York", "United States"],
+  nyc: ["New York", "United States"],
+  atlanta: ["Atlanta", "United States"],
+  miami: ["Miami", "United States"],
+  orlando: ["Orlando", "United States"],
+  tampa: ["Tampa", "United States"],
+  charlotte: ["Charlotte", "United States"],
+  raleigh: ["Raleigh", "United States"],
+  durham: ["Raleigh", "United States"],
+  nashville: ["Nashville", "United States"],
+  memphis: ["Memphis", "United States"],
+  "st louis": ["St Louis", "United States"],
+  minneapolis: ["Minneapolis", "United States"],
+  "kansas city": ["Kansas City", "United States"],
+  cincinnati: ["Cincinnati", "United States"],
+  cleveland: ["Cleveland", "United States"],
+  columbus: ["Columbus", "United States"],
+  indianapolis: ["Indianapolis", "United States"],
+  detroit: ["Detroit", "United States"],
+  milwaukee: ["Milwaukee", "United States"],
+  madison: ["Madison", "United States"],
+  philadelphia: ["Philadelphia", "United States"],
+  pittsburgh: ["Pittsburgh", "United States"],
+  phoenix: ["Phoenix", "United States"],
+  mesa: ["Phoenix", "United States"],
+  "ann arbor": ["Ann Arbor", "United States"],
+  huntsville: ["Huntsville", "United States"],
+  toronto: ["Toronto", "Canada"],
+  vancouver: ["Vancouver", "Canada"],
+  montreal: ["Montreal", "Canada"],
+  ottawa: ["Ottawa", "Canada"],
+  calgary: ["Calgary", "Canada"],
+  edmonton: ["Edmonton", "Canada"],
+  waterloo: ["Waterloo", "Canada"],
+  kitchener: ["Waterloo", "Canada"],
+  london: ["London", "United Kingdom"],
+  manchester: ["Manchester", "United Kingdom"],
+  bristol: ["Bristol", "United Kingdom"],
+  edinburgh: ["Edinburgh", "United Kingdom"],
+  reading: ["Reading", "United Kingdom"],
+  bracknell: ["Reading", "United Kingdom"],
+  dublin: ["Dublin", "Ireland"],
+  cork: ["Cork", "Ireland"],
+  limerick: ["Limerick", "Ireland"],
+  amsterdam: ["Amsterdam", "Netherlands"],
+  rotterdam: ["Rotterdam", "Netherlands"],
+  eindhoven: ["Eindhoven", "Netherlands"],
+  berlin: ["Berlin", "Germany"],
+  munich: ["Munich", "Germany"],
+  munchen: ["Munich", "Germany"],
+  hamburg: ["Hamburg", "Germany"],
+  frankfurt: ["Frankfurt", "Germany"],
+  freiburg: ["Freiburg", "Germany"],
+  paris: ["Paris", "France"],
+  bordeaux: ["Bordeaux", "France"],
+  meylan: ["Grenoble", "France"],
+  zurich: ["Zurich", "Switzerland"],
+  zürich: ["Zurich", "Switzerland"],
+  geneva: ["Geneva", "Switzerland"],
+  basel: ["Basel", "Switzerland"],
+  vienna: ["Vienna", "Austria"],
+  wien: ["Vienna", "Austria"],
+  stockholm: ["Stockholm", "Sweden"],
+  malmo: ["Malmo", "Sweden"],
+  malmö: ["Malmo", "Sweden"],
+  copenhagen: ["Copenhagen", "Denmark"],
+  oslo: ["Oslo", "Norway"],
+  helsinki: ["Helsinki", "Finland"],
+  warsaw: ["Warsaw", "Poland"],
+  krakow: ["Krakow", "Poland"],
+  kraków: ["Krakow", "Poland"],
+  wroclaw: ["Wroclaw", "Poland"],
+  wrocław: ["Wroclaw", "Poland"],
+  gdansk: ["Gdansk", "Poland"],
+  prague: ["Prague", "Czechia"],
+  brno: ["Brno", "Czechia"],
+  budapest: ["Budapest", "Hungary"],
+  bucharest: ["Bucharest", "Romania"],
+  sofia: ["Sofia", "Bulgaria"],
+  bratislava: ["Bratislava", "Slovakia"],
+  belgrade: ["Belgrade", "Serbia"],
+  "novi sad": ["Belgrade", "Serbia"],
+  zagreb: ["Zagreb", "Croatia"],
+  lisbon: ["Lisbon", "Portugal"],
+  lisboa: ["Lisbon", "Portugal"],
+  porto: ["Porto", "Portugal"],
+  madrid: ["Madrid", "Spain"],
+  barcelona: ["Barcelona", "Spain"],
+  malaga: ["Malaga", "Spain"],
+  milan: ["Milan", "Italy"],
+  milano: ["Milan", "Italy"],
+  rome: ["Rome", "Italy"],
+  roma: ["Rome", "Italy"],
+  tallinn: ["Tallinn", "Estonia"],
+  riga: ["Riga", "Latvia"],
+  vilnius: ["Vilnius", "Lithuania"],
+  valletta: ["Malta", "Malta"],
+  brussels: ["Brussels", "Belgium"],
+  antwerp: ["Antwerp", "Belgium"],
+  istanbul: ["Istanbul", "Turkey"],
+  singapore: ["Singapore", "Singapore"],
+  "hong kong": ["Hong Kong", "Hong Kong"],
+  tokyo: ["Tokyo", "Japan"],
+  osaka: ["Osaka", "Japan"],
+  yokohama: ["Yokohama", "Japan"],
+  fukuoka: ["Fukuoka", "Japan"],
+  seoul: ["Seoul", "South Korea"],
+  taipei: ["Taipei", "Taiwan"],
+  hsinchu: ["Hsinchu", "Taiwan"],
+  zhubei: ["Hsinchu", "Taiwan"],
+  beijing: ["Beijing", "China"],
+  shanghai: ["Shanghai", "China"],
+  shenzhen: ["Shenzhen", "China"],
+  hangzhou: ["Hangzhou", "China"],
+  suzhou: ["Suzhou", "China"],
+  dalian: ["Dalian", "China"],
+  qingdao: ["Qingdao", "China"],
+  jakarta: ["Jakarta", "Indonesia"],
+  bangkok: ["Bangkok", "Thailand"],
+  "ho chi minh city": ["Ho Chi Minh City", "Vietnam"],
+  hanoi: ["Hanoi", "Vietnam"],
+  manila: ["Manila", "Philippines"],
+  alabang: ["Manila", "Philippines"],
+  "kuala lumpur": ["Kuala Lumpur", "Malaysia"],
+  penang: ["Penang", "Malaysia"],
+  sydney: ["Sydney", "Australia"],
+  melbourne: ["Melbourne", "Australia"],
+  brisbane: ["Brisbane", "Australia"],
+  perth: ["Perth", "Australia"],
+  canberra: ["Canberra", "Australia"],
+  auckland: ["Auckland", "New Zealand"],
+  wellington: ["Wellington", "New Zealand"],
+  "sao paulo": ["Sao Paulo", "Brazil"],
+  "são paulo": ["Sao Paulo", "Brazil"],
+  "porto alegre": ["Porto Alegre", "Brazil"],
+  "belo horizonte": ["Belo Horizonte", "Brazil"],
+  "buenos aires": ["Buenos Aires", "Argentina"],
+  santiago: ["Santiago", "Chile"],
+  bogota: ["Bogota", "Colombia"],
+  bogotá: ["Bogota", "Colombia"],
+  lima: ["Lima", "Peru"],
+  "mexico city": ["Mexico City", "Mexico"],
+  guadalajara: ["Guadalajara", "Mexico"],
+  "tel aviv": ["Tel Aviv", "Israel"],
+  netanya: ["Tel Aviv", "Israel"],
+  haifa: ["Haifa", "Israel"],
+  dubai: ["Dubai", "United Arab Emirates"],
+  "abu dhabi": ["Abu Dhabi", "United Arab Emirates"],
+  riyadh: ["Riyadh", "Saudi Arabia"],
+  jeddah: ["Jeddah", "Saudi Arabia"],
+  doha: ["Doha", "Qatar"],
+  casablanca: ["Casablanca", "Morocco"],
+  cairo: ["Cairo", "Egypt"],
+  lagos: ["Lagos", "Nigeria"],
+  nairobi: ["Nairobi", "Kenya"],
+  johannesburg: ["Johannesburg", "South Africa"],
+  "cape town": ["Cape Town", "South Africa"],
+  reykjavik: ["Reykjavik", "Iceland"],
+  reykjavík: ["Reykjavik", "Iceland"],
+};
+
+const US_STATES: Record<string, string> = {
+  al: "United States",
+  ak: "United States",
+  az: "United States",
+  ar: "United States",
+  ca: "United States",
+  co: "United States",
+  ct: "United States",
+  de: "United States",
+  fl: "United States",
+  ga: "United States",
+  hi: "United States",
+  id: "United States",
+  il: "United States",
+  in: "United States",
+  ia: "United States",
+  ks: "United States",
+  ky: "United States",
+  la: "United States",
+  me: "United States",
+  md: "United States",
+  ma: "United States",
+  mi: "United States",
+  mn: "United States",
+  ms: "United States",
+  mo: "United States",
+  mt: "United States",
+  ne: "United States",
+  nv: "United States",
+  nh: "United States",
+  nj: "United States",
+  nm: "United States",
+  ny: "United States",
+  nc: "United States",
+  nd: "United States",
+  oh: "United States",
+  ok: "United States",
+  or: "United States",
+  pa: "United States",
+  ri: "United States",
+  sc: "United States",
+  sd: "United States",
+  tn: "United States",
+  tx: "United States",
+  ut: "United States",
+  vt: "United States",
+  va: "United States",
+  wa: "United States",
+  wv: "United States",
+  wi: "United States",
+  wy: "United States",
+  dc: "United States",
+};
+
+const CA_PROVINCES: Record<string, string> = {
+  ontario: "Canada",
+  quebec: "Canada",
+  alberta: "Canada",
+  "british columbia": "Canada",
+  manitoba: "Canada",
+  saskatchewan: "Canada",
+};
+
+const REMOTE_PATTERN = /\b(remote|work from home|wfh|anywhere|distributed)\b/i;
+const GARBAGE_PATTERN =
+  /^(n\/?a|location|unknown|hybrid|onsite|on-site|in-office|in-pune|office|hq|headquarters?|global|multiple locations|\d+\s+locations?|blank.*|add all.*|various.*|not applicable)$/i;
+const STREET_PATTERN = /^\d+\s+\w+/;
+
+const SEGMENT_SPLIT = /[,/•|;\u2014\u2013]+/;
+const NOISE_CHARS = /^[\s\-().]*$/;
+
+function cleanSegment(segment: string): string {
+  return segment
+    .replace(/^[-–—()\s]+|[-–—()\s]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function lookupCountry(token: string): string | undefined {
+  const canonical =
+    COUNTRY_CANONICAL[token] ?? (COUNTRIES.has(token) ? titleCaseCountry(token) : undefined);
+  return canonical;
+}
+
+function titleCaseCountry(name: string): string {
+  return name.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function lookupRegionState(token: string): string | undefined {
+  return US_STATES[token] ?? CA_PROVINCES[token];
+}
+
+function lookupCity(token: string): [string, string] | undefined {
+  return CITY_ALIASES[token];
+}
+
+function fuzzyCity(text: string): [string, string] | undefined {
+  let bestAlias = "";
+  let best: [string, string] | undefined;
+  for (const [alias, place] of Object.entries(CITY_ALIASES)) {
+    if (alias.length < 5 || alias.length <= bestAlias.length) continue;
+    if (text.includes(alias)) {
+      bestAlias = alias;
+      best = [place[0], place[1]];
+    }
+  }
+  return best;
+}
+
+export function resolvePlace(raw: string): Place | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (/^\d+\s+locations?$/i.test(trimmed) || GARBAGE_PATTERN.test(trimmed)) return null;
+  if (STREET_PATTERN.test(trimmed) && !lookupCity(cleanSegment(trimmed))) {
+    const fuzzy = fuzzyCity(trimmed.toLowerCase());
+    return fuzzy ? { city: fuzzy[0], country: fuzzy[1] } : null;
+  }
+
+  const lowered = trimmed.toLowerCase();
+  const segments = lowered
+    .split(SEGMENT_SPLIT)
+    .map(cleanSegment)
+    .filter((s) => s.length > 0 && !NOISE_CHARS.test(s));
+
+  if (segments.some((s) => REMOTE_PATTERN.test(s))) return { remote: true };
+
+  let country: string | undefined;
+  let city: string | undefined;
+
+  for (const segment of [...segments].reverse()) {
+    if (!country) country = lookupCountry(segment);
+  }
+  for (const segment of segments) {
+    const hit = lookupCity(segment);
+    if (hit) {
+      city = hit[0];
+      country = country ?? hit[1];
+      break;
+    }
+  }
+  if (!city) {
+    for (const segment of segments) {
+      const state = lookupRegionState(segment);
+      if (state) {
+        country = country ?? state;
+        break;
+      }
+    }
+  }
+  if (!city && !country) {
+    const fuzzy = fuzzyCity(lowered);
+    if (fuzzy) {
+      city = fuzzy[0];
+      country = fuzzy[1];
+    }
+  }
+
+  if (!city && !country) return null;
+  return { city, country };
+}
+
+export function formatPlace(place: Place): string {
+  if (place.remote) return "Remote";
+  if (place.city && place.country) return `${place.city}, ${place.country}`;
+  if (place.city) return place.city;
+  if (place.country) return place.country;
+  return "unknown";
+}

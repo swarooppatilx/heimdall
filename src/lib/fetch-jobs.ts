@@ -1,6 +1,7 @@
 import { normalizeDepartment } from "./department";
 import { detectExperienceLevel } from "./experience";
 import { FRESHNESS_DAYS } from "./freshness";
+import { formatPlace, resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
@@ -21,8 +22,15 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
 
 function deriveFields(job: Job): Job {
   const level = job.experienceLevel ?? detectExperienceLevel(job.title);
+  const place = resolvePlace(job.location);
+  const city = place?.remote ? undefined : place?.city;
+  const country = place?.remote ? undefined : place?.country;
   return {
     ...job,
+    location: place ? formatPlace(place) : "unknown",
+    region: country?.toLowerCase() ?? "",
+    city,
+    country,
     experienceLevel: level,
     isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
     department: normalizeDepartment(job.department),

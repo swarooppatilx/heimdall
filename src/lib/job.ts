@@ -14,4 +14,6 @@ export interface Job {
   isEarlyCareer?: boolean;
   slug?: string;
   experienceLevel?: string;
+  city?: string;
+  country?: string;
 }
