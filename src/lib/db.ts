@@ -261,6 +261,37 @@ export async function updateJobs(items: Job[]): Promise<void> {
   }
 }
 
+export async function getStaleNormJobs(version: number, limit: number): Promise<Job[]> {
+  const db = await getDb();
+  const rows = await db.select().from(jobs).where(lt(jobs.normVersion, version)).limit(limit);
+  return rows.map(toJob);
+}
+
+export async function saveRenormalized(items: Job[], version: number): Promise<void> {
+  if (items.length === 0) return;
+  const db = await getDb();
+  for (const page of chunk(items)) {
+    const statements = page.map((job) => {
+      const values = toRow(job);
+      return db
+        .update(jobs)
+        .set({
+          location: values.location,
+          department: values.department,
+          employmentType: values.employmentType,
+          region: values.region,
+          isEarlyCareer: values.isEarlyCareer,
+          experienceLevel: values.experienceLevel,
+          city: values.city,
+          country: values.country,
+          normVersion: version,
+        })
+        .where(eq(jobs.id, job.id));
+    });
+    await db.batch(statements as never);
+  }
+}
+
 export async function deleteJobsByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const db = await getDb();
