@@ -30,12 +30,16 @@ export const jobs = sqliteTable(
   ],
 );
 
-export const crawls = sqliteTable("crawls", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  company: text("company").notNull(),
-  status: text("status").notNull().default("ok"),
-  jobsFound: integer("jobs_found").notNull().default(0),
-  durationMs: integer("duration_ms").notNull().default(0),
-  error: text("error"),
-  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
-});
+export const crawls = sqliteTable(
+  "crawls",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    company: text("company").notNull(),
+    status: text("status").notNull().default("ok"),
+    jobsFound: integer("jobs_found").notNull().default(0),
+    durationMs: integer("duration_ms").notNull().default(0),
+    error: text("error"),
+    createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+  },
+  (table) => [index("idx_crawls_created_at").on(table.createdAt)],
+);

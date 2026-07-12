@@ -1,8 +1,9 @@
-import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
 import { assessBoards, driftedBoards } from "../src/lib/board-health";
+import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
 import {
   bindDb,
   dedupeCrossSourceJobs,
+  deleteOldCrawls,
   deleteStaleJobs,
   getJobQuality,
   getLatestCrawlUnix,
@@ -24,6 +25,7 @@ interface ExecutionContext {
 const STALE_ALERT_MS = 30 * 60 * 1000;
 const DRIFT_WINDOW_HOURS = 48;
 const DRIFT_MIN_EMPTY = 6;
+const CRAWL_RETENTION_DAYS = 45;
 
 export default {
   fetch: handler.fetch,
@@ -36,6 +38,7 @@ export default {
         const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
         const removed = sweepStart ? await deleteStaleJobs() : 0;
         const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
+        const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
         const failed = run.results.filter((r) => r.status === "error").length;
         console.log(
           JSON.stringify({
@@ -47,6 +50,7 @@ export default {
             discovered: run.discovered,
             removed,
             deduped,
+            expiredCrawls,
             renormalized,
             durationMs: run.durationMs,
           }),

@@ -37,9 +37,6 @@ export function assessBoards(samples: CrawlSample[], newestFirst = true): BoardH
   return health;
 }
 
-export function driftedBoards(
-  boards: BoardHealth[],
-  minConsecutiveEmpty: number,
-): BoardHealth[] {
+export function driftedBoards(boards: BoardHealth[], minConsecutiveEmpty: number): BoardHealth[] {
   return boards.filter((b) => b.consecutiveEmpty >= minConsecutiveEmpty);
 }

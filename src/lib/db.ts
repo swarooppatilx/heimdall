@@ -425,6 +425,14 @@ export async function deleteStaleJobs(): Promise<number> {
   return result.meta.changes ?? 0;
 }
 
+export async function deleteOldCrawls(days: number): Promise<number> {
+  const db = await getDb();
+  const result = await db.run(
+    sql`DELETE FROM ${crawls} WHERE ${crawls.createdAt} < datetime('now', ${`-${days} days`})`,
+  );
+  return result.meta.changes ?? 0;
+}
+
 export async function dedupeCrossSourceJobs(): Promise<number> {
   const db = await getDb();
   const cutoff = freshnessCutoff();

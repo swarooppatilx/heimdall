@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
-import { type CrawlRecord, getCrawlHistory, getLatestCrawls, getRecentCrawlSamples } from "@/lib/db";
+import {
+  type CrawlRecord,
+  getCrawlHistory,
+  getLatestCrawls,
+  getRecentCrawlSamples,
+} from "@/lib/db";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
