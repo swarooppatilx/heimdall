@@ -41,8 +41,14 @@ export function diffJobs(existing: Job[], fetched: Job[]): JobDiff {
     const current = existingById.get(job.id);
     if (!current) {
       inserts.push(job);
-    } else if (!samePosting(current, job)) {
-      updates.push(job);
+      continue;
+    }
+    const effective =
+      job.postedAt.getTime() > current.postedAt.getTime() + DRIFT_MS
+        ? { ...job, postedAt: current.postedAt }
+        : job;
+    if (!samePosting(current, effective)) {
+      updates.push(effective);
     }
   }
 

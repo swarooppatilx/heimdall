@@ -40,11 +40,19 @@ describe("diffJobs", () => {
     expect(diff.updates.map((j) => j.id)).toEqual(["a"]);
   });
 
-  it("treats identical fields with different dates as updates", () => {
+  it("keeps the first seen date when a provider bumps postedAt forward", () => {
     const stored = job("a");
     const bumped = job("a", { postedAt: new Date("2026-08-21T00:00:00.000Z") });
     const diff = diffJobs([stored], [bumped]);
+    expect(diff.updates).toHaveLength(0);
+  });
+
+  it("allows postedAt corrections backwards", () => {
+    const stored = job("a", { postedAt: new Date("2026-08-22T00:00:00.000Z") });
+    const corrected = job("a", { postedAt: new Date("2026-08-20T00:00:00.000Z") });
+    const diff = diffJobs([stored], [corrected]);
     expect(diff.updates).toHaveLength(1);
+    expect(diff.updates[0]?.postedAt.toISOString()).toBe("2026-08-20T00:00:00.000Z");
   });
 
   it("ignores sub-minute postedAt drift", () => {
