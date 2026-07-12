@@ -19,6 +19,8 @@ interface WorkdayResponse {
 const PAGE_SIZE = 20;
 const MAX_PAGES = 200;
 const PAGE_CONCURRENCY = 10;
+const PAGE_RETRIES = 1;
+const WORKDAY_TIMEOUT_MS = 20_000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function postedAtFrom(raw: string | undefined): Date {
@@ -65,11 +67,28 @@ function mapJob(raw: WorkdayPosting, tenant: string, endpoint: string): Job {
 }
 
 function fetchPage(endpoint: string, offset: number): Promise<WorkdayResponse> {
-  return fetchJson<WorkdayResponse>(endpoint, endpoint, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ limit: PAGE_SIZE, offset, searchText: "" }),
-  });
+  return fetchJson<WorkdayResponse>(
+    endpoint,
+    endpoint,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ limit: PAGE_SIZE, offset, searchText: "" }),
+    },
+    WORKDAY_TIMEOUT_MS,
+  );
+}
+
+async function fetchPageWithRetry(endpoint: string, offset: number): Promise<WorkdayResponse> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= PAGE_RETRIES; attempt++) {
+    try {
+      return await fetchPage(endpoint, offset);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }
 
 export async function fetchWorkdayJobs(apiUrl: string): Promise<Job[]> {
@@ -79,7 +98,7 @@ export async function fetchWorkdayJobs(apiUrl: string): Promise<Job[]> {
   const segments = url.pathname.split("/").filter(Boolean);
   const tenant = segments[2] ?? apiUrl;
 
-  const first = await fetchPage(apiUrl, 0);
+  const first = await fetchPageWithRetry(apiUrl, 0);
   const maxOffset = Math.min(first.total, MAX_PAGES * PAGE_SIZE);
 
   const offsets: number[] = [];
@@ -88,12 +107,21 @@ export async function fetchWorkdayJobs(apiUrl: string): Promise<Job[]> {
   }
 
   const postings = [...first.jobPostings];
+  const totalPages = offsets.length + 1;
+  let failedPages = 0;
   for (let i = 0; i < offsets.length; i += PAGE_CONCURRENCY) {
     const chunk = offsets.slice(i, i + PAGE_CONCURRENCY);
-    const settled = await Promise.allSettled(chunk.map((offset) => fetchPage(apiUrl, offset)));
+    const settled = await Promise.allSettled(
+      chunk.map((offset) => fetchPageWithRetry(apiUrl, offset)),
+    );
     for (const result of settled) {
       if (result.status === "fulfilled") postings.push(...result.value.jobPostings);
+      else failedPages += 1;
     }
+  }
+
+  if (failedPages > 0) {
+    throw new Error(`Workday pagination incomplete: ${failedPages} of ${totalPages} pages failed`);
   }
 
   return postings.map((p) => mapJob(p, tenant, apiUrl));

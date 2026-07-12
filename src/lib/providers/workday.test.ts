@@ -110,7 +110,25 @@ describe("fetchWorkdayJobs", () => {
     expect(jobs.length).toBeLessThanOrEqual(200 * 20);
   });
 
-  it("keeps successful pages when one page fails", async () => {
+  it("retries transient page failures before giving up", async () => {
+    const mock = vi.mocked(fetch);
+    const attempts = new Map<number, number>();
+    mock.mockImplementation((_url, init) => {
+      const { offset } = JSON.parse(String(init?.body));
+      if (offset === 20) {
+        const seen = attempts.get(offset) ?? 0;
+        attempts.set(offset, seen + 1);
+        if (seen === 0) return Promise.resolve({ ok: false, status: 503 } as never);
+      }
+      return Promise.resolve(page(41, [posting(offset)]) as never);
+    });
+
+    const jobs = await fetchWorkdayJobs(ENDPOINT);
+
+    expect(jobs).toHaveLength(3);
+  });
+
+  it("fails loudly instead of returning partial results when a page fails", async () => {
     const mock = vi.mocked(fetch);
     mock.mockImplementation((_url, init) => {
       const { offset } = JSON.parse(String(init?.body));
@@ -118,9 +136,7 @@ describe("fetchWorkdayJobs", () => {
       return Promise.resolve(page(41, [posting(offset)]) as never);
     });
 
-    const jobs = await fetchWorkdayJobs(ENDPOINT);
-
-    expect(jobs.length).toBeGreaterThanOrEqual(2);
+    await expect(fetchWorkdayJobs(ENDPOINT)).rejects.toThrow("pagination incomplete");
   });
 
   it("throws without an api url", async () => {
