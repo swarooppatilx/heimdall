@@ -1,10 +1,12 @@
 import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
+import { assessBoards, driftedBoards } from "../src/lib/board-health";
 import {
   bindDb,
   dedupeCrossSourceJobs,
   deleteStaleJobs,
   getJobQuality,
   getLatestCrawlUnix,
+  getRecentCrawlSamples,
 } from "../src/lib/db";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
@@ -20,6 +22,8 @@ interface ExecutionContext {
 }
 
 const STALE_ALERT_MS = 30 * 60 * 1000;
+const DRIFT_WINDOW_HOURS = 48;
+const DRIFT_MIN_EMPTY = 6;
 
 export default {
   fetch: handler.fetch,
@@ -55,6 +59,21 @@ export default {
         if (sweepStart) {
           const quality = await getJobQuality();
           console.log(JSON.stringify({ event: "job_quality", ...quality }));
+          const drifted = driftedBoards(
+            assessBoards(await getRecentCrawlSamples(DRIFT_WINDOW_HOURS)),
+            DRIFT_MIN_EMPTY,
+          );
+          if (drifted.length > 0) {
+            console.log(
+              JSON.stringify({
+                event: "board_drift",
+                boards: drifted.map((b) => ({
+                  company: b.company,
+                  consecutiveEmpty: b.consecutiveEmpty,
+                })),
+              }),
+            );
+          }
         }
       })(),
     );

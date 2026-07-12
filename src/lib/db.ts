@@ -503,3 +503,23 @@ export async function getLatestCrawls(): Promise<CrawlRecord[]> {
     .orderBy(desc(crawls.createdAt));
   return rows.map(toCrawlRecord);
 }
+
+export interface CrawlSample {
+  company: string;
+  status: string;
+  jobsFound: number;
+}
+
+export async function getRecentCrawlSamples(hours: number): Promise<CrawlSample[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      company: crawls.company,
+      status: crawls.status,
+      jobsFound: crawls.jobsFound,
+    })
+    .from(crawls)
+    .where(sql`${crawls.createdAt} >= datetime('now', ${`-${hours} hours`})`)
+    .orderBy(desc(crawls.id));
+  return rows;
+}
