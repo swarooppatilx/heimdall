@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diffJobs } from "./diff";
+import { diffJobs, isSuspiciousDeletion } from "./diff";
 import type { Job } from "./job";
 
 function job(id: string, overrides: Partial<Job> = {}): Job {
@@ -95,5 +95,15 @@ describe("diffJobs", () => {
     expect(diff.inserts.map((j) => j.id)).toEqual(["brand-new"]);
     expect(diff.updates.map((j) => j.id)).toEqual(["edited"]);
     expect(diff.deletedIds).toEqual(["closed"]);
+  });
+
+  it("flags mass deletions as suspicious", () => {
+    expect(isSuspiciousDeletion(100, 51)).toBe(true);
+    expect(isSuspiciousDeletion(100, 50)).toBe(false);
+  });
+
+  it("ignores small boards where churn is normal", () => {
+    expect(isSuspiciousDeletion(9, 9)).toBe(false);
+    expect(isSuspiciousDeletion(0, 0)).toBe(false);
   });
 });

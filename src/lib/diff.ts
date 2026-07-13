@@ -8,6 +8,13 @@ export interface JobDiff {
 }
 
 const DRIFT_MS = 60 * 1000;
+const GUARD_MIN_EXISTING = 10;
+const GUARD_MAX_DELETE_SHARE = 0.5;
+
+export function isSuspiciousDeletion(existingCount: number, deletedCount: number): boolean {
+  if (existingCount < GUARD_MIN_EXISTING) return false;
+  return deletedCount > existingCount * GUARD_MAX_DELETE_SHARE;
+}
 
 function effectiveLevel(job: Job): string {
   return job.experienceLevel ?? detectExperienceLevel(job.title);
