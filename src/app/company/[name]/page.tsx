@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
+import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { Button } from "@/components/ui/button";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
@@ -39,15 +40,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
   const jobs = await getJobsByCompany(company);
   const stats = await companyStats(company);
 
-  if (jobs.length === 0) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
-        <p className="text-muted-foreground">No jobs found for {company}</p>
-        <Link href="/" className="mt-4 text-sm text-muted-foreground hover:text-foreground">
-          ← back to search
-        </Link>
-      </div>
-    );
+  if (jobs.length === 0 || stats.total === 0) {
+    notFound();
   }
 
   const jsonLd = {
