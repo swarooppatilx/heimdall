@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq, gte, inArray, like, lt, ne, or, sql } from "
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
-import { freshnessCutoff } from "./freshness";
+import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 
@@ -15,6 +15,7 @@ function getDb(): Promise<Db> {
   if (!_db) {
     _db = (async () => {
       const { env } = await getCloudflareContext();
+      configureFreshness((env as { FRESHNESS_DAYS?: string }).FRESHNESS_DAYS);
       return drizzle(env.DB);
     })();
   }

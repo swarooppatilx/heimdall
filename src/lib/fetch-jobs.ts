@@ -1,7 +1,7 @@
 import { normalizeDepartment } from "./department";
 import { resolveEmploymentType } from "./employment";
 import { detectExperienceLevel } from "./experience";
-import { FRESHNESS_DAYS } from "./freshness";
+import { freshnessCutoff } from "./freshness";
 import { formatPlace, resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
@@ -55,12 +55,12 @@ export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
   const jobs = await fetchProviderJobs(entry);
   const company = entry.label ?? entry.name;
 
+  const cutoffMs = Date.parse(freshnessCutoff());
+
   return jobs
     .filter((job) => {
       if (Number.isNaN(job.postedAt.getTime())) return false;
-      const ageMs = Date.now() - job.postedAt.getTime();
-      const ageDays = ageMs / (1000 * 60 * 60 * 24);
-      return ageDays <= FRESHNESS_DAYS;
+      return job.postedAt.getTime() >= cutoffMs;
     })
     .map((job) => deriveFields({ ...job, company }));
 }

@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { sweepSlice } from "./crawler";
+import { shouldRunTick, sweepSlice } from "./crawler";
+
+const TICK_MS = 15 * 60 * 1000;
+
+describe("shouldRunTick", () => {
+  it("runs when no crawl has ever been recorded", () => {
+    expect(shouldRunTick(null, Date.now())).toBe(true);
+  });
+
+  it("skips when the previous crawl is still within the tick window", () => {
+    const now = 1_755_000_000_000;
+    expect(shouldRunTick(now - 60_000, now)).toBe(false);
+    expect(shouldRunTick(now - 5 * 60_000, now)).toBe(false);
+  });
+
+  it("runs once enough time has passed since the last crawl", () => {
+    const now = 1_755_000_000_000;
+    expect(shouldRunTick(now - (TICK_MS - 2 * 60_000), now)).toBe(true);
+    expect(shouldRunTick(now - TICK_MS, now)).toBe(true);
+  });
+});
 
 const registry = Array.from({ length: 19 }, (_, i) => ({
   name: `c${i}`,

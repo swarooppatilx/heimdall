@@ -1,5 +1,11 @@
 import { assessBoards, driftedBoards } from "../src/lib/board-health";
-import { crawlAll, renormalizeStaleJobs, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
+import {
+  crawlAll,
+  renormalizeStaleJobs,
+  shouldRunTick,
+  sweepOrdinal,
+  sweepSlice,
+} from "../src/lib/crawler";
 import {
   bindDb,
   dedupeCrossSourceJobs,
@@ -9,6 +15,7 @@ import {
   getLatestCrawlUnix,
   getRecentCrawlSamples,
 } from "../src/lib/db";
+import { configureFreshness } from "../src/lib/freshness";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -33,6 +40,12 @@ export default {
     ctx.waitUntil(
       (async () => {
         bindDb(env.DB);
+        configureFreshness(env.FRESHNESS_DAYS);
+        const lastCrawlAt = await getLatestCrawlUnix();
+        if (!shouldRunTick(lastCrawlAt, Date.now())) {
+          console.log(JSON.stringify({ event: "tick_skipped", lastCrawlAt }));
+          return;
+        }
         const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
         const renormalized = await renormalizeStaleJobs();
         const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
@@ -55,10 +68,10 @@ export default {
             durationMs: run.durationMs,
           }),
         );
-        const lastCrawlAt = await getLatestCrawlUnix();
-        const stalenessMs = lastCrawlAt ? Date.now() - lastCrawlAt : null;
+        const latestCrawlAt = await getLatestCrawlUnix();
+        const stalenessMs = latestCrawlAt ? Date.now() - latestCrawlAt : null;
         if (stalenessMs === null || stalenessMs > STALE_ALERT_MS) {
-          console.log(JSON.stringify({ event: "crawl_stale", lastCrawlAt, stalenessMs }));
+          console.log(JSON.stringify({ event: "crawl_stale", lastCrawlAt: latestCrawlAt, stalenessMs }));
         }
         if (sweepStart) {
           const quality = await getJobQuality();

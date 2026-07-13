@@ -20,7 +20,13 @@ export interface CrawlResult {
 }
 
 const TICK_MS = 15 * 60 * 1000;
+const TICK_MARGIN_MS = 2 * 60 * 1000;
 const TICKS_PER_SWEEP = 8;
+
+export function shouldRunTick(lastCrawlUnix: number | null, now: number): boolean {
+  if (lastCrawlUnix === null) return true;
+  return now - lastCrawlUnix >= TICK_MS - TICK_MARGIN_MS;
+}
 
 export function sweepOrdinal(now = Date.now()): number {
   return Math.floor(now / TICK_MS) % TICKS_PER_SWEEP;
