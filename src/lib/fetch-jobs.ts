@@ -10,6 +10,7 @@ import { fetchLeverJobs } from "./providers/lever";
 import { fetchSmartRecruitersJobs } from "./providers/smartrecruiters";
 import { fetchWorkdayJobs } from "./providers/workday";
 import type { RegistryEntry } from "./registry";
+import { sanitizeFilterValue } from "./sanitize";
 
 export type ProviderFetcher = (entry: RegistryEntry) => Promise<Job[]>;
 
@@ -21,7 +22,7 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
 };
 
-export const NORM_VERSION = 1;
+export const NORM_VERSION = 2;
 
 function deriveFields(job: Job): Job {
   const level = job.experienceLevel ?? detectExperienceLevel(job.title);
@@ -30,8 +31,9 @@ function deriveFields(job: Job): Job {
   const country = place?.remote ? undefined : place?.country;
   return {
     ...job,
+    company: sanitizeFilterValue(job.company),
     location: place ? formatPlace(place) : "unknown",
-    region: country?.toLowerCase() ?? "",
+    region: country ?? "",
     city,
     country,
     employmentType: resolveEmploymentType(job.employmentType),

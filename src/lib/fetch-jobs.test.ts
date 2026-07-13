@@ -42,7 +42,7 @@ describe("fetchJobs", () => {
   it("uses the registry label as company when present", async () => {
     const jobs = await fetchJobs({ ...entry, label: "TestCo Inc" });
 
-    expect(jobs[0]?.company).toBe("TestCo Inc");
+    expect(jobs[0]?.company).toBe("testco inc");
   });
 
   it("keeps explicit early career flags from the provider", async () => {

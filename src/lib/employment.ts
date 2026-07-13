@@ -1,25 +1,28 @@
-export type EmploymentType = keyof typeof EMPLOYMENT_TYPES;
+export const EMPLOYMENT_TYPES = [
+  "full time",
+  "part time",
+  "contractor",
+  "temporary",
+  "intern",
+] as const;
 
-const EMPLOYMENT_TYPES = {
-  FULL_TIME: null,
-  PART_TIME: null,
-  CONTRACTOR: null,
-  TEMPORARY: null,
-  INTERN: null,
-} as const;
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 
 const ALIASES: Record<EmploymentType, RegExp> = {
-  FULL_TIME:
+  "full time":
     /full[\s-]?time|fulltime|regular|permanent|\bfte\b|salaried|unlimited|backfill|^new$|employee/,
-  PART_TIME: /part[\s-]?time|parttime/,
-  CONTRACTOR: /\bcontract(?!ual term)\b|contractor|freelance|\bc2c\b|1099/,
-  TEMPORARY: /temp(?:orary)?\b|fixed[- ]term|casual|seasonal/,
-  INTERN: /intern|co-?op|working student|apprentice|trainee|graduate scheme/,
+  "part time": /part[\s-]?time|parttime/,
+  contractor: /\bcontract(?!ual term)\b|contractor|freelance|\bc2c\b|1099/,
+  temporary: /temp(?:orary)?\b|fixed[- ]term|casual|seasonal/,
+  intern: /intern|co-?op|working student|apprentice|trainee|graduate scheme/,
 };
+
+const TOKENS = new Set<string>(EMPLOYMENT_TYPES);
 
 export function resolveEmploymentType(raw: string | undefined): EmploymentType | undefined {
   const value = raw?.trim().toLowerCase();
   if (!value) return undefined;
+  if (TOKENS.has(value)) return value as EmploymentType;
   for (const [type, pattern] of Object.entries(ALIASES)) {
     if (pattern.test(value)) return type as EmploymentType;
   }

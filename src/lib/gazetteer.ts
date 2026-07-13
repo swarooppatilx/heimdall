@@ -486,13 +486,13 @@ export function resolvePlace(raw: string): Place | null {
   }
 
   if (!city && !country) return null;
-  return { city, country };
+  return { city: city?.toLowerCase(), country: country?.toLowerCase() };
 }
 
 export function formatPlace(place: Place): string {
-  if (place.remote) return "Remote";
+  if (place.remote) return "remote";
   if (place.city && place.country) return `${place.city}, ${place.country}`;
-  if (place.city) return place.city;
+  if (place.city) return place.city ?? "unknown";
   if (place.country) return place.country;
   return "unknown";
 }

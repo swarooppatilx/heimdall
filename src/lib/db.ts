@@ -98,7 +98,7 @@ function jobConditions(filters: JobFilters) {
   if (filters.location) {
     const place = resolvePlace(filters.location);
     if (place?.remote) {
-      conditions.push(eq(jobs.location, "Remote"));
+      conditions.push(eq(jobs.location, "remote"));
     } else if (place?.city) {
       conditions.push(eq(jobs.city, place.city));
       if (place.country) {

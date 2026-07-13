@@ -8,36 +8,36 @@ describe("resolvePlace", () => {
   };
 
   it("resolves city variants to one canonical place", () => {
-    expect(city("bangalore")).toEqual({ city: "Bengaluru", country: "India" });
-    expect(city("bengaluru")).toEqual({ city: "Bengaluru", country: "India" });
+    expect(city("bangalore")).toEqual({ city: "bengaluru", country: "india" });
+    expect(city("bengaluru")).toEqual({ city: "bengaluru", country: "india" });
     expect(city("bengaluru, karnataka, india")).toEqual({
-      city: "Bengaluru",
-      country: "India",
+      city: "bengaluru",
+      country: "india",
     });
-    expect(city("hsr layout, bangalore")).toEqual({ city: "Bengaluru", country: "India" });
-    expect(city("bangalore - engineering")).toEqual({ city: "Bengaluru", country: "India" });
-    expect(city("(bengaluru, india)")).toEqual({ city: "Bengaluru", country: "India" });
+    expect(city("hsr layout, bangalore")).toEqual({ city: "bengaluru", country: "india" });
+    expect(city("bangalore - engineering")).toEqual({ city: "bengaluru", country: "india" });
+    expect(city("(bengaluru, india)")).toEqual({ city: "bengaluru", country: "india" });
   });
 
   it("handles provider quirks from live data", () => {
     expect(city("us, ca, san jose, rio robles")).toEqual({
-      city: "San Jose",
-      country: "United States",
+      city: "san jose",
+      country: "united states",
     });
-    expect(city("bangalore, ind")).toEqual({ city: "Bengaluru", country: "India" });
-    expect(city("hyderabad 04")).toEqual({ city: "Hyderabad", country: "India" });
-    expect(city("singapore, sgp")).toEqual({ city: "Singapore", country: "Singapore" });
-    expect(city("us-ga-atlanta")).toEqual({ city: "Atlanta", country: "United States" });
-    expect(city("se-stockholm-mso")).toEqual({ city: "Stockholm", country: "Sweden" });
-    expect(city("zürich, ch")).toEqual({ city: "Zurich", country: "Switzerland" });
+    expect(city("bangalore, ind")).toEqual({ city: "bengaluru", country: "india" });
+    expect(city("hyderabad 04")).toEqual({ city: "hyderabad", country: "india" });
+    expect(city("singapore, sgp")).toEqual({ city: "singapore", country: "singapore" });
+    expect(city("us-ga-atlanta")).toEqual({ city: "atlanta", country: "united states" });
+    expect(city("se-stockholm-mso")).toEqual({ city: "stockholm", country: "sweden" });
+    expect(city("zürich, ch")).toEqual({ city: "zurich", country: "switzerland" });
   });
 
   it("falls back to state and country level", () => {
-    expect(city("bellevue, wa")).toEqual({ city: "Bellevue", country: "United States" });
-    expect(city("ca - sacramento")).toEqual({ city: "Sacramento", country: "United States" });
-    expect(city("ontario, canada")).toEqual({ city: undefined, country: "Canada" });
-    expect(city("germany")).toEqual({ city: undefined, country: "Germany" });
-    expect(city("usa")).toEqual({ city: undefined, country: "United States" });
+    expect(city("bellevue, wa")).toEqual({ city: "bellevue", country: "united states" });
+    expect(city("ca - sacramento")).toEqual({ city: "sacramento", country: "united states" });
+    expect(city("ontario, canada")).toEqual({ city: undefined, country: "canada" });
+    expect(city("germany")).toEqual({ city: undefined, country: "germany" });
+    expect(city("usa")).toEqual({ city: undefined, country: "united states" });
   });
 
   it("marks remote locations", () => {
@@ -66,15 +66,15 @@ describe("resolvePlace", () => {
 
   it("first recognized city wins for multi-office strings", () => {
     expect(city("bellevue, wa / livingston, nj / new york, ny")).toEqual({
-      city: "Bellevue",
-      country: "United States",
+      city: "bellevue",
+      country: "united states",
     });
-    expect(city("london or dublin")).toEqual({ city: "London", country: "United Kingdom" });
+    expect(city("london or dublin")).toEqual({ city: "london", country: "united kingdom" });
   });
 
   it("formats canonical display strings", () => {
-    expect(formatPlace({ city: "Bengaluru", country: "India" })).toBe("Bengaluru, India");
-    expect(formatPlace({ country: "Germany" })).toBe("Germany");
-    expect(formatPlace({ remote: true })).toBe("Remote");
+    expect(formatPlace({ city: "bengaluru", country: "india" })).toBe("bengaluru, india");
+    expect(formatPlace({ country: "germany" })).toBe("germany");
+    expect(formatPlace({ remote: true })).toBe("remote");
   });
 });
