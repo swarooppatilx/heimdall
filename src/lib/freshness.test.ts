@@ -15,9 +15,7 @@ afterEach(() => {
 describe("freshnessCutoff", () => {
   it("returns a timestamp exactly the configured days before the given date", () => {
     const now = new Date("2026-08-21T12:00:00.000Z");
-    const expected = new Date(
-      now.getTime() - currentFreshnessDays() * DAY_MS,
-    ).toISOString();
+    const expected = new Date(now.getTime() - currentFreshnessDays() * DAY_MS).toISOString();
     expect(freshnessCutoff(now)).toBe(expected);
   });
 

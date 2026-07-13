@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cache } from "react";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { JsonLd } from "@/components/json-ld";
 import { Button } from "@/components/ui/button";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";

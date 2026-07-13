@@ -52,6 +52,15 @@ function cleanup(entry: RateLimitEntry, windowMs: number): void {
   entry.timestamps = entry.timestamps.filter((t) => t > cutoff);
 }
 
+const MEMORY_PRUNE_THRESHOLD = 1000;
+
+function pruneMemoryStore(windowMs: number): void {
+  const cutoff = Date.now() - windowMs;
+  for (const [key, entry] of store) {
+    if (!entry.timestamps.some((t) => t > cutoff)) store.delete(key);
+  }
+}
+
 export async function checkRateLimit(
   request: Request,
   opts: RateLimitOptions,
@@ -60,6 +69,8 @@ export async function checkRateLimit(
 
   const edge = await checkEdgeLimit(key, opts);
   if (edge) return edge;
+
+  if (store.size >= MEMORY_PRUNE_THRESHOLD) pruneMemoryStore(opts.windowMs);
 
   let entry = store.get(key);
   if (!entry) {

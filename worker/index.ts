@@ -71,7 +71,9 @@ export default {
         const latestCrawlAt = await getLatestCrawlUnix();
         const stalenessMs = latestCrawlAt ? Date.now() - latestCrawlAt : null;
         if (stalenessMs === null || stalenessMs > STALE_ALERT_MS) {
-          console.log(JSON.stringify({ event: "crawl_stale", lastCrawlAt: latestCrawlAt, stalenessMs }));
+          console.log(
+            JSON.stringify({ event: "crawl_stale", lastCrawlAt: latestCrawlAt, stalenessMs }),
+          );
         }
         if (sweepStart) {
           const quality = await getJobQuality();

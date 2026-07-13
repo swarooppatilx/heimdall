@@ -28,6 +28,11 @@
       "simple": { "limit": 100, "period": 60 }
     },
     {
+      "name": "FILTERS_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 30, "period": 60 }
+    },
+    {
       "name": "STATUS_RATE_LIMITER",
       "namespace_id": "1003",
       "simple": { "limit": 30, "period": 60 }
