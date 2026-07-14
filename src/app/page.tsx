@@ -128,6 +128,9 @@ function useJobFilters(filters: JobFiltersInput) {
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
       const res = await fetch(`/api/jobs?${params}`);
+      if (!res.ok) {
+        throw new Error(`jobs request failed: ${res.status}`);
+      }
       const jobs = (await res.json()) as Job[];
       return { jobs, total: Number(res.headers.get("X-Total-Count") ?? 0) };
     },
