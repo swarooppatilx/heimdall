@@ -49,7 +49,6 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
     "@type": "Organization",
     name: company,
     url: jobs[0]?.url?.split("/jobs/")[0] || undefined,
-    numberOfEmployees: stats.total,
   };
 
   return (

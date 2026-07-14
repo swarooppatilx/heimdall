@@ -35,7 +35,6 @@ interface FilterOptions {
   sources: string[];
   departments: string[];
   employmentTypes: string[];
-  regions: string[];
 }
 
 interface CrawlStatusEntry {
@@ -104,6 +103,7 @@ interface JobFiltersInput {
   posted: string;
   source: string;
   department: string;
+  employmentType: string;
   sort: string;
 }
 
@@ -124,6 +124,7 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
       if (filters.department) params.set("department", filters.department);
+      if (filters.employmentType) params.set("employment_type", filters.employmentType);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));
@@ -161,6 +162,7 @@ function JobsPage() {
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
   const [department, setDepartment] = useQueryParam("department", "");
+  const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [sort, setSort] = useQueryParam("sort", "");
   const deferredQuery = useDeferredValue(query);
 
@@ -176,6 +178,7 @@ function JobsPage() {
     posted,
     source,
     department,
+    employmentType,
     sort,
   };
 
@@ -247,6 +250,7 @@ function JobsPage() {
     setPosted("");
     setSource("");
     setDepartment("");
+    setEmploymentType("");
     commitQuery("");
     router.replace("?", { scroll: false });
   }, [
@@ -258,9 +262,11 @@ function JobsPage() {
     setPosted,
     setSource,
     setDepartment,
+    setEmploymentType,
   ]);
 
-  const advancedCount = [company, posted, source].filter(Boolean).length;
+  const advancedCount = [company, posted, source, department, employmentType].filter(Boolean)
+    .length;
 
   const chips = useMemo(() => {
     const list: { key: string; label: string; onRemove: () => void }[] = [];
@@ -279,6 +285,12 @@ function JobsPage() {
         key: "department",
         label: `department: ${department}`,
         onRemove: () => setDepartment(""),
+      });
+    if (employmentType)
+      list.push({
+        key: "employmentType",
+        label: `type: ${employmentType}`,
+        onRemove: () => setEmploymentType(""),
       });
     if (experience)
       list.push({
@@ -300,10 +312,12 @@ function JobsPage() {
     department,
     experience,
     posted,
+    employmentType,
     setCompany,
     setLocation,
     setSource,
     setDepartment,
+    setEmploymentType,
     setExperience,
     setPosted,
   ]);
@@ -473,6 +487,16 @@ function JobsPage() {
                       options={filterOptions?.sources ?? []}
                       placeholder="any source"
                       aria-label="Filter by source"
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">type</p>
+                    <FilterSelect
+                      value={employmentType}
+                      onChange={setEmploymentType}
+                      options={filterOptions?.employmentTypes ?? []}
+                      placeholder="any type"
+                      aria-label="Filter by employment type"
                     />
                   </div>
                 </div>
