@@ -16,4 +16,5 @@ export interface Job {
   experienceLevel?: string;
   city?: string;
   country?: string;
+  isRemote?: boolean;
 }

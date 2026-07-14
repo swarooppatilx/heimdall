@@ -1,8 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, asc, count, desc, eq, gte, inArray, like, lt, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { crawls, jobs } from "../db/schema";
+import { crawls, jobLocations, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
+import { NORM_VERSION } from "./fetch-jobs";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
@@ -44,6 +45,7 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     experienceLevel: row.experienceLevel,
     city: row.city ?? undefined,
     country: row.country ?? undefined,
+    isRemote: row.isRemote === 1,
   };
 }
 
@@ -188,7 +190,37 @@ function toRow(job: Job): typeof jobs.$inferInsert {
     experienceLevel: job.experienceLevel ?? detectExperienceLevel(job.title),
     city: job.city ?? null,
     country: job.country ?? null,
+    isRemote: job.isRemote ? 1 : 0,
+    normVersion: NORM_VERSION,
   };
+}
+
+interface LocationFacet {
+  city: string;
+  country: string;
+}
+
+export function locationFacets(job: Job): LocationFacet[] {
+  const raw = [job.location, ...(job.locations ?? [])];
+  const seen = new Set<string>();
+  const facets: LocationFacet[] = [];
+  for (const entry of raw) {
+    const place = resolvePlace(entry);
+    if (!place?.city || !place.country) continue;
+    const key = `${place.city}|${place.country}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    facets.push({ city: place.city, country: place.country });
+  }
+  return facets;
+}
+
+function facetStatements(db: Db, job: Job): unknown[] {
+  const clear = db.delete(jobLocations).where(eq(jobLocations.jobId, job.id));
+  const inserts = locationFacets(job).map((facet) =>
+    db.insert(jobLocations).values({ jobId: job.id, ...facet }),
+  );
+  return [clear, ...inserts];
 }
 
 export async function getJobsByIds(ids: string[]): Promise<Job[]> {
@@ -205,14 +237,51 @@ export async function insertJobs(items: Job[]): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements = page.map((job) => {
+    const statements: unknown[] = [];
+    for (const job of page) {
       const values = toRow(job);
-      return db
-        .insert(jobs)
-        .values(values)
-        .onConflictDoUpdate({
-          target: jobs.id,
-          set: {
+      statements.push(
+        db
+          .insert(jobs)
+          .values(values)
+          .onConflictDoUpdate({
+            target: jobs.id,
+            set: {
+              title: values.title,
+              location: values.location,
+              department: values.department,
+              url: values.url,
+              postedAt: values.postedAt,
+              employmentType: values.employmentType,
+              salary: values.salary,
+              locations: values.locations,
+              region: values.region,
+              isEarlyCareer: values.isEarlyCareer,
+              experienceLevel: values.experienceLevel,
+              city: values.city,
+              country: values.country,
+              isRemote: values.isRemote,
+              normVersion: values.normVersion,
+            },
+          }),
+      );
+      statements.push(...facetStatements(db, job));
+    }
+    await db.batch(statements as never);
+  }
+}
+
+export async function updateJobs(items: Job[]): Promise<void> {
+  if (items.length === 0) return;
+  const db = await getDb();
+  for (const page of chunk(items)) {
+    const statements: unknown[] = [];
+    for (const job of page) {
+      const values = toRow(job);
+      statements.push(
+        db
+          .update(jobs)
+          .set({
             title: values.title,
             location: values.location,
             department: values.department,
@@ -226,38 +295,13 @@ export async function insertJobs(items: Job[]): Promise<void> {
             experienceLevel: values.experienceLevel,
             city: values.city,
             country: values.country,
-          },
-        });
-    });
-    await db.batch(statements as never);
-  }
-}
-
-export async function updateJobs(items: Job[]): Promise<void> {
-  if (items.length === 0) return;
-  const db = await getDb();
-  for (const page of chunk(items)) {
-    const statements = page.map((job) => {
-      const values = toRow(job);
-      return db
-        .update(jobs)
-        .set({
-          title: values.title,
-          location: values.location,
-          department: values.department,
-          url: values.url,
-          postedAt: values.postedAt,
-          employmentType: values.employmentType,
-          salary: values.salary,
-          locations: values.locations,
-          region: values.region,
-          isEarlyCareer: values.isEarlyCareer,
-          experienceLevel: values.experienceLevel,
-          city: values.city,
-          country: values.country,
-        })
-        .where(eq(jobs.id, job.id));
-    });
+            isRemote: values.isRemote,
+            normVersion: values.normVersion,
+          })
+          .where(eq(jobs.id, job.id)),
+      );
+      statements.push(...facetStatements(db, job));
+    }
     await db.batch(statements as never);
   }
 }
@@ -297,7 +341,10 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const db = await getDb();
   for (const page of chunk(ids)) {
-    await db.delete(jobs).where(inArray(jobs.id, page));
+    await db.batch([
+      db.delete(jobs).where(inArray(jobs.id, page)),
+      db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
+    ] as never);
   }
 }
 

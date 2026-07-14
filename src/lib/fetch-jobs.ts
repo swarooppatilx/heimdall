@@ -22,13 +22,15 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
 };
 
-export const NORM_VERSION = 2;
+export const NORM_VERSION = 3;
 
 function deriveFields(job: Job): Job {
   const level = job.experienceLevel ?? detectExperienceLevel(job.title);
   const place = resolvePlace(job.location);
   const city = place?.remote ? undefined : place?.city;
   const country = place?.remote ? undefined : place?.country;
+  const rawLocations = [job.location, ...(job.locations ?? [])];
+  const isRemote = rawLocations.some((entry) => resolvePlace(entry)?.remote) ?? false;
   return {
     ...job,
     company: sanitizeFilterValue(job.company),
@@ -36,6 +38,7 @@ function deriveFields(job: Job): Job {
     region: country ?? "",
     city,
     country,
+    isRemote,
     employmentType: resolveEmploymentType(job.employmentType),
     experienceLevel: level,
     isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
