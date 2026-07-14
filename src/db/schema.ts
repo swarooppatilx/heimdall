@@ -20,6 +20,7 @@ export const jobs = sqliteTable(
     experienceLevel: text("experience_level").notNull().default("mid"),
     city: text("city"),
     country: text("country"),
+    isRemote: integer("is_remote").notNull().default(0),
     normVersion: integer("norm_version").notNull().default(0),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   },
@@ -27,6 +28,19 @@ export const jobs = sqliteTable(
     index("idx_jobs_posted_at").on(table.postedAt),
     index("idx_jobs_company_posted_at").on(table.company, table.postedAt),
     index("idx_jobs_city_country").on(table.city, table.country),
+  ],
+);
+
+export const jobLocations = sqliteTable(
+  "job_locations",
+  {
+    jobId: text("job_id").notNull(),
+    city: text("city").notNull(),
+    country: text("country").notNull(),
+  },
+  (table) => [
+    index("idx_job_locations_country_city").on(table.country, table.city),
+    index("idx_job_locations_job").on(table.jobId),
   ],
 );
 
