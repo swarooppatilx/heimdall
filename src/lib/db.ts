@@ -316,23 +316,28 @@ export async function saveRenormalized(items: Job[], version: number): Promise<v
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements = page.map((job) => {
+    const statements: unknown[] = [];
+    for (const job of page) {
       const values = toRow(job);
-      return db
-        .update(jobs)
-        .set({
-          location: values.location,
-          department: values.department,
-          employmentType: values.employmentType,
-          region: values.region,
-          isEarlyCareer: values.isEarlyCareer,
-          experienceLevel: values.experienceLevel,
-          city: values.city,
-          country: values.country,
-          normVersion: version,
-        })
-        .where(eq(jobs.id, job.id));
-    });
+      statements.push(
+        db
+          .update(jobs)
+          .set({
+            location: values.location,
+            department: values.department,
+            employmentType: values.employmentType,
+            region: values.region,
+            isEarlyCareer: values.isEarlyCareer,
+            experienceLevel: values.experienceLevel,
+            city: values.city,
+            country: values.country,
+            isRemote: values.isRemote,
+            normVersion: version,
+          })
+          .where(eq(jobs.id, job.id)),
+      );
+      statements.push(...facetStatements(db, job));
+    }
     await db.batch(statements as never);
   }
 }
