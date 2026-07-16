@@ -45,7 +45,7 @@ describe("GET /api/filters", () => {
 
     expect(data.remoteCount).toBe(42);
     expect(data.countries[0]).toMatchObject({ value: "india", count: 30 });
-    expect(data.countries[0].cities[0]).toEqual({ value: "bengaluru", count: 22 });
+    expect(data.countries[0]?.cities[0]).toEqual({ value: "bengaluru", count: 22 });
     expect(data.employmentTypes[0]).toEqual({ value: "full time", count: 90 });
   });
 });
