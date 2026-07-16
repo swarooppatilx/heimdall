@@ -5,23 +5,23 @@ export interface Place {
 }
 
 const COUNTRY_CANONICAL: Record<string, string> = {
-  usa: "United States",
-  "u.s.": "United States",
-  us: "United States",
-  "united states of america": "United States",
-  america: "United States",
-  uk: "United Kingdom",
-  "great britain": "United Kingdom",
-  england: "United Kingdom",
-  scotland: "United Kingdom",
-  wales: "United Kingdom",
-  "u.a.e": "United Arab Emirates",
-  uae: "United Arab Emirates",
-  emirates: "United Arab Emirates",
-  india: "India",
-  bharat: "India",
-  canada: "Canada",
-  deutschland: "Germany",
+  usa: "united states",
+  "u.s.": "united states",
+  us: "united states",
+  "united states of america": "united states",
+  america: "united states",
+  uk: "united kingdom",
+  "great britain": "united kingdom",
+  england: "united kingdom",
+  scotland: "united kingdom",
+  wales: "united kingdom",
+  "u.a.e": "united arab emirates",
+  uae: "united arab emirates",
+  emirates: "united arab emirates",
+  india: "india",
+  bharat: "india",
+  canada: "canada",
+  deutschland: "germany",
 };
 
 const COUNTRIES = new Set([
@@ -406,13 +406,7 @@ function cleanSegment(segment: string): string {
 }
 
 function lookupCountry(token: string): string | undefined {
-  const canonical =
-    COUNTRY_CANONICAL[token] ?? (COUNTRIES.has(token) ? titleCaseCountry(token) : undefined);
-  return canonical;
-}
-
-function titleCaseCountry(name: string): string {
-  return name.replace(/\b\w/g, (c) => c.toUpperCase());
+  return COUNTRY_CANONICAL[token] ?? (COUNTRIES.has(token) ? token : undefined);
 }
 
 function lookupRegionState(token: string): string | undefined {

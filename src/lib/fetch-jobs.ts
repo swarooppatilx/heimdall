@@ -22,7 +22,7 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
 };
 
-export const NORM_VERSION = 3;
+export const NORM_VERSION = 4;
 
 function deriveFields(job: Job): Job {
   const level = job.experienceLevel ?? detectExperienceLevel(job.title);

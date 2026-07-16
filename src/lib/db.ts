@@ -430,19 +430,19 @@ export async function getFacetOptions(): Promise<FacetOptions> {
       .where(and(eq(jobs.isRemote, 1), gte(jobs.postedAt, cutoff))),
     db
       .select({
-        country: jobLocations.country,
+        country: sql<string>`lower(${jobLocations.country})`,
         city: jobLocations.city,
         count: sql<number>`count(*)`,
       })
       .from(jobLocations)
       .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
       .where(gte(jobs.postedAt, cutoff))
-      .groupBy(jobLocations.country, jobLocations.city),
+      .groupBy(sql`lower(${jobLocations.country})`, jobLocations.city),
     db
-      .select({ value: jobs.country, count: sql<number>`count(*)` })
+      .select({ value: sql<string>`lower(${jobs.country})`, count: sql<number>`count(*)` })
       .from(jobs)
       .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
-      .groupBy(jobs.country),
+      .groupBy(sql`lower(${jobs.country})`),
     db
       .select({ value: jobs.company, count: sql<number>`count(*)` })
       .from(jobs)
