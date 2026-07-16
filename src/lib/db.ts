@@ -53,6 +53,8 @@ export interface JobFilters {
   q?: string;
   company?: string;
   location?: string;
+  city?: string;
+  country?: string;
   source?: string;
   experience?: string;
   posted?: string;
@@ -77,6 +79,17 @@ export interface PageOptions {
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 500;
 
+function facetMatch(city: string | undefined, country: string | undefined) {
+  const conds = [sql`${jobLocations.jobId} = ${jobs.id}`];
+  if (city) {
+    conds.push(sql`${jobLocations.city} = ${city.toLowerCase()}`);
+  }
+  if (country) {
+    conds.push(sql`${jobLocations.country} = ${country.toLowerCase()}`);
+  }
+  return sql`exists (select 1 from ${jobLocations} where ${sql.join(conds, sql` and `)})`;
+}
+
 function jobConditions(filters: JobFilters) {
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
@@ -100,17 +113,19 @@ function jobConditions(filters: JobFilters) {
   if (filters.location) {
     const place = resolvePlace(filters.location);
     if (place?.remote) {
-      conditions.push(eq(jobs.location, "remote"));
+      conditions.push(eq(jobs.isRemote, 1));
     } else if (place?.city) {
-      conditions.push(eq(jobs.city, place.city));
-      if (place.country) {
-        conditions.push(eq(jobs.country, place.country));
-      }
+      conditions.push(facetMatch(place.city, place.country));
     } else if (place?.country) {
-      conditions.push(eq(jobs.country, place.country));
+      conditions.push(facetMatch(undefined, place.country));
     } else {
       conditions.push(like(jobs.location, `%${filters.location}%`));
     }
+  }
+  if (filters.city) {
+    conditions.push(facetMatch(filters.city, filters.country));
+  } else if (filters.country) {
+    conditions.push(facetMatch(undefined, filters.country));
   }
   if (filters.source) {
     conditions.push(eq(jobs.source, filters.source));

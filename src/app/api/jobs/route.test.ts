@@ -56,6 +56,8 @@ describe("GET /api/jobs", () => {
         q: undefined,
         company: undefined,
         location: undefined,
+        city: undefined,
+        country: undefined,
         source: undefined,
         experience: undefined,
         posted: undefined,
@@ -69,16 +71,18 @@ describe("GET /api/jobs", () => {
     expect(await readJobs(res)).toEqual(JSON.parse(JSON.stringify(jobs)));
   });
 
-  it("lowercases free-text filters", async () => {
+  it("passes free-text filters through", async () => {
     await GET(
       makeRequest({ q: "Designer", company: "Discord", location: "Remote", source: "Ashby" }),
     );
     expect(mockSearchJobs).toHaveBeenCalledWith(
       {
-        q: "designer",
-        company: "discord",
-        location: "remote",
-        source: "ashby",
+        q: "Designer",
+        company: "Discord",
+        location: "Remote",
+        source: "Ashby",
+        city: undefined,
+        country: undefined,
         experience: undefined,
         posted: undefined,
         department: undefined,
@@ -97,6 +101,8 @@ describe("GET /api/jobs", () => {
         q: undefined,
         company: undefined,
         location: undefined,
+        city: undefined,
+        country: undefined,
         source: undefined,
         experience: "senior",
         posted: "week",
@@ -134,17 +140,12 @@ describe("GET /api/jobs", () => {
     );
   });
 
-  it("lowercases department and employmentType consistently", async () => {
-    await GET(
-      makeRequest({
-        department: "Engineering",
-        employment_type: "Full Time",
-      }),
-    );
+  it("passes facet params through", async () => {
+    await GET(makeRequest({ city: "bengaluru", country: "india" }));
     expect(mockSearchJobs).toHaveBeenCalledWith(
       expect.objectContaining({
-        department: "engineering",
-        employmentType: "full time",
+        city: "bengaluru",
+        country: "india",
       }),
       { limit: undefined, offset: undefined },
     );

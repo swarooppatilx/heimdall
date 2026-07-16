@@ -19,14 +19,16 @@ export async function GET(request: Request) {
     return Number.isNaN(value) ? undefined : value;
   };
   const filters: JobFilters = {
-    q: searchParams.get("q")?.toLowerCase() || undefined,
-    company: searchParams.get("company")?.toLowerCase() || undefined,
-    location: searchParams.get("location")?.toLowerCase() || undefined,
-    source: searchParams.get("source")?.toLowerCase() || undefined,
-    experience: searchParams.get("experience")?.toLowerCase() || undefined,
+    q: searchParams.get("q") || undefined,
+    company: searchParams.get("company") || undefined,
+    location: searchParams.get("location") || undefined,
+    city: searchParams.get("city") || undefined,
+    country: searchParams.get("country") || undefined,
+    source: searchParams.get("source") || undefined,
+    experience: searchParams.get("experience") || undefined,
     posted: searchParams.get("posted") || undefined,
-    department: searchParams.get("department")?.toLowerCase() || undefined,
-    employmentType: searchParams.get("employment_type")?.toLowerCase() || undefined,
+    department: searchParams.get("department") || undefined,
+    employmentType: searchParams.get("employment_type") || undefined,
     earlyCareer: searchParams.get("early_career") || undefined,
     sort: searchParams.get("sort") || undefined,
   };
