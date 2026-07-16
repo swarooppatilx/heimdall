@@ -1,5 +1,19 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, lt, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  like,
+  lt,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
@@ -382,6 +396,7 @@ export interface CountryFacet {
 export interface FacetOptions {
   remoteCount: number;
   countries: CountryFacet[];
+  companies: FacetOption[];
   employmentTypes: FacetOption[];
   departments: FacetOption[];
   sources: FacetOption[];
@@ -399,48 +414,61 @@ export async function getFacetOptions(): Promise<FacetOptions> {
   const db = await getDb();
   const cutoff = freshnessCutoff();
 
-  const [remoteRows, cityRows, countryRows, employmentRows, departmentRows, sourceRows, levelRows] =
-    await Promise.all([
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(and(eq(jobs.isRemote, 1), gte(jobs.postedAt, cutoff))),
-      db
-        .select({
-          country: jobLocations.country,
-          city: jobLocations.city,
-          count: sql<number>`count(*)`,
-        })
-        .from(jobLocations)
-        .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobLocations.country, jobLocations.city),
-      db
-        .select({ value: jobs.country, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
-        .groupBy(jobs.country),
-      db
-        .select({ value: jobs.employmentType, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(and(gte(jobs.postedAt, cutoff), ne(jobs.employmentType, "")))
-        .groupBy(jobs.employmentType),
-      db
-        .select({ value: jobs.department, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.department),
-      db
-        .select({ value: jobs.source, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.source),
-      db
-        .select({ value: jobs.experienceLevel, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.experienceLevel),
-    ]);
+  const [
+    remoteRows,
+    cityRows,
+    countryRows,
+    companyRows,
+    employmentRows,
+    departmentRows,
+    sourceRows,
+    levelRows,
+  ] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(and(eq(jobs.isRemote, 1), gte(jobs.postedAt, cutoff))),
+    db
+      .select({
+        country: jobLocations.country,
+        city: jobLocations.city,
+        count: sql<number>`count(*)`,
+      })
+      .from(jobLocations)
+      .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
+      .where(gte(jobs.postedAt, cutoff))
+      .groupBy(jobLocations.country, jobLocations.city),
+    db
+      .select({ value: jobs.country, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
+      .groupBy(jobs.country),
+    db
+      .select({ value: jobs.company, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(gte(jobs.postedAt, cutoff))
+      .groupBy(jobs.company),
+    db
+      .select({ value: jobs.employmentType, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(and(gte(jobs.postedAt, cutoff), ne(jobs.employmentType, "")))
+      .groupBy(jobs.employmentType),
+    db
+      .select({ value: jobs.department, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(gte(jobs.postedAt, cutoff))
+      .groupBy(jobs.department),
+    db
+      .select({ value: jobs.source, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(gte(jobs.postedAt, cutoff))
+      .groupBy(jobs.source),
+    db
+      .select({ value: jobs.experienceLevel, count: sql<number>`count(*)` })
+      .from(jobs)
+      .where(gte(jobs.postedAt, cutoff))
+      .groupBy(jobs.experienceLevel),
+  ]);
 
   const cityByCountry = new Map<string, FacetOption[]>();
   for (const row of cityRows) {
@@ -467,15 +495,18 @@ export async function getFacetOptions(): Promise<FacetOptions> {
   return {
     remoteCount: Number(remoteRows[0]?.count ?? 0),
     countries,
+    companies: pruneFacets(
+      companyRows.map((r) => ({ value: r.value, count: Number(r.count) })),
+    ).sort((a, b) => b.count - a.count),
     employmentTypes: pruneFacets(
       employmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
     ).sort((a, b) => b.count - a.count),
     departments: pruneFacets(
       departmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
     ).sort((a, b) => b.count - a.count),
-    sources: pruneFacets(
-      sourceRows.map((r) => ({ value: r.value, count: Number(r.count) })),
-    ).sort((a, b) => b.count - a.count),
+    sources: pruneFacets(sourceRows.map((r) => ({ value: r.value, count: Number(r.count) }))).sort(
+      (a, b) => b.count - a.count,
+    ),
     experienceLevels: pruneFacets(
       levelRows.map((r) => ({ value: r.value, count: Number(r.count) })),
     ).sort((a, b) => b.count - a.count),
