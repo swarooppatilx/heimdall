@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFilterOptions } from "@/lib/db";
+import { getFacetOptions } from "@/lib/db";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -12,5 +12,5 @@ export async function GET(request: Request) {
   });
   if (!limit.allowed) return rateLimitResponse(limit.resetMs);
 
-  return NextResponse.json(await getFilterOptions());
+  return NextResponse.json(await getFacetOptions());
 }

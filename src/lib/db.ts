@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, asc, count, desc, eq, gte, inArray, like, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, lt, ne, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { detectExperienceLevel } from "./experience";
@@ -366,6 +366,120 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
       db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
     ] as never);
   }
+}
+
+export interface FacetOption {
+  value: string;
+  count: number;
+}
+
+export interface CountryFacet {
+  value: string;
+  count: number;
+  cities: FacetOption[];
+}
+
+export interface FacetOptions {
+  remoteCount: number;
+  countries: CountryFacet[];
+  employmentTypes: FacetOption[];
+  departments: FacetOption[];
+  sources: FacetOption[];
+  experienceLevels: FacetOption[];
+}
+
+const FACET_MIN_COUNT = 3;
+const MAX_CITIES_PER_COUNTRY = 30;
+
+function pruneFacets(options: FacetOption[]): FacetOption[] {
+  return options.filter((o) => o.count >= FACET_MIN_COUNT);
+}
+
+export async function getFacetOptions(): Promise<FacetOptions> {
+  const db = await getDb();
+  const cutoff = freshnessCutoff();
+
+  const [remoteRows, cityRows, countryRows, employmentRows, departmentRows, sourceRows, levelRows] =
+    await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(and(eq(jobs.isRemote, 1), gte(jobs.postedAt, cutoff))),
+      db
+        .select({
+          country: jobLocations.country,
+          city: jobLocations.city,
+          count: sql<number>`count(*)`,
+        })
+        .from(jobLocations)
+        .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
+        .where(gte(jobs.postedAt, cutoff))
+        .groupBy(jobLocations.country, jobLocations.city),
+      db
+        .select({ value: jobs.country, count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
+        .groupBy(jobs.country),
+      db
+        .select({ value: jobs.employmentType, count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(and(gte(jobs.postedAt, cutoff), ne(jobs.employmentType, "")))
+        .groupBy(jobs.employmentType),
+      db
+        .select({ value: jobs.department, count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(gte(jobs.postedAt, cutoff))
+        .groupBy(jobs.department),
+      db
+        .select({ value: jobs.source, count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(gte(jobs.postedAt, cutoff))
+        .groupBy(jobs.source),
+      db
+        .select({ value: jobs.experienceLevel, count: sql<number>`count(*)` })
+        .from(jobs)
+        .where(gte(jobs.postedAt, cutoff))
+        .groupBy(jobs.experienceLevel),
+    ]);
+
+  const cityByCountry = new Map<string, FacetOption[]>();
+  for (const row of cityRows) {
+    if (!row.country) continue;
+    const list = cityByCountry.get(row.country) ?? [];
+    list.push({ value: row.city, count: Number(row.count) });
+    cityByCountry.set(row.country, list);
+  }
+
+  const countries = pruneFacets(
+    countryRows.map((r) => ({
+      value: r.value ?? "",
+      count: Number(r.count),
+    })),
+  )
+    .sort((a, b) => b.count - a.count)
+    .map((country) => ({
+      ...country,
+      cities: (cityByCountry.get(country.value) ?? [])
+        .sort((a, b) => b.count - a.count)
+        .slice(0, MAX_CITIES_PER_COUNTRY),
+    }));
+
+  return {
+    remoteCount: Number(remoteRows[0]?.count ?? 0),
+    countries,
+    employmentTypes: pruneFacets(
+      employmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
+    ).sort((a, b) => b.count - a.count),
+    departments: pruneFacets(
+      departmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
+    ).sort((a, b) => b.count - a.count),
+    sources: pruneFacets(
+      sourceRows.map((r) => ({ value: r.value, count: Number(r.count) })),
+    ).sort((a, b) => b.count - a.count),
+    experienceLevels: pruneFacets(
+      levelRows.map((r) => ({ value: r.value, count: Number(r.count) })),
+    ).sort((a, b) => b.count - a.count),
+  };
 }
 
 export async function getFilterOptions(): Promise<{

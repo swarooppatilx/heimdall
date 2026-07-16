@@ -1,29 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
 
-function readFilters(res: Response): Promise<{
-  companies: string[];
-  locations: string[];
-  sources: string[];
-  departments: string[];
-  employmentTypes: string[];
-}> {
-  return res.json() as Promise<{
-    companies: string[];
-    locations: string[];
-    sources: string[];
-    departments: string[];
-    employmentTypes: string[];
-  }>;
-}
+const mockFacets = {
+  remoteCount: 42,
+  countries: [
+    {
+      value: "india",
+      count: 30,
+      cities: [
+        { value: "bengaluru", count: 22 },
+        { value: "hyderabad", count: 8 },
+      ],
+    },
+    { value: "germany", count: 5, cities: [{ value: "berlin", count: 5 }] },
+  ],
+  employmentTypes: [
+    { value: "full time", count: 90 },
+    { value: "intern", count: 4 },
+  ],
+  departments: [{ value: "engineering", count: 120 }],
+  sources: [
+    { value: "greenhouse", count: 150 },
+    { value: "lever", count: 1 },
+  ],
+  experienceLevels: [
+    { value: "mid", count: 100 },
+    { value: "senior", count: 60 },
+  ],
+};
 
 vi.mock("@/lib/db", () => ({
-  getFilterOptions: async () => ({
-    companies: ["gitlab", "discord"],
-    locations: ["remote — united states", "san francisco bay area"],
-    sources: ["greenhouse", "ashby"],
-    departments: ["engineering", "design", "sales"],
-    employmentTypes: ["full time", "contract"],
-  }),
+  getFacetOptions: async () => mockFacets,
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -32,16 +38,14 @@ vi.mock("@/lib/rate-limit", () => ({
 }));
 
 describe("GET /api/filters", () => {
-  it("returns all filter options from db", async () => {
+  it("serves count-backed facets with hierarchy", async () => {
     const { GET } = await import("./route");
-    const req = new Request("http://localhost/api/filters");
-    const res = await GET(req);
-    const data = await readFilters(res);
+    const res = await GET(new Request("http://localhost/api/filters"));
+    const data = (await res.json()) as typeof mockFacets;
 
-    expect(data.companies).toEqual(["gitlab", "discord"]);
-    expect(data.locations).toContain("remote — united states");
-    expect(data.sources).toEqual(["greenhouse", "ashby"]);
-    expect(data.departments).toEqual(["engineering", "design", "sales"]);
-    expect(data.employmentTypes).toEqual(["full time", "contract"]);
+    expect(data.remoteCount).toBe(42);
+    expect(data.countries[0]).toMatchObject({ value: "india", count: 30 });
+    expect(data.countries[0].cities[0]).toEqual({ value: "bengaluru", count: 22 });
+    expect(data.employmentTypes[0]).toEqual({ value: "full time", count: 90 });
   });
 });
