@@ -101,8 +101,6 @@ interface JobFiltersInput {
   q: string;
   company: string;
   location: string;
-  city: string;
-  country: string;
   experience: string;
   posted: string;
   source: string;
@@ -124,8 +122,6 @@ function useJobFilters(filters: JobFiltersInput) {
       if (filters.q) params.set("q", filters.q);
       if (filters.company) params.set("company", filters.company);
       if (filters.location) params.set("location", filters.location);
-      if (filters.city) params.set("city", filters.city);
-      if (filters.country) params.set("country", filters.country);
       if (filters.experience) params.set("experience", filters.experience);
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
@@ -163,9 +159,7 @@ function JobsPage() {
 
   const [query, setQuery, commitQuery] = useQueryParam("q", "", { deferCommit: true });
   const [company, setCompany] = useQueryParam("company", "");
-  const [remote, setRemote] = useQueryParam("remote", "");
-  const [country, setCountry] = useQueryParam("country", "");
-  const [city, setCity] = useQueryParam("city", "");
+  const [location, setLocation] = useQueryParam("location", "");
   const [experience, setExperience] = useQueryParam("experience", "");
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
@@ -181,9 +175,7 @@ function JobsPage() {
   const filters = {
     q: deferredQuery,
     company,
-    location: remote ? "remote" : "",
-    city,
-    country,
+    location,
     experience,
     posted,
     source,
@@ -267,9 +259,7 @@ function JobsPage() {
 
   const clearAllFilters = useCallback(() => {
     setCompany("");
-    setRemote("");
-    setCountry("");
-    setCity("");
+    setLocation("");
     setExperience("");
     setPosted("");
     setSource("");
@@ -281,9 +271,7 @@ function JobsPage() {
     commitQuery,
     router,
     setCompany,
-    setRemote,
-    setCountry,
-    setCity,
+    setLocation,
     setExperience,
     setPosted,
     setSource,
@@ -291,30 +279,27 @@ function JobsPage() {
     setEmploymentType,
   ]);
 
-  const advancedCount = [company, posted, source, department, employmentType].filter(
-    Boolean,
-  ).length;
+  const advancedCount = [experience, source, employmentType].filter(Boolean).length;
 
-  const cityOptions = useMemo(
-    () => filterOptions?.countries.find((c) => c.value === country)?.cities ?? [],
-    [filterOptions, country],
-  );
+  const locationOptions = useMemo(() => {
+    if (!filterOptions) return ["remote"];
+    const countries = [...filterOptions.countries].sort((a, b) => b.count - a.count);
+    const cities = countries
+      .flatMap((c) => c.cities.map((t) => ({ value: `${t.value}, ${c.value}`, count: t.count })))
+      .sort((a, b) => b.count - a.count);
+    return ["remote", ...countries.map((c) => c.value), ...cities.map((t) => t.value)];
+  }, [filterOptions]);
 
   const chips = useMemo(() => {
     const list: { key: string; label: string; onRemove: () => void }[] = [];
     if (company)
       list.push({ key: "company", label: `company: ${company}`, onRemove: () => setCompany("") });
-    if (remote) list.push({ key: "remote", label: "remote", onRemove: () => setRemote("") });
-    if (country)
+    if (location)
       list.push({
-        key: "country",
-        label: `country: ${country}`,
-        onRemove: () => {
-          setCountry("");
-          setCity("");
-        },
+        key: "location",
+        label: `location: ${location}`,
+        onRemove: () => setLocation(""),
       });
-    if (city) list.push({ key: "city", label: `city: ${city}`, onRemove: () => setCity("") });
     if (source)
       list.push({ key: "source", label: `source: ${source}`, onRemove: () => setSource("") });
     if (department)
@@ -344,18 +329,14 @@ function JobsPage() {
     return list;
   }, [
     company,
-    remote,
-    country,
-    city,
+    location,
     source,
     department,
     experience,
     posted,
     employmentType,
     setCompany,
-    setRemote,
-    setCountry,
-    setCity,
+    setLocation,
     setSource,
     setDepartment,
     setEmploymentType,
@@ -412,35 +393,6 @@ function JobsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-ring/40 has-[:checked]:border-ring/40 has-[:checked]:bg-ring/10 has-[:checked]:text-ring">
-              <input
-                type="checkbox"
-                checked={remote === "true"}
-                onChange={(e) => setRemote(e.target.checked ? "true" : "")}
-                className="size-3.5 accent-current"
-                aria-label="Remote jobs only"
-              />
-              remote{filterOptions ? ` · ${filterOptions.remoteCount}` : ""}
-            </label>
-            <FilterSelect
-              value={country}
-              onChange={(v) => {
-                setCountry(v);
-                setCity("");
-              }}
-              options={(filterOptions?.countries ?? []).map((c) => c.value)}
-              placeholder="country"
-              aria-label="Filter by country"
-              className="flex-1"
-            />
-            <FilterSelect
-              value={city}
-              onChange={setCity}
-              options={cityOptions.map((c) => c.value)}
-              placeholder="city"
-              aria-label="Filter by city"
-              className="flex-1"
-            />
             <FilterSelect
               value={company}
               onChange={setCompany}
@@ -450,11 +402,19 @@ function JobsPage() {
               className="flex-1"
             />
             <FilterSelect
-              value={experience}
-              onChange={setExperience}
-              options={["intern", "entry", "mid", "senior", "staff"]}
-              placeholder="seniority"
-              aria-label="Filter by seniority"
+              value={department}
+              onChange={setDepartment}
+              options={(filterOptions?.departments ?? []).map((o) => o.value)}
+              placeholder="role"
+              aria-label="Filter by role"
+              className="flex-1"
+            />
+            <FilterSelect
+              value={location}
+              onChange={setLocation}
+              options={locationOptions}
+              placeholder="location"
+              aria-label="Filter by location"
               className="flex-1"
             />
             <FilterSelect
@@ -532,13 +492,13 @@ function JobsPage() {
               <PopoverContent align="end" className="w-80 p-4">
                 <div className="space-y-4">
                   <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">role</p>
+                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">seniority</p>
                     <FilterSelect
-                      value={department}
-                      onChange={setDepartment}
-                      options={(filterOptions?.departments ?? []).map((o) => o.value)}
-                      placeholder="any role"
-                      aria-label="Filter by role"
+                      value={experience}
+                      onChange={setExperience}
+                      options={["intern", "entry", "mid", "senior", "staff"]}
+                      placeholder="any level"
+                      aria-label="Filter by seniority"
                     />
                   </div>
                   <div>
