@@ -16,11 +16,13 @@ import {
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
+import { resolveEmploymentType } from "./employment";
 import { detectExperienceLevel } from "./experience";
 import { NORM_VERSION } from "./fetch-jobs";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
+import { sanitizeFilterValue } from "./sanitize";
 import {
   FILTER_DEPARTMENTS,
   FILTER_EMPLOYMENT_TYPES,
@@ -149,16 +151,19 @@ function jobConditions(filters: JobFilters) {
     conditions.push(facetMatch(undefined, filters.country));
   }
   if (filters.source) {
-    conditions.push(eq(jobs.source, filters.source));
+    conditions.push(eq(jobs.source, sanitizeFilterValue(filters.source)));
   }
   if (filters.experience) {
-    conditions.push(eq(jobs.experienceLevel, filters.experience));
+    conditions.push(eq(jobs.experienceLevel, sanitizeFilterValue(filters.experience)));
   }
   if (filters.department) {
-    conditions.push(eq(jobs.department, filters.department));
+    conditions.push(eq(jobs.department, sanitizeFilterValue(filters.department)));
   }
   if (filters.employmentType) {
-    conditions.push(eq(jobs.employmentType, filters.employmentType));
+    const resolved = resolveEmploymentType(sanitizeFilterValue(filters.employmentType));
+    conditions.push(
+      eq(jobs.employmentType, resolved ?? sanitizeFilterValue(filters.employmentType)),
+    );
   }
   if (filters.earlyCareer === "true") {
     conditions.push(eq(jobs.isEarlyCareer, 1));

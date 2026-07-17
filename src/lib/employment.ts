@@ -10,8 +10,8 @@ export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 
 const ALIASES: Record<EmploymentType, RegExp> = {
   "full time":
-    /full[\s-]?time|fulltime|regular|permanent|\bfte\b|salaried|unlimited|backfill|^new$|employee/,
-  "part time": /part[\s-]?time|parttime/,
+    /full[\s_-]?time|fulltime|regular|permanent|\bfte\b|salaried|unlimited|backfill|^new$|employee/,
+  "part time": /part[\s_-]?time|parttime/,
   contractor: /\bcontract(?!ual term)\b|contractor|freelance|\bc2c\b|1099/,
   temporary: /temp(?:orary)?\b|fixed[- ]term|casual|seasonal/,
   intern: /intern|co-?op|working student|apprentice|trainee|graduate scheme/,

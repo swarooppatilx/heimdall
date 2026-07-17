@@ -82,6 +82,9 @@ const COUNTRIES = new Set([
   "taiwan",
   "thailand",
   "turkey",
+  "united arab emirates",
+  "united kingdom",
+  "united states",
   "vietnam",
 ]);
 
