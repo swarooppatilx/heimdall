@@ -21,7 +21,6 @@ export const jobs = sqliteTable(
     city: text("city"),
     country: text("country"),
     isRemote: integer("is_remote").notNull().default(0),
-    normVersion: integer("norm_version").notNull().default(0),
     createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   },
   (table) => [

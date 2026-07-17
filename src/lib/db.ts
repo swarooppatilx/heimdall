@@ -18,7 +18,6 @@ import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { resolveEmploymentType } from "./employment";
 import { detectExperienceLevel } from "./experience";
-import { NORM_VERSION } from "./fetch-jobs";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
@@ -232,7 +231,6 @@ function toRow(job: Job): typeof jobs.$inferInsert {
     city: job.city ?? null,
     country: job.country ?? null,
     isRemote: job.isRemote ? 1 : 0,
-    normVersion: NORM_VERSION,
   };
 }
 
@@ -302,7 +300,6 @@ export async function insertJobs(items: Job[]): Promise<void> {
               city: values.city,
               country: values.country,
               isRemote: values.isRemote,
-              normVersion: values.normVersion,
             },
           }),
       );
@@ -337,43 +334,6 @@ export async function updateJobs(items: Job[]): Promise<void> {
             city: values.city,
             country: values.country,
             isRemote: values.isRemote,
-            normVersion: values.normVersion,
-          })
-          .where(eq(jobs.id, job.id)),
-      );
-      statements.push(...facetStatements(db, job));
-    }
-    await db.batch(statements as never);
-  }
-}
-
-export async function getStaleNormJobs(version: number, limit: number): Promise<Job[]> {
-  const db = await getDb();
-  const rows = await db.select().from(jobs).where(lt(jobs.normVersion, version)).limit(limit);
-  return rows.map(toJob);
-}
-
-export async function saveRenormalized(items: Job[], version: number): Promise<void> {
-  if (items.length === 0) return;
-  const db = await getDb();
-  for (const page of chunk(items)) {
-    const statements: unknown[] = [];
-    for (const job of page) {
-      const values = toRow(job);
-      statements.push(
-        db
-          .update(jobs)
-          .set({
-            location: values.location,
-            department: values.department,
-            employmentType: values.employmentType,
-            region: values.region,
-            isEarlyCareer: values.isEarlyCareer,
-            experienceLevel: values.experienceLevel,
-            city: values.city,
-            country: values.country,
-            isRemote: values.isRemote,
-            normVersion: version,
           })
           .where(eq(jobs.id, job.id)),
       );

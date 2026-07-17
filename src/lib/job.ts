@@ -12,7 +12,6 @@ export interface Job {
   locations?: string[];
   region?: string;
   isEarlyCareer?: boolean;
-  slug?: string;
   experienceLevel?: string;
   city?: string;
   country?: string;

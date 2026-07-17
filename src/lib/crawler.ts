@@ -1,14 +1,6 @@
-import {
-  deleteJobsByIds,
-  getJobsByIds,
-  getStaleNormJobs,
-  insertJobs,
-  recordCrawl,
-  saveRenormalized,
-  updateJobs,
-} from "./db";
+import { deleteJobsByIds, getJobsByIds, insertJobs, recordCrawl, updateJobs } from "./db";
 import { diffJobs, isSuspiciousDeletion } from "./diff";
-import { fetchJobs, NORM_VERSION, renormalize } from "./fetch-jobs";
+import { fetchJobs } from "./fetch-jobs";
 import { getRegistry, type RegistryEntry } from "./registry";
 
 export interface CrawlResult {
@@ -76,18 +68,6 @@ export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlRun> {
     .reduce((sum, r) => sum + r.jobsFound, 0);
 
   return { results, discovered, durationMs: Date.now() - start };
-}
-
-const RENORM_BATCH = 500;
-
-export async function renormalizeStaleJobs(): Promise<number> {
-  const stale = await getStaleNormJobs(NORM_VERSION, RENORM_BATCH);
-  if (stale.length === 0) return 0;
-  await saveRenormalized(
-    stale.map((job) => renormalize(job)),
-    NORM_VERSION,
-  );
-  return stale.length;
 }
 
 async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {

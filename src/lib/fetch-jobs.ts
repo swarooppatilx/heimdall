@@ -22,8 +22,6 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
 };
 
-export const NORM_VERSION = 4;
-
 function deriveFields(job: Job): Job {
   const level = job.experienceLevel ?? detectExperienceLevel(job.title);
   const place = resolvePlace(job.location);
@@ -44,10 +42,6 @@ function deriveFields(job: Job): Job {
     isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
     department: normalizeDepartment(job.department),
   };
-}
-
-export function renormalize(job: Job): Job {
-  return deriveFields(job);
 }
 
 export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {

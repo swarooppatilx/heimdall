@@ -1,11 +1,5 @@
 import { assessBoards, driftedBoards } from "../src/lib/board-health";
-import {
-  crawlAll,
-  renormalizeStaleJobs,
-  shouldRunTick,
-  sweepOrdinal,
-  sweepSlice,
-} from "../src/lib/crawler";
+import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
 import {
   bindDb,
   dedupeCrossSourceJobs,
@@ -57,7 +51,6 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   }
 
   const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
-  const renormalized = await renormalizeStaleJobs();
   const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
   const removed = sweepStart ? await deleteStaleJobs() : 0;
   const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
@@ -74,7 +67,6 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
       removed,
       deduped,
       expiredCrawls,
-      renormalized,
       durationMs: run.durationMs,
     }),
   );
