@@ -1,4 +1,6 @@
-export type ExperienceLevel = "intern" | "entry" | "mid" | "senior" | "staff";
+export const EXPERIENCE_LEVELS = ["intern", "entry", "mid", "senior", "staff"] as const;
+
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
 
 const PATTERNS: { level: ExperienceLevel; regex: RegExp }[] = [
   { level: "intern", regex: /\bintern(?:ship)?\b/i },

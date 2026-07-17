@@ -490,3 +490,20 @@ export function formatPlace(place: Place): string {
   if (place.country) return place.country;
   return "unknown";
 }
+
+export interface LocationCatalog {
+  countries: string[];
+  cities: { value: string; country: string }[];
+}
+
+export const LOCATION_CATALOG: LocationCatalog = {
+  countries: [...new Set([...COUNTRIES, ...Object.values(COUNTRY_CANONICAL)])].sort(),
+  cities: [
+    ...new Map(
+      Object.values(CITY_ALIASES).map(([city, country]) => [
+        `${city.toLowerCase()}|${country.toLowerCase()}`,
+        { value: city.toLowerCase(), country: country.toLowerCase() },
+      ]),
+    ).values(),
+  ].sort((a, b) => a.value.localeCompare(b.value)),
+};

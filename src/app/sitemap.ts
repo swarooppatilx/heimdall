@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
-import { getFilterOptions } from "@/lib/db";
+import { getCompanyNames } from "@/lib/db";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { companies } = await getFilterOptions();
+  const companies = await getCompanyNames();
   return [
     {
       url: SITE_URL,

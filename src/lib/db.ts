@@ -21,6 +21,13 @@ import { NORM_VERSION } from "./fetch-jobs";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
+import {
+  FILTER_DEPARTMENTS,
+  FILTER_EMPLOYMENT_TYPES,
+  FILTER_EXPERIENCE_LEVELS,
+  FILTER_LOCATIONS,
+  FILTER_SOURCES,
+} from "./taxonomy";
 
 type Db = ReturnType<typeof drizzle>;
 
@@ -404,7 +411,6 @@ export interface FacetOptions {
 }
 
 const FACET_MIN_COUNT = 3;
-const MAX_CITIES_PER_COUNTRY = 30;
 
 function pruneFacets(options: FacetOption[]): FacetOption[] {
   return options.filter((o) => o.count >= FACET_MIN_COUNT);
@@ -470,90 +476,62 @@ export async function getFacetOptions(): Promise<FacetOptions> {
       .groupBy(jobs.experienceLevel),
   ]);
 
-  const cityByCountry = new Map<string, FacetOption[]>();
+  const cityCounts = new Map<string, number>();
   for (const row of cityRows) {
-    if (!row.country) continue;
-    const list = cityByCountry.get(row.country) ?? [];
-    list.push({ value: row.city, count: Number(row.count) });
-    cityByCountry.set(row.country, list);
+    if (!row.city) continue;
+    cityCounts.set(`${row.country}|${row.city.toLowerCase()}`, Number(row.count));
   }
+  const countryCounts = new Map(countryRows.map((r) => [r.value, Number(r.count)] as const));
+  const countMap = (rows: { value: string | null; count: number }[]) =>
+    new Map(rows.map((r) => [r.value ?? "", Number(r.count)] as const));
 
-  const countries = pruneFacets(
-    countryRows.map((r) => ({
-      value: r.value ?? "",
-      count: Number(r.count),
-    })),
-  )
-    .sort((a, b) => b.count - a.count)
-    .map((country) => ({
-      ...country,
-      cities: (cityByCountry.get(country.value) ?? [])
-        .sort((a, b) => b.count - a.count)
-        .slice(0, MAX_CITIES_PER_COUNTRY),
-    }));
+  const employmentCounts = countMap(employmentRows);
+  const departmentCounts = countMap(departmentRows);
+  const sourceCounts = countMap(sourceRows);
+  const levelCounts = countMap(levelRows);
 
   return {
     remoteCount: Number(remoteRows[0]?.count ?? 0),
-    countries,
+    countries: FILTER_LOCATIONS.countries.map((value) => ({
+      value,
+      count: countryCounts.get(value) ?? 0,
+      cities: FILTER_LOCATIONS.cities
+        .filter((city) => city.country === value)
+        .map((city) => ({
+          value: city.value,
+          count: cityCounts.get(`${value}|${city.value}`) ?? 0,
+        })),
+    })),
     companies: pruneFacets(
       companyRows.map((r) => ({ value: r.value, count: Number(r.count) })),
     ).sort((a, b) => b.count - a.count),
-    employmentTypes: pruneFacets(
-      employmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
-    ).sort((a, b) => b.count - a.count),
-    departments: pruneFacets(
-      departmentRows.map((r) => ({ value: r.value, count: Number(r.count) })),
-    ).sort((a, b) => b.count - a.count),
-    sources: pruneFacets(sourceRows.map((r) => ({ value: r.value, count: Number(r.count) }))).sort(
-      (a, b) => b.count - a.count,
-    ),
-    experienceLevels: pruneFacets(
-      levelRows.map((r) => ({ value: r.value, count: Number(r.count) })),
-    ).sort((a, b) => b.count - a.count),
+    employmentTypes: FILTER_EMPLOYMENT_TYPES.map((value) => ({
+      value,
+      count: employmentCounts.get(value) ?? 0,
+    })),
+    departments: FILTER_DEPARTMENTS.map((value) => ({
+      value,
+      count: departmentCounts.get(value) ?? 0,
+    })),
+    sources: FILTER_SOURCES.map((value) => ({
+      value,
+      count: sourceCounts.get(value) ?? 0,
+    })),
+    experienceLevels: FILTER_EXPERIENCE_LEVELS.map((value) => ({
+      value,
+      count: levelCounts.get(value) ?? 0,
+    })),
   };
 }
 
-export async function getFilterOptions(): Promise<{
-  companies: string[];
-  locations: string[];
-  sources: string[];
-  departments: string[];
-  employmentTypes: string[];
-}> {
+export async function getCompanyNames(): Promise<string[]> {
   const db = await getDb();
-
-  const companies = await db
+  const rows = await db
     .selectDistinct({ value: jobs.company })
     .from(jobs)
     .where(ne(jobs.company, ""))
     .orderBy(asc(jobs.company));
-  const locations = await db
-    .selectDistinct({ value: jobs.location })
-    .from(jobs)
-    .where(and(ne(jobs.location, ""), ne(jobs.location, "unknown")))
-    .orderBy(asc(jobs.location));
-  const sources = await db
-    .selectDistinct({ value: jobs.source })
-    .from(jobs)
-    .where(ne(jobs.source, ""))
-    .orderBy(asc(jobs.source));
-  const departments = await db
-    .selectDistinct({ value: jobs.department })
-    .from(jobs)
-    .where(ne(jobs.department, ""))
-    .orderBy(asc(jobs.department));
-  const employmentTypes = await db
-    .selectDistinct({ value: jobs.employmentType })
-    .from(jobs)
-    .where(ne(jobs.employmentType, ""))
-    .orderBy(asc(jobs.employmentType));
-  return {
-    companies: companies.map((r) => r.value),
-    locations: locations.map((r) => r.value),
-    sources: sources.map((r) => r.value),
-    departments: departments.map((r) => r.value),
-    employmentTypes: employmentTypes.map((r) => r.value),
-  };
+  return rows.map((r) => r.value);
 }
 
 export async function getJobsByCompany(company: string): Promise<Job[]> {

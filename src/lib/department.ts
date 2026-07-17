@@ -25,7 +25,9 @@ export function inferDepartment(title: string): string {
   return "general";
 }
 
-const BUCKETS = new Set([...RULES.map(([, department]) => department), "general"]);
+export const DEPARTMENTS = [...new Set([...RULES.map(([, department]) => department), "general"])];
+
+const BUCKETS = new Set<string>(DEPARTMENTS);
 
 export function normalizeDepartment(raw: string): string {
   const value = raw.trim().toLowerCase().replace(/\s+/g, " ");
