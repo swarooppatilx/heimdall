@@ -2,6 +2,8 @@ import { DEPARTMENTS } from "./department";
 import { EMPLOYMENT_TYPES } from "./employment";
 import { EXPERIENCE_LEVELS } from "./experience";
 import { LOCATION_CATALOG } from "./gazetteer";
+import registry from "./registry.json";
+import { sanitizeFilterValue } from "./sanitize";
 
 export const FILTER_SOURCES = [
   "greenhouse",
@@ -10,6 +12,10 @@ export const FILTER_SOURCES = [
   "smartrecruiters",
   "workday",
 ] as const;
+
+export const FILTER_COMPANIES: readonly string[] = [
+  ...new Set(registry.map((entry) => sanitizeFilterValue(entry.label ?? entry.name))),
+].sort();
 
 export const FILTER_DEPARTMENTS: readonly string[] = DEPARTMENTS;
 export const FILTER_EXPERIENCE_LEVELS: readonly string[] = EXPERIENCE_LEVELS;

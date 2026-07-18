@@ -23,6 +23,7 @@ import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 import { sanitizeFilterValue } from "./sanitize";
 import {
+  FILTER_COMPANIES,
   FILTER_DEPARTMENTS,
   FILTER_EMPLOYMENT_TYPES,
   FILTER_EXPERIENCE_LEVELS,
@@ -130,7 +131,7 @@ function jobConditions(filters: JobFilters) {
     }
   }
   if (filters.company) {
-    conditions.push(eq(jobs.company, filters.company));
+    conditions.push(eq(jobs.company, sanitizeFilterValue(filters.company)));
   }
   if (filters.location) {
     const place = resolvePlace(filters.location);
@@ -375,12 +376,6 @@ export interface FacetOptions {
   experienceLevels: FacetOption[];
 }
 
-const FACET_MIN_COUNT = 3;
-
-function pruneFacets(options: FacetOption[]): FacetOption[] {
-  return options.filter((o) => o.count >= FACET_MIN_COUNT);
-}
-
 export async function getFacetOptions(): Promise<FacetOptions> {
   const db = await getDb();
   const cutoff = freshnessCutoff();
@@ -454,6 +449,7 @@ export async function getFacetOptions(): Promise<FacetOptions> {
   const departmentCounts = countMap(departmentRows);
   const sourceCounts = countMap(sourceRows);
   const levelCounts = countMap(levelRows);
+  const companyCounts = new Map(companyRows.map((r) => [r.value, Number(r.count)] as const));
 
   return {
     remoteCount: Number(remoteRows[0]?.count ?? 0),
@@ -467,9 +463,11 @@ export async function getFacetOptions(): Promise<FacetOptions> {
           count: cityCounts.get(`${value}|${city.value}`) ?? 0,
         })),
     })),
-    companies: pruneFacets(
-      companyRows.map((r) => ({ value: r.value, count: Number(r.count) })),
-    ).sort((a, b) => b.count - a.count),
+
+    companies: FILTER_COMPANIES.map((value) => ({
+      value,
+      count: companyCounts.get(value) ?? 0,
+    })),
     employmentTypes: FILTER_EMPLOYMENT_TYPES.map((value) => ({
       value,
       count: employmentCounts.get(value) ?? 0,
