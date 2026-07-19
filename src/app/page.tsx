@@ -384,22 +384,22 @@ function JobsPage() {
               placeholder="search jobs, companies, skills..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-4 py-3 pr-16 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:text-base"
+              className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:pr-16 sm:text-base"
               aria-label="Search jobs"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <kbd className="pointer-events-none absolute top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground sm:right-3 sm:block">
               /
             </kbd>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 items-center gap-2 sm:flex">
             <FilterSelect
               value={company}
               onChange={setCompany}
               options={(filterOptions?.companies ?? []).map((o) => o.value)}
               placeholder="company"
               aria-label="Filter by company"
-              className="flex-1"
+              className="sm:flex-1"
             />
             <FilterSelect
               value={department}
@@ -407,7 +407,7 @@ function JobsPage() {
               options={(filterOptions?.departments ?? []).map((o) => o.value)}
               placeholder="role"
               aria-label="Filter by role"
-              className="flex-1"
+              className="sm:flex-1"
             />
             <FilterSelect
               value={location}
@@ -415,7 +415,7 @@ function JobsPage() {
               options={locationOptions}
               placeholder="location"
               aria-label="Filter by location"
-              className="flex-1"
+              className="sm:flex-1"
             />
             <FilterSelect
               value={posted === "week" ? "this week" : posted}
@@ -423,7 +423,7 @@ function JobsPage() {
               options={["today", "this week"]}
               placeholder="posted"
               aria-label="Filter by posting date"
-              className="flex-1"
+              className="sm:flex-1"
             />
           </div>
         </section>
@@ -489,7 +489,7 @@ function JobsPage() {
                   {advancedCount > 0 ? `more filters · ${advancedCount}` : "+ more filters"}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-4">
+              <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-4">
                 <div className="space-y-4">
                   <div>
                     <p className="mb-1.5 text-xs font-medium text-muted-foreground">seniority</p>
