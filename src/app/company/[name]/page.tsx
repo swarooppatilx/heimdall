@@ -121,9 +121,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
               key={job.id}
               className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-semibold text-foreground sm:text-base">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+                  <h2 className="break-words text-sm font-semibold text-foreground sm:text-base">
                     {job.title}
                   </h2>
                   <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{job.location}</p>
