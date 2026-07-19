@@ -113,6 +113,10 @@ function facetMatch(city: string | undefined, country: string | undefined) {
   return sql`exists (select 1 from ${jobLocations} where ${sql.join(conds, sql` and `)})`;
 }
 
+function eqJobCompany(value: string) {
+  return sql`lower(${jobs.company}) = ${value}`;
+}
+
 function jobConditions(filters: JobFilters) {
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
@@ -131,7 +135,7 @@ function jobConditions(filters: JobFilters) {
     }
   }
   if (filters.company) {
-    conditions.push(eq(jobs.company, sanitizeFilterValue(filters.company)));
+    conditions.push(eqJobCompany(sanitizeFilterValue(filters.company)));
   }
   if (filters.location) {
     const place = resolvePlace(filters.location);
@@ -410,10 +414,13 @@ export async function getFacetOptions(): Promise<FacetOptions> {
       .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
       .groupBy(sql`lower(${jobs.country})`),
     db
-      .select({ value: jobs.company, count: sql<number>`count(*)` })
+      .select({
+        value: sql<string>`lower(${jobs.company})`,
+        count: sql<number>`count(*)`,
+      })
       .from(jobs)
       .where(gte(jobs.postedAt, cutoff))
-      .groupBy(jobs.company),
+      .groupBy(sql`lower(${jobs.company})`),
     db
       .select({ value: jobs.employmentType, count: sql<number>`count(*)` })
       .from(jobs)
@@ -502,7 +509,7 @@ export async function getJobsByCompany(company: string): Promise<Job[]> {
   const rows = await db
     .select()
     .from(jobs)
-    .where(and(eq(jobs.company, company), gte(jobs.postedAt, freshnessCutoff())))
+    .where(and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff())))
     .orderBy(desc(jobs.postedAt));
   return rows.map(toJob);
 }
@@ -514,7 +521,7 @@ export async function getCompanyStats(company: string): Promise<{
   sources: string[];
 }> {
   const db = await getDb();
-  const scope = and(eq(jobs.company, company), gte(jobs.postedAt, freshnessCutoff()));
+  const scope = and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff()));
 
   const [totalRows, departments, locations, sources] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(jobs).where(scope),
