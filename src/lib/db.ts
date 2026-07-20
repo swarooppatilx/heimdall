@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { AnyColumn } from "drizzle-orm";
 import {
   and,
   asc,
@@ -105,16 +106,20 @@ const MAX_LIMIT = 500;
 function facetMatch(city: string | undefined, country: string | undefined) {
   const conds = [sql`${jobLocations.jobId} = ${jobs.id}`];
   if (city) {
-    conds.push(sql`${jobLocations.city} = ${city.toLowerCase()}`);
+    conds.push(sql`lower(${jobLocations.city}) = ${city.toLowerCase()}`);
   }
   if (country) {
-    conds.push(sql`${jobLocations.country} = ${country.toLowerCase()}`);
+    conds.push(sql`lower(${jobLocations.country}) = ${country.toLowerCase()}`);
   }
   return sql`exists (select 1 from ${jobLocations} where ${sql.join(conds, sql` and `)})`;
 }
 
 function eqJobCompany(value: string) {
   return sql`lower(${jobs.company}) = ${value}`;
+}
+
+function eqColumnLower(column: AnyColumn, value: string) {
+  return sql`lower(${column}) = ${value}`;
 }
 
 function jobConditions(filters: JobFilters) {
@@ -155,18 +160,18 @@ function jobConditions(filters: JobFilters) {
     conditions.push(facetMatch(undefined, filters.country));
   }
   if (filters.source) {
-    conditions.push(eq(jobs.source, sanitizeFilterValue(filters.source)));
+    conditions.push(eqColumnLower(jobs.source, sanitizeFilterValue(filters.source)));
   }
   if (filters.experience) {
-    conditions.push(eq(jobs.experienceLevel, sanitizeFilterValue(filters.experience)));
+    conditions.push(eqColumnLower(jobs.experienceLevel, sanitizeFilterValue(filters.experience)));
   }
   if (filters.department) {
-    conditions.push(eq(jobs.department, sanitizeFilterValue(filters.department)));
+    conditions.push(eqColumnLower(jobs.department, sanitizeFilterValue(filters.department)));
   }
   if (filters.employmentType) {
     const resolved = resolveEmploymentType(sanitizeFilterValue(filters.employmentType));
     conditions.push(
-      eq(jobs.employmentType, resolved ?? sanitizeFilterValue(filters.employmentType)),
+      eqColumnLower(jobs.employmentType, resolved ?? sanitizeFilterValue(filters.employmentType)),
     );
   }
   if (filters.earlyCareer === "true") {
