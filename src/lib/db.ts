@@ -115,11 +115,11 @@ function facetMatch(city: string | undefined, country: string | undefined) {
 }
 
 function eqJobCompany(value: string) {
-  return sql`lower(${jobs.company}) = ${value}`;
+  return sql`lower(${jobs.company}) = lower(${value})`;
 }
 
 function eqColumnLower(column: AnyColumn, value: string) {
-  return sql`lower(${column}) = ${value}`;
+  return sql`lower(${column}) = lower(${value})`;
 }
 
 function jobConditions(filters: JobFilters) {
