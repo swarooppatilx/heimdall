@@ -4,7 +4,3 @@ export function splitLocations(raw: string): string[] {
     .map((part) => part.trim())
     .filter(Boolean);
 }
-
-export function primaryLocation(raw: string): string {
-  return splitLocations(raw)[0] ?? "Unknown";
-}

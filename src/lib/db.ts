@@ -93,8 +93,6 @@ const POSTED_WINDOWS_MS: Record<string, number> = {
   week: 7 * 24 * 60 * 60 * 1000,
 };
 
-export type JobSort = "newest" | "company";
-
 export interface PageOptions {
   limit?: number;
   offset?: number;
@@ -545,15 +543,6 @@ export async function getCompanyStats(company: string): Promise<{
     locations: locations.map((r) => r.value),
     sources: sources.map((r) => r.value),
   };
-}
-
-export async function getJobCount(): Promise<number> {
-  const db = await getDb();
-  const rows = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(jobs)
-    .where(gte(jobs.postedAt, freshnessCutoff()));
-  return Number(rows[0]?.count ?? 0);
 }
 
 export async function getJobQuality(): Promise<{
