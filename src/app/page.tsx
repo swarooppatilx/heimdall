@@ -258,6 +258,7 @@ function JobsPage() {
   }, [setQuery]);
 
   const clearAllFilters = useCallback(() => {
+    setQuery("");
     setCompany("");
     setLocation("");
     setExperience("");
@@ -270,6 +271,7 @@ function JobsPage() {
   }, [
     commitQuery,
     router,
+    setQuery,
     setCompany,
     setLocation,
     setExperience,
