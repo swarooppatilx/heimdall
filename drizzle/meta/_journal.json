@@ -50,6 +50,13 @@
       "when": 1784249355000,
       "tag": "0006_lazy_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1784507486000,
+      "tag": "0007_normalize_filter_values",
+      "breakpoints": true
     }
   ]
 }
