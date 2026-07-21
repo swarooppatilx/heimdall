@@ -18,7 +18,6 @@ import {
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { resolveEmploymentType } from "./employment";
-import { detectExperienceLevel } from "./experience";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
@@ -235,7 +234,7 @@ function toRow(job: Job): typeof jobs.$inferInsert {
     locations: JSON.stringify(job.locations ?? [job.location]),
     region: job.region ?? "",
     isEarlyCareer: job.isEarlyCareer ? 1 : 0,
-    experienceLevel: job.experienceLevel ?? detectExperienceLevel(job.title),
+    experienceLevel: job.experienceLevel,
     city: job.city ?? null,
     country: job.country ?? null,
     isRemote: job.isRemote ? 1 : 0,

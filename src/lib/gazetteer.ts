@@ -489,7 +489,7 @@ export function resolvePlace(raw: string): Place | null {
 export function formatPlace(place: Place): string {
   if (place.remote) return "remote";
   if (place.city && place.country) return `${place.city}, ${place.country}`;
-  if (place.city) return place.city ?? "unknown";
+  if (place.city) return place.city;
   if (place.country) return place.country;
   return "unknown";
 }

@@ -28,7 +28,7 @@ function deriveFields(job: Job): Job {
   const city = place?.remote ? undefined : place?.city;
   const country = place?.remote ? undefined : place?.country;
   const rawLocations = [job.location, ...(job.locations ?? [])];
-  const isRemote = rawLocations.some((entry) => resolvePlace(entry)?.remote) ?? false;
+  const isRemote = rawLocations.some((entry) => resolvePlace(entry)?.remote);
   return {
     ...job,
     company: sanitizeFilterValue(job.company),
