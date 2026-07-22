@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, lt, ne, sql } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { resolveEmploymentType } from "./employment";
@@ -238,7 +239,7 @@ interface LocationFacet {
   country: string;
 }
 
-function ftsStatements(db: Db, job: Job) {
+function ftsStatements(db: Db, job: Job): BatchItem<"sqlite">[] {
   const clear = db.run(sql`DELETE FROM jobs_fts WHERE job_id = ${job.id}`);
   const insert = db.run(
     sql`INSERT INTO jobs_fts (title, company, location, department, job_id)
@@ -262,7 +263,7 @@ export function locationFacets(job: Job): LocationFacet[] {
   return facets;
 }
 
-function facetStatements(db: Db, job: Job): unknown[] {
+function facetStatements(db: Db, job: Job): BatchItem<"sqlite">[] {
   const clear = db.delete(jobLocations).where(eq(jobLocations.jobId, job.id));
   const inserts = locationFacets(job).map((facet) =>
     db.insert(jobLocations).values({ jobId: job.id, ...facet }),
@@ -284,7 +285,7 @@ export async function insertJobs(items: Job[]): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements: unknown[] = [];
+    const statements: BatchItem<"sqlite">[] = [];
     for (const job of page) {
       const values = toRow(job);
       statements.push(
@@ -314,7 +315,7 @@ export async function insertJobs(items: Job[]): Promise<void> {
       statements.push(...facetStatements(db, job));
       statements.push(...ftsStatements(db, job));
     }
-    await db.batch(statements as never);
+    await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
   }
 }
 
@@ -322,7 +323,7 @@ export async function updateJobs(items: Job[]): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements: unknown[] = [];
+    const statements: BatchItem<"sqlite">[] = [];
     for (const job of page) {
       const values = toRow(job);
       statements.push(
@@ -349,7 +350,7 @@ export async function updateJobs(items: Job[]): Promise<void> {
       statements.push(...facetStatements(db, job));
       statements.push(...ftsStatements(db, job));
     }
-    await db.batch(statements as never);
+    await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
   }
 }
 
@@ -363,7 +364,7 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
       db.run(
         sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.join(page.map((id) => sql`${id}`, sql`, `))})`,
       ),
-    ] as never);
+    ]);
   }
 }
 
