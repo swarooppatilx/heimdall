@@ -1,20 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { AnyColumn } from "drizzle-orm";
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  like,
-  lt,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, lt, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
 import { resolveEmploymentType } from "./employment";
@@ -22,6 +8,7 @@ import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
 import type { Job } from "./job";
 import { sanitizeFilterValue } from "./sanitize";
+import { buildMatchQuery } from "./search";
 import {
   FILTER_COMPANIES,
   FILTER_DEPARTMENTS,
@@ -123,17 +110,14 @@ function jobConditions(filters: JobFilters) {
   const conditions = [gte(jobs.postedAt, freshnessCutoff())];
 
   if (filters.q) {
-    const needle = `%${filters.q.toLowerCase()}%`;
-    const matchesAnyColumn = or(
-      like(jobs.title, needle),
-      like(jobs.company, needle),
-      like(jobs.location, needle),
-      like(jobs.department, needle),
-      like(jobs.city, needle),
-      like(jobs.country, needle),
-    );
-    if (matchesAnyColumn) {
-      conditions.push(matchesAnyColumn);
+    const matchQuery = buildMatchQuery(filters.q);
+    if (matchQuery) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM jobs_fts
+          WHERE jobs_fts.job_id = ${jobs.id} AND jobs_fts MATCH ${matchQuery}
+        )`,
+      );
     }
   }
   if (filters.company) {
@@ -196,8 +180,16 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
 
+  const matchQuery = filters.q ? buildMatchQuery(filters.q) : "";
   const orderBy =
-    filters.sort === "company" ? [asc(jobs.company), desc(jobs.postedAt)] : [desc(jobs.postedAt)];
+    filters.sort === "company"
+      ? [asc(jobs.company), desc(jobs.postedAt)]
+      : matchQuery
+        ? [
+            sql`(SELECT rank FROM jobs_fts
+                WHERE jobs_fts.job_id = ${jobs.id} AND jobs_fts MATCH ${matchQuery})`,
+          ]
+        : [desc(jobs.postedAt)];
 
   const rows = await db
     .select()
@@ -244,6 +236,15 @@ function toRow(job: Job): typeof jobs.$inferInsert {
 interface LocationFacet {
   city: string;
   country: string;
+}
+
+function ftsStatements(db: Db, job: Job) {
+  const clear = db.run(sql`DELETE FROM jobs_fts WHERE job_id = ${job.id}`);
+  const insert = db.run(
+    sql`INSERT INTO jobs_fts (title, company, location, department, job_id)
+        VALUES (${job.title}, ${job.company}, ${job.location}, ${job.department.trim()}, ${job.id})`,
+  );
+  return [clear, insert];
 }
 
 export function locationFacets(job: Job): LocationFacet[] {
@@ -311,6 +312,7 @@ export async function insertJobs(items: Job[]): Promise<void> {
           }),
       );
       statements.push(...facetStatements(db, job));
+      statements.push(...ftsStatements(db, job));
     }
     await db.batch(statements as never);
   }
@@ -345,6 +347,7 @@ export async function updateJobs(items: Job[]): Promise<void> {
           .where(eq(jobs.id, job.id)),
       );
       statements.push(...facetStatements(db, job));
+      statements.push(...ftsStatements(db, job));
     }
     await db.batch(statements as never);
   }
@@ -357,6 +360,9 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
     await db.batch([
       db.delete(jobs).where(inArray(jobs.id, page)),
       db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
+      db.run(
+        sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.join(page.map((id) => sql`${id}`, sql`, `))})`,
+      ),
     ] as never);
   }
 }
@@ -575,6 +581,9 @@ export async function getJobQuality(): Promise<{
 
 export async function deleteStaleJobs(): Promise<number> {
   const db = await getDb();
+  await db.run(
+    sql`DELETE FROM jobs_fts WHERE job_id IN (SELECT id FROM jobs WHERE posted_at < ${freshnessCutoff()})`,
+  );
   const result = await db.delete(jobs).where(lt(jobs.postedAt, freshnessCutoff()));
   return result.meta.changes ?? 0;
 }
