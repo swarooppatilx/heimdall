@@ -14,6 +14,7 @@ export interface CrawlResult {
 const TICK_MS = 15 * 60 * 1000;
 const TICK_MARGIN_MS = 2 * 60 * 1000;
 const TICKS_PER_SWEEP = 8;
+const CRAWL_CONCURRENCY = 20;
 
 export function shouldRunTick(lastCrawlUnix: number | null, now: number): boolean {
   if (lastCrawlUnix === null) return true;
@@ -42,26 +43,14 @@ export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlRun> {
   const registry = slice ?? getRegistry();
   const results: CrawlResult[] = [];
 
-  const settled = await Promise.allSettled(registry.map((entry) => crawlOne(entry)));
-
-  for (let i = 0; i < registry.length; i++) {
-    const entry = registry[i];
-    const result = settled[i];
-    if (!entry || !result) continue;
-
-    if (result.status === "fulfilled") {
-      results.push(result.value);
-    } else {
-      const msg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      results.push({
-        company: entry.name,
-        status: "error",
-        jobsFound: 0,
-        durationMs: 0,
-        error: msg,
-      });
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(CRAWL_CONCURRENCY, registry.length) }, async () => {
+    while (cursor < registry.length) {
+      const entry = registry[cursor++];
+      if (entry) results.push(await crawlOne(entry));
     }
-  }
+  });
+  await Promise.all(workers);
 
   const discovered = results
     .filter((r) => r.status === "ok")
