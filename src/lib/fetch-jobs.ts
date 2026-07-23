@@ -27,6 +27,7 @@ function deriveFields(job: Job): Job {
   const place = resolvePlace(job.location);
   const city = place?.remote ? undefined : place?.city;
   const country = place?.remote ? undefined : place?.country;
+  const employmentType = resolveEmploymentType(job.employmentType);
   const rawLocations = [job.location, ...(job.locations ?? [])];
   const isRemote = rawLocations.some((entry) => resolvePlace(entry)?.remote);
   return {
@@ -34,10 +35,10 @@ function deriveFields(job: Job): Job {
     company: sanitizeFilterValue(job.company),
     location: place ? formatPlace(place) : "unknown",
     region: country ?? "",
-    city,
-    country,
+    ...(city === undefined ? {} : { city }),
+    ...(country === undefined ? {} : { country }),
     isRemote,
-    employmentType: resolveEmploymentType(job.employmentType),
+    ...(employmentType ? { employmentType } : {}),
     experienceLevel: level,
     isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
     department: normalizeDepartment(job.department),

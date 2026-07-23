@@ -483,7 +483,10 @@ export function resolvePlace(raw: string): Place | null {
   }
 
   if (!city && !country) return null;
-  return { city: city?.toLowerCase(), country: country?.toLowerCase() };
+  return {
+    ...(city ? { city: city.toLowerCase() } : {}),
+    ...(country ? { country: country.toLowerCase() } : {}),
+  };
 }
 
 export function formatPlace(place: Place): string {

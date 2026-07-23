@@ -71,6 +71,6 @@ export function mapJob(raw: GreenhouseJob, board: string): Job {
     employmentType,
     salary: pay.salary,
     region,
-    isEarlyCareer: earlyCareerMeta,
+    isEarlyCareer: Boolean(earlyCareerMeta),
   };
 }

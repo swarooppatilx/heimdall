@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { JobFilters } from "@/lib/db";
+import type { JobFilters, PageOptions } from "@/lib/db";
 import { countJobs, searchJobs } from "@/lib/db";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
@@ -18,25 +18,34 @@ export async function GET(request: Request) {
     const value = Number.parseInt(searchParams.get(key) ?? "", 10);
     return Number.isNaN(value) ? undefined : value;
   };
-  const filters: JobFilters = {
-    q: searchParams.get("q") || undefined,
-    company: searchParams.get("company") || undefined,
-    location: searchParams.get("location") || undefined,
-    city: searchParams.get("city") || undefined,
-    country: searchParams.get("country") || undefined,
-    source: searchParams.get("source") || undefined,
-    experience: searchParams.get("experience") || undefined,
-    posted: searchParams.get("posted") || undefined,
-    department: searchParams.get("department") || undefined,
-    employmentType: searchParams.get("employment_type") || undefined,
-    earlyCareer: searchParams.get("early_career") || undefined,
-    sort: searchParams.get("sort") || undefined,
-  };
 
-  const [jobs, total] = await Promise.all([
-    searchJobs(filters, { limit: parseIntParam("limit"), offset: parseIntParam("offset") }),
-    countJobs(filters),
-  ]);
+  const filters: JobFilters = {};
+  const filterParams = [
+    ["q", "q"],
+    ["company", "company"],
+    ["location", "location"],
+    ["city", "city"],
+    ["country", "country"],
+    ["source", "source"],
+    ["experience", "experience"],
+    ["posted", "posted"],
+    ["department", "department"],
+    ["employment_type", "employmentType"],
+    ["early_career", "earlyCareer"],
+    ["sort", "sort"],
+  ] as const;
+  for (const [param, field] of filterParams) {
+    const value = searchParams.get(param);
+    if (value) filters[field] = value;
+  }
+
+  const page: PageOptions = {};
+  const pageLimit = parseIntParam("limit");
+  const pageOffset = parseIntParam("offset");
+  if (pageLimit !== undefined) page.limit = pageLimit;
+  if (pageOffset !== undefined) page.offset = pageOffset;
+
+  const [jobs, total] = await Promise.all([searchJobs(filters, page), countJobs(filters)]);
 
   return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
 }

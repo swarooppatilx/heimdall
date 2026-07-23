@@ -54,8 +54,8 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     region: row.region,
     isEarlyCareer: row.isEarlyCareer === 1,
     experienceLevel: row.experienceLevel,
-    city: row.city ?? undefined,
-    country: row.country ?? undefined,
+    ...(row.city === null ? {} : { city: row.city }),
+    ...(row.country === null ? {} : { country: row.country }),
     isRemote: row.isRemote === 1,
   };
 }
