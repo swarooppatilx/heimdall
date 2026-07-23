@@ -6,8 +6,10 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
+export type RateLimitBinding = "JOBS_RATE_LIMITER" | "FILTERS_RATE_LIMITER" | "STATUS_RATE_LIMITER";
+
 export interface RateLimitOptions {
-  binding?: string;
+  binding?: RateLimitBinding;
   windowMs: number;
   max: number;
 }
@@ -38,7 +40,7 @@ async function checkEdgeLimit(
   if (!opts.binding) return null;
   try {
     const { env } = await getCloudflareContext();
-    const limiter = (env as unknown as Record<string, EdgeLimiter | undefined>)[opts.binding];
+    const limiter = (env as CloudflareEnv)[opts.binding] as EdgeLimiter | undefined;
     if (!limiter) return null;
     const result = await limiter.limit({ key });
     return { allowed: result.success, resetMs: opts.windowMs };
