@@ -46,7 +46,7 @@
       },
       "suspicious": {
         "noDoubleEquals": "error",
-        "noExplicitAny": "warn",
+        "noExplicitAny": "error",
         "noLabelVar": "error",
         "noRedeclare": "error",
         "noShadowRestrictedNames": "error",
