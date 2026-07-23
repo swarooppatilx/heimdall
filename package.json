@@ -14,7 +14,8 @@
     "build:worker": "NEXT_PUBLIC_SITE_URL=https://heimdall.daenerys.workers.dev opennextjs-cloudflare build",
     "preview": "npm run build:worker && opennextjs-cloudflare preview",
     "deploy": "npm run build:worker && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "knip": "knip"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",
@@ -23,11 +24,10 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
     "drizzle-kit": "^0.31.10",
+    "knip": "^6.32.2",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.23.12",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11",
     "wrangler": "^4.125.0"

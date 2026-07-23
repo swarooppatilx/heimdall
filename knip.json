@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/**/route.ts",
+    "src/app/{page,layout,sitemap}.tsx",
+    "worker/index.ts",
+    "src/lib/logger.ts"
+  ],
+  "project": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "worker/*.ts"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "shadcn",
+    "tw-animate-css",
+    "tailwindcss"
+  ],
+  "ignore": [
+    "src/components/ui/**"
+  ]
+}
