@@ -16,6 +16,14 @@
       "assist": { "enabled": false }
     },
     {
+      "includes": ["src/lib/logger.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
       "includes": ["drizzle/**"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false },
@@ -36,7 +44,7 @@
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
         "noUnusedFunctionParameters": "error",
-        "useExhaustiveDependencies": "warn",
+        "useExhaustiveDependencies": "error",
         "useHookAtTopLevel": "error",
         "noUndeclaredVariables": "error",
         "noUnreachable": "error",
@@ -45,6 +53,13 @@
         "noSwitchDeclarations": "error"
       },
       "suspicious": {
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["log"]
+          }
+        },
+        "noAssignInExpressions": "error",
         "noDoubleEquals": "error",
         "noExplicitAny": "error",
         "noLabelVar": "error",
@@ -53,9 +68,10 @@
         "useAwait": "warn"
       },
       "style": {
+        "noParameterAssign": "error",
         "useConst": "error",
         "useImportType": "error",
-        "noNonNullAssertion": "off",
+        "noNonNullAssertion": "error",
         "noUselessElse": "error",
         "useDefaultSwitchClause": "error",
         "useShorthandAssign": "error",
@@ -69,6 +85,12 @@
         "noDangerouslySetInnerHtml": "error"
       },
       "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 25
+          }
+        },
         "noBannedTypes": "error",
         "noEmptyTypeParameters": "error",
         "noUselessConstructor": "error",

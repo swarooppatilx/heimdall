@@ -81,7 +81,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
-    expect(jobs[1]!.department).toBe("product");
+    expect(jobs[1]?.department).toBe("product");
   });
 
   it("normalizes remote locations", async () => {
@@ -92,7 +92,7 @@ describe("fetchSmartRecruitersJobs", () => {
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
-    expect(jobs[1]!.location).toBe("remote");
+    expect(jobs[1]?.location).toBe("remote");
   });
 
   it("paginates through multiple pages", async () => {

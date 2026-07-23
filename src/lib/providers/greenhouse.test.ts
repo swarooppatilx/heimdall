@@ -76,7 +76,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[0]!.postedAt.toISOString()).toBe("2026-08-12T09:00:00.000Z");
+    expect(jobs[0]?.postedAt.toISOString()).toBe("2026-08-12T09:00:00.000Z");
   });
 
   it("falls back to updated_at when first_published is missing", async () => {
@@ -87,7 +87,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[1]!.postedAt.toISOString()).toBe("2026-08-19T10:00:00.000Z");
+    expect(jobs[1]?.postedAt.toISOString()).toBe("2026-08-19T10:00:00.000Z");
   });
 
   it("infers department from title when metadata is absent", async () => {
@@ -98,7 +98,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[1]!.department).toBe("product");
+    expect(jobs[1]?.department).toBe("product");
   });
 
   it("normalizes location", async () => {
@@ -109,7 +109,7 @@ describe("fetchGreenhouseJobs", () => {
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
-    expect(jobs[0]!.location).toBe("remote");
-    expect(jobs[1]!.location).toBe("san francisco, ca");
+    expect(jobs[0]?.location).toBe("remote");
+    expect(jobs[1]?.location).toBe("san francisco, ca");
   });
 });

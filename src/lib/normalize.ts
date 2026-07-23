@@ -35,8 +35,8 @@ export function normalizeLocation(raw: string): string {
     .map((s) => s.trim())
     .filter(Boolean)
     .filter((s) => !/^remote$/i.test(s));
-  const deduped = segments.filter(
-    (s, i) => i === 0 || s.toLowerCase() !== segments[i - 1]!.toLowerCase(),
+  const deduped = segments.filter((s, i) =>
+    i === 0 ? true : s.toLowerCase() !== (segments[i - 1] ?? "").toLowerCase(),
   );
   if (deduped.length === 0) return "unknown";
   return deduped.join(", ").toLowerCase();

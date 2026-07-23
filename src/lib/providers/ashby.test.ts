@@ -67,7 +67,7 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[1]!.department).toBe("engineering");
+    expect(jobs[1]?.department).toBe("engineering");
   });
 
   it("normalizes location", async () => {
@@ -78,8 +78,8 @@ describe("fetchAshbyJobs", () => {
 
     const jobs = await fetchAshbyJobs("testco");
 
-    expect(jobs[0]!.location).toBe("remote");
-    expect(jobs[1]!.location).toBe("san francisco bay area");
+    expect(jobs[0]?.location).toBe("remote");
+    expect(jobs[1]?.location).toBe("san francisco bay area");
   });
 
   it("throws on HTTP error", async () => {

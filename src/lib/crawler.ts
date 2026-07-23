@@ -1,6 +1,7 @@
 import { deleteJobsByIds, getJobsByIds, insertJobs, recordCrawl, updateJobs } from "./db";
 import { diffJobs, isSuspiciousDeletion } from "./diff";
 import { fetchJobs } from "./fetch-jobs";
+import { logEvent } from "./logger";
 import { getRegistry, type RegistryEntry } from "./registry";
 
 export interface CrawlResult {
@@ -73,14 +74,11 @@ async function crawlOne(entry: RegistryEntry): Promise<CrawlResult> {
     await insertJobs(diff.inserts);
     await updateJobs(diff.updates);
     if (isSuspiciousDeletion(existing.length, diff.deletedIds.length)) {
-      console.log(
-        JSON.stringify({
-          event: "suspicious_diff",
-          company: entry.name,
-          existing: existing.length,
-          deleted: diff.deletedIds.length,
-        }),
-      );
+      logEvent("suspicious_diff", {
+        company: entry.name,
+        existing: existing.length,
+        deleted: diff.deletedIds.length,
+      });
     } else {
       await deleteJobsByIds(diff.deletedIds);
     }

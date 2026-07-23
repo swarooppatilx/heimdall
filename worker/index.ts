@@ -10,6 +10,7 @@ import {
   getRecentCrawlSamples,
 } from "../src/lib/db";
 import { configureFreshness } from "../src/lib/freshness";
+import { logEvent } from "../src/lib/logger";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -34,7 +35,7 @@ export default {
     ctx.waitUntil(
       runTick(controller, env).catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        console.log(JSON.stringify({ event: "crawl_failed", error: message }));
+        logEvent("crawl_failed", { error: message });
       }),
     );
   },
@@ -46,7 +47,7 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
 
   const lastCrawlAt = await getLatestCrawlUnix();
   if (!shouldRunTick(lastCrawlAt, Date.now())) {
-    console.log(JSON.stringify({ event: "tick_skipped", lastCrawlAt }));
+    logEvent("tick_skipped", { lastCrawlAt });
     return;
   }
 
@@ -56,44 +57,38 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
   const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
   const failed = run.results.filter((r) => r.status === "error").length;
-  console.log(
-    JSON.stringify({
-      event: "scheduled_crawl",
-      cron: controller.cron,
-      companies: run.results.length,
-      ok: run.results.length - failed,
-      failed,
-      discovered: run.discovered,
-      removed,
-      deduped,
-      expiredCrawls,
-      durationMs: run.durationMs,
-    }),
-  );
+  logEvent("scheduled_crawl", {
+    cron: controller.cron,
+    companies: run.results.length,
+    ok: run.results.length - failed,
+    failed,
+    discovered: run.discovered,
+    removed,
+    deduped,
+    expiredCrawls,
+    durationMs: run.durationMs,
+  });
 
   const latestCrawlAt = await getLatestCrawlUnix();
   const stalenessMs = latestCrawlAt ? Date.now() - latestCrawlAt : null;
   if (stalenessMs === null || stalenessMs > STALE_ALERT_MS) {
-    console.log(JSON.stringify({ event: "crawl_stale", lastCrawlAt: latestCrawlAt, stalenessMs }));
+    logEvent("crawl_stale", { lastCrawlAt: latestCrawlAt, stalenessMs });
   }
 
   if (sweepStart) {
     const quality = await getJobQuality();
-    console.log(JSON.stringify({ event: "job_quality", ...quality }));
+    logEvent("job_quality", quality);
     const drifted = driftedBoards(
       assessBoards(await getRecentCrawlSamples(DRIFT_WINDOW_HOURS)),
       DRIFT_MIN_EMPTY,
     );
     if (drifted.length > 0) {
-      console.log(
-        JSON.stringify({
-          event: "board_drift",
-          boards: drifted.map((b) => ({
-            company: b.company,
-            consecutiveEmpty: b.consecutiveEmpty,
-          })),
-        }),
-      );
+      logEvent("board_drift", {
+        boards: drifted.map((b) => ({
+          company: b.company,
+          consecutiveEmpty: b.consecutiveEmpty,
+        })),
+      });
     }
   }
 }

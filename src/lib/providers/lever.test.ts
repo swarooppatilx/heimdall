@@ -64,8 +64,8 @@ describe("fetchLeverJobs", () => {
 
     const jobs = await fetchLeverJobs("example");
 
-    expect(jobs[1]!.location).toBe("unknown");
-    expect(jobs[1]!.department).toBe("design");
+    expect(jobs[1]?.location).toBe("unknown");
+    expect(jobs[1]?.department).toBe("design");
   });
 
   it("throws on HTTP error", async () => {

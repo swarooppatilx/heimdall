@@ -27,7 +27,7 @@ function getClientIp(request: Request): string {
   const cfIp = request.headers.get("cf-connecting-ip");
   if (cfIp) return cfIp;
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]!.trim();
+  if (forwarded) return forwarded.split(",")[0]?.trim() || "127.0.0.1";
   const real = request.headers.get("x-real-ip");
   if (real) return real;
   return "127.0.0.1";
@@ -82,7 +82,8 @@ export async function checkRateLimit(
   cleanup(entry, opts.windowMs);
 
   if (entry.timestamps.length >= opts.max) {
-    const oldest = entry.timestamps[0]!;
+    const oldest = entry.timestamps[0];
+    if (oldest === undefined) return { allowed: true, resetMs: 0 };
     return { allowed: false, resetMs: oldest + opts.windowMs - Date.now() };
   }
 
