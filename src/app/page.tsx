@@ -96,6 +96,10 @@ function useQueryParam(
 
 const PAGE_SIZE = 50;
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const HOURS_PER_DAY = 24;
+const MS_PER_HOUR = 3_600_000;
+const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
+const SKELETON_PRELOAD_COUNT = 4;
 
 interface JobFiltersInput {
   q: string;
@@ -347,7 +351,7 @@ function JobsPage() {
   ]);
 
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
-  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > 24 * 3_600_000 : false;
+  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
 
   const countLabel = isLoading
     ? "loading..."
@@ -467,7 +471,7 @@ function JobsPage() {
             aria-atomic="true"
           >
             <span>{countLabel}</span>
-            {syncedAt && (
+            {syncedAt ? (
               <span
                 className={
                   syncStale ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
@@ -475,7 +479,7 @@ function JobsPage() {
               >
                 synced {timeAgo(syncedAt)}
               </span>
-            )}
+            ) : null}
           </p>
           <div className="flex items-center gap-1">
             <Popover>
@@ -562,7 +566,7 @@ function JobsPage() {
           </div>
         </div>
 
-        {!isLoading && !isError && jobCards.length === 0 && (
+        {!(isLoading || isError) && jobCards.length === 0 && (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
             <p className="text-sm text-muted-foreground">no roles match these filters</p>
             {chips.length > 0 && (
@@ -579,8 +583,9 @@ function JobsPage() {
           </div>
         )}
 
+        {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
         <ul id="job-results" className="flex flex-col gap-2">
-          {isLoading && SKELETON_KEYS.map((key) => <JobCardSkeleton key={key} />)}
+          {Boolean(isLoading) && SKELETON_KEYS.map((key) => <JobCardSkeleton key={key} />)}
           {!isLoading &&
             jobCards.map(({ job, openings }) => (
               <li
@@ -626,7 +631,7 @@ function JobsPage() {
                           .filter(Boolean)
                           .join(" · ")}
                       </span>
-                      {job.salary && (
+                      {Boolean(job.salary) && (
                         <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
                           {job.salary}
                         </span>
@@ -656,9 +661,9 @@ function JobsPage() {
 
         <div ref={sentinelRef} aria-hidden="true" className="h-1" />
 
-        {isFetchingNextPage && (
+        {isFetchingNextPage === true && (
           <ul className="mt-2 flex flex-col gap-2">
-            {SKELETON_KEYS.slice(0, 4).map((key) => (
+            {SKELETON_KEYS.slice(0, SKELETON_PRELOAD_COUNT).map((key) => (
               <JobCardSkeleton key={key} />
             ))}
           </ul>

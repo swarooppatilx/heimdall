@@ -63,7 +63,7 @@ const MAX_PAGES = 50;
 export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> {
   const allJobs: Job[] = [];
 
-  for (let page = 0; page < MAX_PAGES; page++) {
+  for (let page = 0; page < MAX_PAGES; page += 1) {
     const offset = page * PAGE_SIZE;
     const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${PAGE_SIZE}&offset=${offset}`;
     const data = await fetchJson<SmartRecruitersResponse>(url, company);

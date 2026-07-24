@@ -81,7 +81,7 @@ function fetchPage(endpoint: string, offset: number): Promise<WorkdayResponse> {
 
 async function fetchPageWithRetry(endpoint: string, offset: number): Promise<WorkdayResponse> {
   let lastError: unknown;
-  for (let attempt = 0; attempt <= PAGE_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= PAGE_RETRIES; attempt += 1) {
     try {
       return await fetchPage(endpoint, offset);
     } catch (err) {

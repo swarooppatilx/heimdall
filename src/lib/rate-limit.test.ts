@@ -20,7 +20,7 @@ describe("checkRateLimit", () => {
   });
 
   it("blocks after exceeding limit", async () => {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i += 1) {
       await checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
     }
     const res = await checkRateLimit(fakeRequest(), { windowMs: 60_000, max: 5 });
@@ -29,7 +29,7 @@ describe("checkRateLimit", () => {
   });
 
   it("resets after window expires", async () => {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i += 1) {
       await checkRateLimit(fakeRequest(), { windowMs: 10_000, max: 3 });
     }
     vi.advanceTimersByTime(10_001);
@@ -38,7 +38,7 @@ describe("checkRateLimit", () => {
   });
 
   it("tracks different IPs separately", async () => {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i += 1) {
       await checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });
     }
     const blocked = await checkRateLimit(fakeRequest("1.1.1.1"), { windowMs: 60_000, max: 3 });

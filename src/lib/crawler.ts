@@ -12,8 +12,12 @@ export interface CrawlResult {
   error?: string;
 }
 
-const TICK_MS = 15 * 60 * 1000;
-const TICK_MARGIN_MS = 2 * 60 * 1000;
+const MS_PER_MINUTE = 60_000;
+
+const TICK_MINUTES = 15;
+const TICK_MS = TICK_MINUTES * MS_PER_MINUTE;
+const TICK_MARGIN_MINUTES = 2;
+const TICK_MARGIN_MS = TICK_MARGIN_MINUTES * MS_PER_MINUTE;
 const TICKS_PER_SWEEP = 8;
 const CRAWL_CONCURRENCY = 20;
 
@@ -47,7 +51,8 @@ export async function crawlAll(slice?: RegistryEntry[]): Promise<CrawlRun> {
   let cursor = 0;
   const workers = Array.from({ length: Math.min(CRAWL_CONCURRENCY, registry.length) }, async () => {
     while (cursor < registry.length) {
-      const entry = registry[cursor++];
+      const entry = registry[cursor];
+      cursor += 1;
       if (entry) results.push(await crawlOne(entry));
     }
   });

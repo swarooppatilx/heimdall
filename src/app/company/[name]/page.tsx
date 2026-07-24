@@ -115,6 +115,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
           </div>
         </div>
 
+        {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
         <ul id="job-results" className="flex flex-col gap-2">
           {jobs.map((job) => (
             <li

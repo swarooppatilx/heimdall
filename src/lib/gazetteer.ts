@@ -474,7 +474,7 @@ export function resolvePlace(raw: string): Place | null {
       }
     }
   }
-  if (!city && !country) {
+  if (!(city || country)) {
     const fuzzy = fuzzyCity(lowered);
     if (fuzzy) {
       city = fuzzy[0];
@@ -482,7 +482,7 @@ export function resolvePlace(raw: string): Place | null {
     }
   }
 
-  if (!city && !country) return null;
+  if (!(city || country)) return null;
   return {
     ...(city ? { city: city.toLowerCase() } : {}),
     ...(country ? { country: country.toLowerCase() } : {}),

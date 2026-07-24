@@ -21,7 +21,7 @@ export function ThemeToggle() {
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
-      {mounted && (
+      {mounted === true && (
         <>
           <HugeiconsIcon icon={Sun03Icon} className="hidden dark:block" />
           <HugeiconsIcon icon={Moon02Icon} className="block dark:hidden" />

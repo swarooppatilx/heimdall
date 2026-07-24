@@ -16,6 +16,14 @@
       "assist": { "enabled": false }
     },
     {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "style": { "noMagicNumbers": "off" }
+        }
+      }
+    },
+    {
       "includes": ["src/lib/logger.ts"],
       "linter": {
         "rules": {
@@ -47,12 +55,14 @@
         "useExhaustiveDependencies": "error",
         "useHookAtTopLevel": "error",
         "noUndeclaredVariables": "error",
+        "useUniqueElementIds": "error",
         "noUnreachable": "error",
         "noConstantCondition": "error",
         "noSelfAssign": "error",
         "noSwitchDeclarations": "error"
       },
       "suspicious": {
+        "noLeakedRender": "error",
         "noConsole": {
           "level": "error",
           "options": {
@@ -63,11 +73,14 @@
         "noDoubleEquals": "error",
         "noExplicitAny": "error",
         "noLabelVar": "error",
+        "noThenProperty": "error",
         "noRedeclare": "error",
         "noShadowRestrictedNames": "error",
         "useAwait": "warn"
       },
       "style": {
+        "noIncrementDecrement": "error",
+        "noMagicNumbers": "warn",
         "noParameterAssign": "error",
         "useConst": "error",
         "useImportType": "error",
@@ -85,6 +98,15 @@
         "noDangerouslySetInnerHtml": "error"
       },
       "complexity": {
+        "noImplicitCoercions": "error",
+        "noExcessiveLinesPerFunction": "off",
+        "useMaxParams": {
+          "level": "error",
+          "options": {
+            "max": 5
+          }
+        },
+        "useSimplifiedLogicExpression": "error",
         "noExcessiveCognitiveComplexity": {
           "level": "warn",
           "options": {

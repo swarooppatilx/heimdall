@@ -75,9 +75,12 @@ export interface JobFilters {
   sort?: string;
 }
 
+const MS_PER_SECOND = 1_000;
+const MS_PER_DAY = 86_400_000;
+
 const POSTED_WINDOWS_MS: Record<string, number> = {
-  today: 24 * 60 * 60 * 1000,
-  week: 7 * 24 * 60 * 60 * 1000,
+  today: MS_PER_DAY,
+  week: 7 * MS_PER_DAY,
 };
 
 export interface PageOptions {
@@ -254,7 +257,7 @@ export function locationFacets(job: Job): LocationFacet[] {
   const facets: LocationFacet[] = [];
   for (const entry of raw) {
     const place = resolvePlace(entry);
-    if (!place?.city || !place.country) continue;
+    if (!(place?.city && place.country)) continue;
     const key = `${place.city}|${place.country}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -643,7 +646,7 @@ export async function getLatestCrawlUnix(): Promise<number | null> {
     .select({ latest: sql<string | null>`strftime('%s', max(${crawls.createdAt}))` })
     .from(crawls);
   const latest = row?.latest;
-  return latest ? Number(latest) * 1000 : null;
+  return latest ? Number(latest) * MS_PER_SECOND : null;
 }
 
 export interface CrawlRecord {

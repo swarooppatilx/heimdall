@@ -13,7 +13,7 @@ export async function fetchJson<T>(
   timeoutMs = TIMEOUT_MS,
 ): Promise<T> {
   let lastError: unknown;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     if (attempt > 1) await sleep(RETRY_BASE_MS * 2 ** (attempt - 2));
     try {
       const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
