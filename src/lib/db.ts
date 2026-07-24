@@ -76,6 +76,8 @@ export interface JobFilters {
 }
 
 const MS_PER_SECOND = 1_000;
+const STATUS_SAMPLE_LIMIT = 100;
+
 const MS_PER_DAY = 86_400_000;
 
 const DAYS_PER_WEEK = 7;
@@ -672,7 +674,11 @@ function toCrawlRecord(row: typeof crawls.$inferSelect): CrawlRecord {
 
 export async function getCrawlHistory(): Promise<CrawlRecord[]> {
   const db = await getDb();
-  const rows = await db.select().from(crawls).orderBy(desc(crawls.createdAt)).limit(100);
+  const rows = await db
+    .select()
+    .from(crawls)
+    .orderBy(desc(crawls.createdAt))
+    .limit(STATUS_SAMPLE_LIMIT);
   return rows.map(toCrawlRecord);
 }
 

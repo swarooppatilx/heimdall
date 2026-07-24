@@ -6,18 +6,8 @@
     "worker/index.ts",
     "src/lib/logger.ts"
   ],
-  "project": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "worker/*.ts"
-  ],
+  "project": ["src/**/*.ts", "src/**/*.tsx", "worker/*.ts"],
   "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": [
-    "shadcn",
-    "tw-animate-css",
-    "tailwindcss"
-  ],
-  "ignore": [
-    "src/components/ui/**"
-  ]
+  "ignoreDependencies": ["shadcn", "tw-animate-css", "tailwindcss"],
+  "ignore": ["src/components/ui/**"]
 }
