@@ -78,9 +78,10 @@ export interface JobFilters {
 const MS_PER_SECOND = 1_000;
 const MS_PER_DAY = 86_400_000;
 
+const DAYS_PER_WEEK = 7;
 const POSTED_WINDOWS_MS: Record<string, number> = {
   today: MS_PER_DAY,
-  week: 7 * MS_PER_DAY,
+  week: DAYS_PER_WEEK * MS_PER_DAY,
 };
 
 export interface PageOptions {
