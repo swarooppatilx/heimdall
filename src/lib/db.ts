@@ -4,6 +4,7 @@ import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, lt, ne, sql }
 import type { BatchItem } from "drizzle-orm/batch";
 import { drizzle } from "drizzle-orm/d1";
 import { crawls, jobLocations, jobs } from "../db/schema";
+import type { CrawlSample } from "./board-health";
 import { resolveEmploymentType } from "./employment";
 import { configureFreshness, freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
@@ -690,12 +691,6 @@ export async function getLatestCrawls(): Promise<CrawlRecord[]> {
     .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`)
     .orderBy(desc(crawls.createdAt));
   return rows.map(toCrawlRecord);
-}
-
-export interface CrawlSample {
-  company: string;
-  status: string;
-  jobsFound: number;
 }
 
 export async function getRecentCrawlSamples(hours: number): Promise<CrawlSample[]> {

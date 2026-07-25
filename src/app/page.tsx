@@ -25,19 +25,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { FacetOptions } from "@/lib/db";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
-
-interface FilterOptions {
-  remoteCount: number;
-  countries: { value: string; count: number; cities: { value: string; count: number }[] }[];
-  companies: { value: string; count: number }[];
-  employmentTypes: { value: string; count: number }[];
-  departments: { value: string; count: number }[];
-  sources: { value: string; count: number }[];
-  experienceLevels: { value: string; count: number }[];
-}
 
 interface CrawlStatusEntry {
   company: string;
@@ -224,14 +215,14 @@ function JobsPage() {
     }));
   }, [jobs]);
 
-  const { data: filterOptions } = useQuery<FilterOptions>({
+  const { data: filterOptions } = useQuery<FacetOptions>({
     queryKey: ["filters"],
     queryFn: async () => {
       const res = await fetch("/api/filters");
       if (!res.ok) {
         throw new Error(`filters request failed: ${res.status}`);
       }
-      return res.json() as Promise<FilterOptions>;
+      return res.json() as Promise<FacetOptions>;
     },
   });
 

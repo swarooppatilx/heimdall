@@ -12,7 +12,7 @@ import { fetchWorkdayJobs } from "./providers/workday";
 import type { RegistryEntry } from "./registry";
 import { sanitizeFilterValue } from "./sanitize";
 
-export type ProviderFetcher = (entry: RegistryEntry) => Promise<Job[]>;
+type ProviderFetcher = (entry: RegistryEntry) => Promise<Job[]>;
 
 const PROVIDERS: Record<string, ProviderFetcher> = {
   greenhouse: (entry) => fetchGreenhouseJobs(entry.name),
