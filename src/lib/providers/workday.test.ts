@@ -62,7 +62,6 @@ describe("fetchWorkdayJobs", () => {
       company: "micron",
       title: "Engineer 7",
       location: "san jose, ca, usa",
-      region: "united states",
       url: "https://micron.wd1.myworkdayjobs.com/en-US/External/job/San-Jose/12345678907",
       source: "workday",
     });
@@ -75,7 +74,7 @@ describe("fetchWorkdayJobs", () => {
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
 
-    expect(jobs[0]).toMatchObject({ location: "unknown", region: "" });
+    expect(jobs[0]).toMatchObject({ location: "unknown" });
   });
 
   it("posts json pages and paginates until total", async () => {

@@ -2,7 +2,7 @@ import { inferDepartment } from "../department";
 import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
-import { normalizeLocation, regionFromLocation } from "../normalize";
+import { normalizeLocation } from "../normalize";
 
 interface AshbyJob {
   id: string;
@@ -27,7 +27,6 @@ function mapJob(raw: AshbyJob, company: string): Job {
     title: raw.title,
     company,
     location: normalizeLocation(baseLocation),
-    region: regionFromLocation(baseLocation),
     locations: splitLocations(baseLocation).map((part) => normalizeLocation(part)),
     department: (raw.department || inferDepartment(raw.title)).toLowerCase(),
     url: raw.jobUrl,

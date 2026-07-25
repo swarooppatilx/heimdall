@@ -48,7 +48,6 @@ describe("fetchLeverJobs", () => {
       company: "example",
       location: "remote",
       locations: ["remote"],
-      region: "united states",
       department: "engineering",
       url: "https://jobs.lever.co/example/abc-123",
       postedAt: new Date(1724160000000),

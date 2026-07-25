@@ -2,7 +2,7 @@ import { inferDepartment } from "../department";
 import { fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
-import { normalizeLocation, regionFromLocation } from "../normalize";
+import { normalizeLocation } from "../normalize";
 
 interface WorkdayPosting {
   title: string;
@@ -62,7 +62,6 @@ function mapJob(raw: WorkdayPosting, tenant: string, endpoint: string): Job {
     url: publicUrl(endpoint, raw.externalPath),
     postedAt: postedAtFrom(raw.postedOn),
     source: "workday",
-    region: regionFromLocation(location),
   };
 }
 

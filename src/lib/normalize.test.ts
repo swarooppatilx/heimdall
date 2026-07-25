@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeLocation, regionFromLocation } from "./normalize";
+import { normalizeLocation } from "./normalize";
 
 describe("normalizeLocation", () => {
   it("returns unknown for empty input", () => {
@@ -45,29 +45,5 @@ describe("normalizeLocation", () => {
       expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("remote");
       expect(normalizeLocation("San Francisco; New York")).toBe("san francisco");
     });
-  });
-});
-
-describe("regionFromLocation", () => {
-  it("extracts the country from the last segment", () => {
-    expect(regionFromLocation("New York, New York, USA")).toBe("united states");
-    expect(regionFromLocation("London, United Kingdom")).toBe("united kingdom");
-    expect(regionFromLocation("Bangalore, India")).toBe("india");
-  });
-
-  it("strips remote prefixes and suffixes", () => {
-    expect(regionFromLocation("Remote — India")).toBe("india");
-    expect(regionFromLocation("Remote, US")).toBe("united states");
-    expect(regionFromLocation("California, USA, Remote")).toBe("united states");
-    expect(regionFromLocation("Remote")).toBe("");
-  });
-
-  it("returns empty for empty input", () => {
-    expect(regionFromLocation("")).toBe("");
-  });
-
-  it("title-cases unknown countries", () => {
-    expect(regionFromLocation("Sao Paulo, Brazil")).toBe("brazil");
-    expect(regionFromLocation("Ljubljana")).toBe("ljubljana");
   });
 });
