@@ -19,3 +19,11 @@ describe("sanitizeFilterValue", () => {
     expect(sanitizeFilterValue("  Acme   Corp (formerly X) ")).toBe("acme corp");
   });
 });
+
+describe("sanitize filter contract", () => {
+  it("normalizes enum params the same way ingestion does", () => {
+    expect(sanitizeFilterValue("Senior")).toBe("senior");
+    expect(sanitizeFilterValue("data & analytics")).toBe("data & analytics");
+    expect(sanitizeFilterValue("customer-support")).toBe("customer support");
+  });
+});

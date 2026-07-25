@@ -34,3 +34,12 @@ describe("resolveEmploymentType", () => {
     expect(resolveEmploymentType("unknown")).toBeUndefined();
   });
 });
+
+describe("employment filter contract", () => {
+  it("collapses employment type variants to canonical values", () => {
+    expect(resolveEmploymentType("Full-Time")).toBe("full time");
+    expect(resolveEmploymentType("FULL_TIME")).toBe("full time");
+    expect(resolveEmploymentType("fulltime")).toBe("full time");
+    expect(resolveEmploymentType("contract")).toBe("contractor");
+  });
+});
