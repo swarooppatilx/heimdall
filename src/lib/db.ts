@@ -288,6 +288,25 @@ export async function getJobsByIds(ids: string[]): Promise<Job[]> {
   return rows.map(toJob);
 }
 
+function jobUpsertSet(values: typeof jobs.$inferInsert) {
+  return {
+    title: values.title,
+    location: values.location,
+    department: values.department,
+    url: values.url,
+    postedAt: values.postedAt,
+    employmentType: values.employmentType,
+    salary: values.salary,
+    locations: values.locations,
+    region: values.region,
+    isEarlyCareer: values.isEarlyCareer,
+    experienceLevel: values.experienceLevel,
+    city: values.city,
+    country: values.country,
+    isRemote: values.isRemote,
+  };
+}
+
 export async function insertJobs(items: Job[]): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
@@ -302,20 +321,7 @@ export async function insertJobs(items: Job[]): Promise<void> {
           .onConflictDoUpdate({
             target: jobs.id,
             set: {
-              title: values.title,
-              location: values.location,
-              department: values.department,
-              url: values.url,
-              postedAt: values.postedAt,
-              employmentType: values.employmentType,
-              salary: values.salary,
-              locations: values.locations,
-              region: values.region,
-              isEarlyCareer: values.isEarlyCareer,
-              experienceLevel: values.experienceLevel,
-              city: values.city,
-              country: values.country,
-              isRemote: values.isRemote,
+              ...jobUpsertSet(values),
             },
           }),
       );
@@ -337,20 +343,7 @@ export async function updateJobs(items: Job[]): Promise<void> {
         db
           .update(jobs)
           .set({
-            title: values.title,
-            location: values.location,
-            department: values.department,
-            url: values.url,
-            postedAt: values.postedAt,
-            employmentType: values.employmentType,
-            salary: values.salary,
-            locations: values.locations,
-            region: values.region,
-            isEarlyCareer: values.isEarlyCareer,
-            experienceLevel: values.experienceLevel,
-            city: values.city,
-            country: values.country,
-            isRemote: values.isRemote,
+            ...jobUpsertSet(values),
           })
           .where(eq(jobs.id, job.id)),
       );
