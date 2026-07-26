@@ -2,18 +2,10 @@
 
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Suspense,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { FilterSelect } from "@/components/filter-select";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -25,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useJobFilters } from "@/hooks/use-job-filters";
+import { useQueryParam } from "@/hooks/use-query-param";
 import type { FacetOptions } from "@/lib/db";
 import type { Job } from "@/lib/job";
 import { isRemoteLocation } from "@/lib/location";
@@ -38,105 +32,11 @@ interface CrawlStatusEntry {
   createdAt: string;
 }
 
-interface QueryParamOptions {
-  deferCommit?: boolean;
-}
-
-function useQueryParam(
-  key: string,
-  initial: string,
-  opts?: QueryParamOptions,
-): [string, (v: string) => void, (v: string) => void] {
-  const router = useRouter();
-  const [value, setValueState] = useState(initial);
-
-  const commit = useCallback(
-    (v: string) => {
-      const params = new URLSearchParams(window.location.search);
-      if ((params.get(key) ?? "") === v) return;
-      if (v) {
-        params.set(key, v);
-      } else {
-        params.delete(key);
-      }
-      router.replace(`?${params.toString()}`, { scroll: false });
-    },
-    [key, router],
-  );
-
-  const setValue = useCallback(
-    (v: string) => {
-      setValueState(v);
-      if (!opts?.deferCommit) {
-        commit(v);
-      }
-    },
-    [commit, opts?.deferCommit],
-  );
-
-  useEffect(() => {
-    const syncFromUrl = () =>
-      setValueState(new URLSearchParams(window.location.search).get(key) ?? initial);
-    syncFromUrl();
-    window.addEventListener("popstate", syncFromUrl);
-    return () => window.removeEventListener("popstate", syncFromUrl);
-  }, [key, initial]);
-
-  return [value, setValue, commit];
-}
-
-const PAGE_SIZE = 50;
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const HOURS_PER_DAY = 24;
 const MS_PER_HOUR = 3_600_000;
 const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 const SKELETON_PRELOAD_COUNT = 4;
-
-interface JobFiltersInput {
-  q: string;
-  company: string;
-  location: string;
-  experience: string;
-  posted: string;
-  source: string;
-  department: string;
-  employmentType: string;
-  sort: string;
-}
-
-interface JobPage {
-  jobs: Job[];
-  total: number;
-}
-
-function useJobFilters(filters: JobFiltersInput) {
-  return useInfiniteQuery({
-    queryKey: ["jobs", filters],
-    queryFn: async ({ pageParam }): Promise<JobPage> => {
-      const params = new URLSearchParams();
-      if (filters.q) params.set("q", filters.q);
-      if (filters.company) params.set("company", filters.company);
-      if (filters.location) params.set("location", filters.location);
-      if (filters.experience) params.set("experience", filters.experience);
-      if (filters.posted) params.set("posted", filters.posted);
-      if (filters.source) params.set("source", filters.source);
-      if (filters.department) params.set("department", filters.department);
-      if (filters.employmentType) params.set("employment_type", filters.employmentType);
-      if (filters.sort) params.set("sort", filters.sort);
-      if (pageParam) params.set("offset", String(pageParam));
-      params.set("limit", String(PAGE_SIZE));
-      const res = await fetch(`/api/jobs?${params}`);
-      if (!res.ok) {
-        throw new Error(`jobs request failed: ${res.status}`);
-      }
-      const jobs = (await res.json()) as Job[];
-      return { jobs, total: Number(res.headers.get("X-Total-Count") ?? 0) };
-    },
-    initialPageParam: undefined as number | undefined,
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.jobs.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
-  });
-}
 
 function JobCardSkeleton() {
   return (
