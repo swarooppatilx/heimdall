@@ -1,23 +1,16 @@
 "use client";
 
-import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { FilterSelect } from "@/components/filter-select";
+import { ActiveFilterChips } from "@/components/jobs/active-filter-chips";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
+import { MoreFiltersPopover } from "@/components/jobs/more-filters-popover";
+import { SortMenu } from "@/components/jobs/sort-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { FacetOptions } from "@/lib/db";
@@ -315,34 +308,7 @@ function JobsPage() {
           </div>
         </section>
 
-        {chips.length > 0 && (
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {chips.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                onClick={chip.onRemove}
-                className="group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-ring/30 bg-ring/10 px-3 text-xs text-ring transition-colors hover:border-ring/60"
-                aria-label={`Remove filter ${chip.label}`}
-              >
-                {chip.label}
-                <span
-                  aria-hidden="true"
-                  className="text-muted-foreground group-hover:text-foreground"
-                >
-                  ✕
-                </span>
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={clearAllFilters}
-              className="min-h-9 px-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-            >
-              clear all
-            </button>
-          </div>
-        )}
+        <ActiveFilterChips chips={chips} onClearAll={clearAllFilters} />
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-3">
           <p
@@ -363,87 +329,18 @@ function JobsPage() {
             ) : null}
           </p>
           <div className="flex items-center gap-1">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={`min-h-9 rounded-md border px-2.5 text-xs transition-colors ${
-                    advancedCount > 0
-                      ? "border-ring/40 bg-ring/10 text-ring"
-                      : "border-dashed border-border text-muted-foreground hover:border-ring/50 hover:text-foreground"
-                  }`}
-                >
-                  {advancedCount > 0 ? `more filters · ${advancedCount}` : "+ more filters"}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-4">
-                <div className="space-y-4">
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">seniority</p>
-                    <FilterSelect
-                      value={experience}
-                      onChange={setExperience}
-                      options={["intern", "entry", "mid", "senior", "staff"]}
-                      placeholder="any level"
-                      aria-label="Filter by seniority"
-                    />
-                  </div>
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">source</p>
-                    <FilterSelect
-                      value={source}
-                      onChange={setSource}
-                      options={(filterOptions?.sources ?? []).map((o) => o.value)}
-                      placeholder="any source"
-                      aria-label="Filter by source"
-                    />
-                  </div>
-                  <div>
-                    <p className="mb-1.5 text-xs font-medium text-muted-foreground">type</p>
-                    <FilterSelect
-                      value={employmentType}
-                      onChange={setEmploymentType}
-                      options={(filterOptions?.employmentTypes ?? []).map((o) => o.value)}
-                      placeholder="any type"
-                      aria-label="Filter by employment type"
-                    />
-                  </div>
-                </div>
-                {advancedCount > 0 && (
-                  <div className="mt-4 flex justify-end border-t border-border pt-3">
-                    <button
-                      type="button"
-                      onClick={clearAllFilters}
-                      className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                    >
-                      clear all filters
-                    </button>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label="Sort jobs"
-                >
-                  sort · {sort === "company" ? "company a–z" : "newest first"}
-                  <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuRadioGroup
-                  value={sort || "newest"}
-                  onValueChange={(v) => setSort(v === "newest" ? "" : v)}
-                >
-                  <DropdownMenuRadioItem value="newest">newest first</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="company">company a–z</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <MoreFiltersPopover
+              advancedCount={advancedCount}
+              filterOptions={filterOptions}
+              experience={experience}
+              onExperienceChange={setExperience}
+              source={source}
+              onSourceChange={setSource}
+              employmentType={employmentType}
+              onEmploymentTypeChange={setEmploymentType}
+              onClearAll={clearAllFilters}
+            />
+            <SortMenu sort={sort} onSortChange={setSort} />{" "}
           </div>
         </div>
 
