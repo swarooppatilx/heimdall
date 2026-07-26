@@ -3,10 +3,11 @@
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { FilterSelect } from "@/components/filter-select";
+import { JobCard } from "@/components/jobs/job-card";
+import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,6 @@ import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { FacetOptions } from "@/lib/db";
 import type { Job } from "@/lib/job";
-import { isRemoteLocation } from "@/lib/location";
 import { timeAgo } from "@/lib/time-ago";
 
 interface CrawlStatusEntry {
@@ -37,16 +37,6 @@ const HOURS_PER_DAY = 24;
 const MS_PER_HOUR = 3_600_000;
 const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 const SKELETON_PRELOAD_COUNT = 4;
-
-function JobCardSkeleton() {
-  return (
-    <li className="rounded-lg border border-border/60 p-4" aria-hidden="true">
-      <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-      <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-muted" />
-      <div className="mt-3 h-3 w-1/4 animate-pulse rounded bg-muted" />
-    </li>
-  );
-}
 
 function JobsPage() {
   const router = useRouter();
@@ -479,74 +469,7 @@ function JobsPage() {
           {Boolean(isLoading) && SKELETON_KEYS.map((key) => <JobCardSkeleton key={key} />)}
           {!isLoading &&
             jobCards.map(({ job, openings }) => (
-              <li
-                key={job.id}
-                className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="w-full min-w-0 sm:w-auto sm:flex-1">
-                    <h2 className="break-words text-sm font-semibold text-foreground sm:text-base">
-                      {job.title}
-                    </h2>
-                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                      <Link
-                        href={`/company/${encodeURIComponent(job.company)}`}
-                        className="hover:text-foreground"
-                      >
-                        {job.company}
-                      </Link>
-                      {openings > 1 && (
-                        <Link
-                          href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
-                          className="ml-1 text-ring transition-colors hover:text-foreground"
-                          aria-label={`${openings} openings for ${job.title}`}
-                        >
-                          · {openings} openings
-                        </Link>
-                      )}
-                      <span className="text-muted-foreground"> · </span>
-                      {job.location}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                      {isRemoteLocation(job.location) && (
-                        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
-                          remote
-                        </span>
-                      )}
-                      <span>
-                        {[
-                          job.source,
-                          job.experienceLevel === "mid" ? null : job.experienceLevel,
-                          job.employmentType,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                      {Boolean(job.salary) && (
-                        <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-foreground">
-                          {job.salary}
-                        </span>
-                      )}
-                      <span>{timeAgo(job.postedAt)}</span>
-                    </div>
-                  </div>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <a
-                      href={job.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Apply to ${job.title} at ${job.company}`}
-                    >
-                      apply
-                    </a>
-                  </Button>
-                </div>
-              </li>
+              <JobCard key={job.id} job={job} openings={openings} />
             ))}
         </ul>
 
