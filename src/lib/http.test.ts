@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchJson } from "./http";
+import { createCrawlBudget, fetchJson } from "./http";
 
 describe("fetchJson", () => {
   beforeEach(() => {
@@ -14,6 +14,20 @@ describe("fetchJson", () => {
   it("returns parsed json on success", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ ok: 1 })));
     await expect(fetchJson("/x", "test")).resolves.toEqual({ ok: 1 });
+  });
+
+  it("charges every fetch attempt to the budget", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("down", { status: 503 }))
+      .mockResolvedValueOnce(Response.json({ ok: 1 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const budget = createCrawlBudget();
+
+    const pending = fetchJson("/x", "test", undefined, undefined, budget);
+    await vi.runAllTimersAsync();
+    await expect(pending).resolves.toEqual({ ok: 1 });
+    expect(budget.used).toBe(2);
   });
 
   it("retries transient server errors and succeeds", async () => {

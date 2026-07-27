@@ -1,5 +1,5 @@
 import { inferDepartment } from "../department";
-import { fetchJson } from "../http";
+import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -36,8 +36,8 @@ function mapJob(raw: AshbyJob, company: string): Job {
   };
 }
 
-export async function fetchAshbyJobs(company: string): Promise<Job[]> {
+export async function fetchAshbyJobs(company: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${company}`;
-  const data = await fetchJson<{ jobs: AshbyJob[] }>(url, company);
+  const data = await fetchJson<{ jobs: AshbyJob[] }>(url, company, undefined, undefined, budget);
   return data.jobs.map((j: AshbyJob) => mapJob(j, company));
 }

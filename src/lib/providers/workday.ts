@@ -1,5 +1,5 @@
 import { inferDepartment } from "../department";
-import { fetchJson } from "../http";
+import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -65,7 +65,11 @@ function mapJob(raw: WorkdayPosting, tenant: string, endpoint: string): Job {
   };
 }
 
-function fetchPage(endpoint: string, offset: number): Promise<WorkdayResponse> {
+function fetchPage(
+  endpoint: string,
+  offset: number,
+  budget?: CrawlBudget,
+): Promise<WorkdayResponse> {
   return fetchJson<WorkdayResponse>(
     endpoint,
     endpoint,
@@ -75,14 +79,19 @@ function fetchPage(endpoint: string, offset: number): Promise<WorkdayResponse> {
       body: JSON.stringify({ limit: PAGE_SIZE, offset, searchText: "" }),
     },
     WORKDAY_TIMEOUT_MS,
+    budget,
   );
 }
 
-async function fetchPageWithRetry(endpoint: string, offset: number): Promise<WorkdayResponse> {
+async function fetchPageWithRetry(
+  endpoint: string,
+  offset: number,
+  budget?: CrawlBudget,
+): Promise<WorkdayResponse> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= PAGE_RETRIES; attempt += 1) {
     try {
-      return await fetchPage(endpoint, offset);
+      return await fetchPage(endpoint, offset, budget);
     } catch (err) {
       lastError = err;
     }
@@ -90,14 +99,14 @@ async function fetchPageWithRetry(endpoint: string, offset: number): Promise<Wor
   throw lastError;
 }
 
-export async function fetchWorkdayJobs(apiUrl: string): Promise<Job[]> {
+export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Promise<Job[]> {
   if (!apiUrl) throw new Error("Missing workday api url");
 
   const url = new URL(apiUrl);
   const segments = url.pathname.split("/").filter(Boolean);
   const tenant = segments[2] ?? apiUrl;
 
-  const first = await fetchPageWithRetry(apiUrl, 0);
+  const first = await fetchPageWithRetry(apiUrl, 0, budget);
   const maxOffset = Math.min(first.total, MAX_PAGES * PAGE_SIZE);
 
   const offsets: number[] = [];
@@ -111,7 +120,7 @@ export async function fetchWorkdayJobs(apiUrl: string): Promise<Job[]> {
   for (let i = 0; i < offsets.length; i += PAGE_CONCURRENCY) {
     const chunk = offsets.slice(i, i + PAGE_CONCURRENCY);
     const settled = await Promise.allSettled(
-      chunk.map((offset) => fetchPageWithRetry(apiUrl, offset)),
+      chunk.map((offset) => fetchPageWithRetry(apiUrl, offset, budget)),
     );
     for (const result of settled) {
       if (result.status === "fulfilled") postings.push(...result.value.jobPostings);

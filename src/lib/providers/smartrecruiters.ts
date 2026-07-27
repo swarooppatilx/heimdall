@@ -1,5 +1,5 @@
 import { inferDepartment } from "../department";
-import { fetchJson } from "../http";
+import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
@@ -60,13 +60,22 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
 
-export async function fetchSmartRecruitersJobs(company: string): Promise<Job[]> {
+export async function fetchSmartRecruitersJobs(
+  company: string,
+  budget?: CrawlBudget,
+): Promise<Job[]> {
   const allJobs: Job[] = [];
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const offset = page * PAGE_SIZE;
     const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${PAGE_SIZE}&offset=${offset}`;
-    const data = await fetchJson<SmartRecruitersResponse>(url, company);
+    const data = await fetchJson<SmartRecruitersResponse>(
+      url,
+      company,
+      undefined,
+      undefined,
+      budget,
+    );
     allJobs.push(...data.content.map((j) => mapJob(j, company)));
 
     if (offset + PAGE_SIZE >= data.totalFound || data.content.length === 0) break;

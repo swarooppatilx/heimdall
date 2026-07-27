@@ -1,5 +1,25 @@
-import { describe, expect, it } from "vitest";
-import { shouldRunTick, sweepSlice } from "./crawler";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { crawlAll, shouldRunTick, sweepSlice } from "./crawler";
+import { createCrawlBudget } from "./http";
+
+vi.mock("./fetch-jobs", () => ({
+  fetchJobs: vi.fn((_entry: unknown, budget?: { used: number }) => {
+    if (budget) budget.used += 1;
+    return Promise.resolve([]);
+  }),
+}));
+
+vi.mock("./db", () => ({
+  deleteJobsByIds: vi.fn(async () => {}),
+  getJobsByIds: vi.fn(async () => []),
+  insertJobs: vi.fn(async () => {}),
+  recordCrawl: vi.fn(async () => {}),
+  updateJobs: vi.fn(async () => {}),
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 const TICK_MS = 15 * 60 * 1000;
 
@@ -65,5 +85,29 @@ describe("sweepSlice", () => {
       }
     }
     expect(new Set(seen).size).toBe(3);
+  });
+});
+
+describe("crawlAll", () => {
+  it("crawls every entry when budget is available", async () => {
+    const run = await crawlAll(registry.slice(0, 4), createCrawlBudget());
+    expect(run.results).toHaveLength(4);
+    expect(run.skipped).toBe(0);
+  });
+
+  it("stops scheduling boards once the subrequest budget is spent", async () => {
+    const exhausted = createCrawlBudget();
+    exhausted.used = 40;
+    const run = await crawlAll(registry.slice(0, 5), exhausted);
+    expect(run.results).toHaveLength(0);
+    expect(run.skipped).toBe(5);
+  });
+
+  it("reports skipped entries when the budget runs out mid-slice", async () => {
+    const tight = createCrawlBudget();
+    tight.used = 38;
+    const run = await crawlAll(registry.slice(0, 6), tight);
+    expect(run.results.length).toBeLessThan(6);
+    expect(run.results.length + run.skipped).toBe(6);
   });
 });

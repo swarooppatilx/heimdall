@@ -66,6 +66,7 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
     removed,
     deduped,
     expiredCrawls,
+    skipped: run.skipped,
     durationMs: run.durationMs,
   });
 

@@ -3,6 +3,7 @@ import { resolveEmploymentType } from "./employment";
 import { detectExperienceLevel } from "./experience";
 import { freshnessCutoff } from "./freshness";
 import { formatPlace, resolvePlace } from "./gazetteer";
+import type { CrawlBudget } from "./http";
 import type { Job } from "./job";
 import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
@@ -12,14 +13,14 @@ import { fetchWorkdayJobs } from "./providers/workday";
 import type { RegistryEntry } from "./registry";
 import { sanitizeFilterValue } from "./sanitize";
 
-type ProviderFetcher = (entry: RegistryEntry) => Promise<Job[]>;
+type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
 
 const PROVIDERS: Record<string, ProviderFetcher> = {
-  greenhouse: (entry) => fetchGreenhouseJobs(entry.name),
-  lever: (entry) => fetchLeverJobs(entry.name),
-  ashby: (entry) => fetchAshbyJobs(entry.name),
-  smartrecruiters: (entry) => fetchSmartRecruitersJobs(entry.name),
-  workday: (entry) => fetchWorkdayJobs(entry.apiUrl ?? ""),
+  greenhouse: (entry, budget) => fetchGreenhouseJobs(entry.name, budget),
+  lever: (entry, budget) => fetchLeverJobs(entry.name, budget),
+  ashby: (entry, budget) => fetchAshbyJobs(entry.name, budget),
+  smartrecruiters: (entry, budget) => fetchSmartRecruitersJobs(entry.name, budget),
+  workday: (entry, budget) => fetchWorkdayJobs(entry.apiUrl ?? "", budget),
 };
 
 function deriveFields(job: Job): Job {
@@ -45,14 +46,14 @@ function deriveFields(job: Job): Job {
   };
 }
 
-export async function fetchJobs(entry: RegistryEntry): Promise<Job[]> {
+export async function fetchJobs(entry: RegistryEntry, budget?: CrawlBudget): Promise<Job[]> {
   const fetchProviderJobs = PROVIDERS[entry.provider];
 
   if (!fetchProviderJobs) {
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
 
-  const jobs = await fetchProviderJobs(entry);
+  const jobs = await fetchProviderJobs(entry, budget);
   const company = entry.label ?? entry.name;
 
   const cutoffMs = Date.parse(freshnessCutoff());
