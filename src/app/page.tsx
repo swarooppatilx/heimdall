@@ -7,15 +7,13 @@ import { FilterSelect } from "@/components/filter-select";
 import { ActiveFilterChips } from "@/components/jobs/active-filter-chips";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
-import { MoreFiltersPopover } from "@/components/jobs/more-filters-popover";
-import { SortMenu } from "@/components/jobs/sort-menu";
+import { ResultsToolbar } from "@/components/jobs/results-toolbar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { FacetOptions } from "@/lib/db";
 import type { Job } from "@/lib/job";
-import { timeAgo } from "@/lib/time-ago";
 
 interface CrawlStatusEntry {
   company: string;
@@ -310,40 +308,22 @@ function JobsPage() {
 
         <ActiveFilterChips chips={chips} onClearAll={clearAllFilters} />
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-3">
-          <p
-            className="flex flex-wrap items-baseline gap-x-3 text-xs text-foreground"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <span>{countLabel}</span>
-            {syncedAt ? (
-              <span
-                className={
-                  syncStale ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
-                }
-              >
-                synced {timeAgo(syncedAt)}
-              </span>
-            ) : null}
-          </p>
-          <div className="flex items-center gap-1">
-            <MoreFiltersPopover
-              advancedCount={advancedCount}
-              filterOptions={filterOptions}
-              experience={experience}
-              onExperienceChange={setExperience}
-              source={source}
-              onSourceChange={setSource}
-              employmentType={employmentType}
-              onEmploymentTypeChange={setEmploymentType}
-              onClearAll={clearAllFilters}
-            />
-            <SortMenu sort={sort} onSortChange={setSort} />{" "}
-          </div>
-        </div>
-
+        <ResultsToolbar
+          countLabel={countLabel}
+          syncedAt={syncedAt}
+          syncStale={syncStale}
+          advancedCount={advancedCount}
+          filterOptions={filterOptions}
+          experience={experience}
+          onExperienceChange={setExperience}
+          source={source}
+          onSourceChange={setSource}
+          employmentType={employmentType}
+          onEmploymentTypeChange={setEmploymentType}
+          onClearAll={clearAllFilters}
+          sort={sort}
+          onSortChange={setSort}
+        />
         {!(isLoading || isError) && jobCards.length === 0 && (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
             <p className="text-sm text-muted-foreground">no roles match these filters</p>
