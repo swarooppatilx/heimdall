@@ -46,7 +46,7 @@ const registry = Array.from({ length: 19 }, (_, i) => ({
   provider: "greenhouse",
 }));
 
-function sweep(ticks = 8): string[] {
+function sweep(ticks = 16): string[] {
   const seen: string[] = [];
   for (let tick = 0; tick < ticks; tick += 1) {
     for (const entry of sweepSlice(registry, tick * 15 * 60 * 1000)) {
@@ -65,7 +65,7 @@ describe("sweepSlice", () => {
 
   it("keeps slice sizes within one of each other", () => {
     const sizes: number[] = [];
-    for (let tick = 0; tick < 8; tick += 1) {
+    for (let tick = 0; tick < 16; tick += 1) {
       sizes.push(sweepSlice(registry, tick * 15 * 60 * 1000).length);
     }
     expect(Math.max(...sizes) - Math.min(...sizes)).toBeLessThanOrEqual(1);
@@ -79,7 +79,7 @@ describe("sweepSlice", () => {
   it("handles registries smaller than the tick count without duplicates", () => {
     const small = registry.slice(0, 3);
     const seen: string[] = [];
-    for (let tick = 0; tick < 8; tick += 1) {
+    for (let tick = 0; tick < 16; tick += 1) {
       for (const entry of sweepSlice(small, tick * 15 * 60 * 1000)) {
         seen.push(entry.name);
       }
