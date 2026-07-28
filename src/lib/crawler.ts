@@ -15,7 +15,7 @@ export interface CrawlResult {
 
 const MS_PER_MINUTE = 60_000;
 
-const TICK_MINUTES = 15;
+const TICK_MINUTES = 30;
 const TICK_MS = TICK_MINUTES * MS_PER_MINUTE;
 const TICK_MARGIN_MINUTES = 2;
 const TICK_MARGIN_MS = TICK_MARGIN_MINUTES * MS_PER_MINUTE;

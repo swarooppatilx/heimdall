@@ -21,7 +21,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-const TICK_MS = 15 * 60 * 1000;
+const TICK_MS = 30 * 60 * 1000;
 
 describe("shouldRunTick", () => {
   it("runs when no crawl has ever been recorded", () => {
@@ -49,7 +49,7 @@ const registry = Array.from({ length: 19 }, (_, i) => ({
 function sweep(ticks = 16): string[] {
   const seen: string[] = [];
   for (let tick = 0; tick < ticks; tick += 1) {
-    for (const entry of sweepSlice(registry, tick * 15 * 60 * 1000)) {
+    for (const entry of sweepSlice(registry, tick * 30 * 60 * 1000)) {
       seen.push(entry.name);
     }
   }
@@ -66,13 +66,13 @@ describe("sweepSlice", () => {
   it("keeps slice sizes within one of each other", () => {
     const sizes: number[] = [];
     for (let tick = 0; tick < 16; tick += 1) {
-      sizes.push(sweepSlice(registry, tick * 15 * 60 * 1000).length);
+      sizes.push(sweepSlice(registry, tick * 30 * 60 * 1000).length);
     }
     expect(Math.max(...sizes) - Math.min(...sizes)).toBeLessThanOrEqual(1);
   });
 
   it("is deterministic within a tick", () => {
-    const aligned = 1_755_000_000_000 - (1_755_000_000_000 % (15 * 60 * 1000));
+    const aligned = 1_755_000_000_000 - (1_755_000_000_000 % (30 * 60 * 1000));
     expect(sweepSlice(registry, aligned)).toEqual(sweepSlice(registry, aligned + 60_000));
   });
 
@@ -80,7 +80,7 @@ describe("sweepSlice", () => {
     const small = registry.slice(0, 3);
     const seen: string[] = [];
     for (let tick = 0; tick < 16; tick += 1) {
-      for (const entry of sweepSlice(small, tick * 15 * 60 * 1000)) {
+      for (const entry of sweepSlice(small, tick * 30 * 60 * 1000)) {
         seen.push(entry.name);
       }
     }
