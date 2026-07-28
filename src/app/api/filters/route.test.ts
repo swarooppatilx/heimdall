@@ -28,8 +28,8 @@ const mockFacets = {
   ],
 };
 
-vi.mock("@/lib/db", () => ({
-  getFacetOptions: async () => mockFacets,
+vi.mock("@/lib/facet-cache", () => ({
+  getFacetOptionsCached: async () => mockFacets,
 }));
 
 vi.mock("@/lib/rate-limit", () => ({

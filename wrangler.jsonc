@@ -21,6 +21,12 @@
       "migrations_dir": "drizzle"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "18d7a6e62e0f4a0ab248982bb2faa2ce"
+    }
+  ],
   "ratelimits": [
     {
       "name": "JOBS_RATE_LIMITER",
