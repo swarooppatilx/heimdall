@@ -81,13 +81,28 @@ export async function crawlAll(
   };
 }
 
+function recordSafe(
+  entry: RegistryEntry,
+  status: "ok" | "error",
+  jobsFound: number,
+  durationMs: number,
+  error?: string,
+): Promise<void> {
+  return recordCrawl(entry.name, status, jobsFound, durationMs, error).catch((err: unknown) => {
+    logEvent("crawl_record_failed", {
+      company: entry.name,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  });
+}
+
 async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<CrawlResult> {
   const start = Date.now();
   try {
     const jobs = await fetchJobs(entry, budget);
     if (jobs.length === 0) {
       const durationMs = Date.now() - start;
-      await recordCrawl(entry.name, "ok", 0, durationMs);
+      await recordSafe(entry, "ok", 0, durationMs);
       return { company: entry.name, status: "ok", jobsFound: 0, durationMs };
     }
     const existing = await getJobsByIds(jobs.map((job) => job.id));
@@ -104,7 +119,7 @@ async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<Cra
       await deleteJobsByIds(diff.deletedIds);
     }
     const durationMs = Date.now() - start;
-    await recordCrawl(entry.name, "ok", jobs.length, durationMs);
+    await recordSafe(entry, "ok", jobs.length, durationMs);
     return {
       company: entry.name,
       status: "ok",
@@ -114,7 +129,7 @@ async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<Cra
   } catch (err) {
     const durationMs = Date.now() - start;
     const msg = err instanceof Error ? err.message : String(err);
-    await recordCrawl(entry.name, "error", 0, durationMs, msg);
+    await recordSafe(entry, "error", 0, durationMs, msg);
     return {
       company: entry.name,
       status: "error",
