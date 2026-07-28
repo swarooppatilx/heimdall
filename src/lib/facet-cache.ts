@@ -1,21 +1,12 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { cacheKv } from "./cache-kv";
 import { type FacetOptions, getFacetOptions } from "./facets";
 
 const CACHE_KEY = "facet-options";
 const EDGE_TTL_SECONDS = 60;
 const KV_TTL_SECONDS = 3600;
 
-function cacheBinding(): KVNamespace | undefined {
-  try {
-    const { env } = getCloudflareContext();
-    return (env as { CACHE?: KVNamespace }).CACHE;
-  } catch {
-    return undefined;
-  }
-}
-
 export async function getFacetOptionsCached(): Promise<FacetOptions> {
-  const cache = cacheBinding();
+  const cache = cacheKv();
   if (cache) {
     try {
       const hit = await cache.get<FacetOptions>(CACHE_KEY, {

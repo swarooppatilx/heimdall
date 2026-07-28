@@ -1,13 +1,48 @@
 import { NextResponse } from "next/server";
+import { cacheKv, hashedCacheKey } from "@/lib/cache-kv";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { countJobs, searchJobs } from "@/lib/db";
+import type { Job } from "@/lib/job";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
 
+const EDGE_TTL_SECONDS = 60;
+const KV_TTL_SECONDS = 300;
+
+interface CachedJobsPage {
+  total: number;
+  jobs: Job[];
+}
+
 function parseIntParam(searchParams: URLSearchParams, key: string): number | undefined {
   const value = Number.parseInt(searchParams.get(key) ?? "", 10);
   return Number.isNaN(value) ? undefined : value;
+}
+
+async function readCachedPage(key: string): Promise<CachedJobsPage | undefined> {
+  const cache = cacheKv();
+  if (!cache) return undefined;
+  try {
+    return (
+      (await cache.get<CachedJobsPage>(key, {
+        type: "json",
+        cacheTtl: EDGE_TTL_SECONDS,
+      })) ?? undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeCachedPage(key: string, page: CachedJobsPage): Promise<void> {
+  const cache = cacheKv();
+  if (!cache) return;
+  try {
+    await cache.put(key, JSON.stringify(page), { expirationTtl: KV_TTL_SECONDS });
+  } catch {
+    // a failed cache write must not fail the request
+  }
 }
 
 export const GET = withRateLimit(
@@ -41,7 +76,16 @@ export const GET = withRateLimit(
     if (pageLimit !== undefined) page.limit = pageLimit;
     if (pageOffset !== undefined) page.offset = pageOffset;
 
+    const cacheKey = await hashedCacheKey("jobs", request.url);
+    const cached = await readCachedPage(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached.jobs, {
+        headers: { "X-Total-Count": String(cached.total) },
+      });
+    }
+
     const [jobs, total] = await Promise.all([searchJobs(filters, page), countJobs(filters)]);
+    await writeCachedPage(cacheKey, { total, jobs });
 
     return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
   },

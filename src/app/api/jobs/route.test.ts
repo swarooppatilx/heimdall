@@ -14,6 +14,16 @@ vi.mock("@/lib/db", () => ({
   countJobs: (...args: unknown[]) => mockCountJobs(...args),
 }));
 
+const { kvGet, kvPut } = vi.hoisted(() => ({
+  kvGet: vi.fn(),
+  kvPut: vi.fn(),
+}));
+
+vi.mock("@/lib/cache-kv", () => ({
+  cacheKv: () => ({ get: kvGet, put: kvPut }),
+  hashedCacheKey: async (_prefix: string, value: string) => `jobs:${value}`,
+}));
+
 vi.mock("@/lib/rate-limit", () => ({
   checkRateLimit: () => ({ allowed: true, remaining: 100, resetMs: 60_000 }),
   rateLimitResponse: () => new Response("rate limited", { status: 429 }),
@@ -48,6 +58,8 @@ describe("GET /api/jobs", () => {
     mockCountJobs.mockReset();
     mockCountJobs.mockResolvedValue(jobs.length);
   });
+  kvGet.mockReset();
+  kvPut.mockReset();
 
   it("searches with empty filters when no params are given", async () => {
     const res = await GET(makeRequest());
@@ -149,5 +161,42 @@ describe("GET /api/jobs", () => {
       }),
       { limit: undefined, offset: undefined },
     );
+  });
+});
+
+describe("GET /api/jobs response cache", () => {
+  beforeEach(() => {
+    mockSearchJobs.mockReset();
+    mockSearchJobs.mockResolvedValue(jobs);
+    mockCountJobs.mockReset();
+    mockCountJobs.mockResolvedValue(jobs.length);
+    kvGet.mockReset();
+    kvPut.mockReset();
+  });
+
+  it("serves a cached page without touching the database", async () => {
+    kvGet.mockResolvedValue({ total: 42, jobs });
+    const res = await GET(makeRequest({ company: "discord" }));
+    expect(res.headers.get("X-Total-Count")).toBe("42");
+    expect(mockSearchJobs).not.toHaveBeenCalled();
+    expect(mockCountJobs).not.toHaveBeenCalled();
+  });
+
+  it("writes fresh results into the cache on a miss", async () => {
+    kvGet.mockResolvedValue(undefined);
+    await GET(makeRequest({ company: "discord" }));
+    expect(mockSearchJobs).toHaveBeenCalledTimes(1);
+    expect(kvPut).toHaveBeenCalledWith(
+      expect.stringMatching(/^jobs:/),
+      JSON.stringify({ total: jobs.length, jobs }),
+      { expirationTtl: 300 },
+    );
+  });
+
+  it("ignores cache errors and queries the database", async () => {
+    kvGet.mockRejectedValue(new Error("kv down"));
+    const res = await GET(makeRequest());
+    expect(await readJobs(res)).toEqual(JSON.parse(JSON.stringify(jobs)));
+    expect(mockSearchJobs).toHaveBeenCalledTimes(1);
   });
 });
