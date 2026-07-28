@@ -60,10 +60,12 @@ export function locationFacets(job: Job): LocationFacet[] {
 
 function facetStatements(db: Db, job: Job): BatchItem<"sqlite">[] {
   const clear = db.delete(jobLocations).where(eq(jobLocations.jobId, job.id));
-  const inserts = locationFacets(job).map((facet) =>
-    db.insert(jobLocations).values({ jobId: job.id, ...facet }),
-  );
-  return [clear, ...inserts];
+  const facets = locationFacets(job);
+  if (facets.length === 0) return [clear];
+  const inserts = db
+    .insert(jobLocations)
+    .values(facets.map((facet) => ({ jobId: job.id, ...facet })));
+  return [clear, inserts];
 }
 
 function jobUpsertSet(values: typeof jobs.$inferInsert) {
