@@ -1,7 +1,7 @@
 import type { AnyColumn } from "drizzle-orm";
-import { and, asc, count, desc, eq, gte, inArray, like, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, like, ne, sql } from "drizzle-orm";
 import { jobLocations, jobs } from "../db/schema";
-import { chunk, getDb } from "./db-connection";
+import { getDb } from "./db-connection";
 import { resolveEmploymentType } from "./employment";
 import { freshnessCutoff } from "./freshness";
 import { resolvePlace } from "./gazetteer";
@@ -175,13 +175,17 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
   return rows.map(toJob);
 }
 
-export async function getJobsByIds(ids: string[]): Promise<Job[]> {
+export async function getJobsByBoard(source: string, company: string): Promise<Job[]> {
   const db = await getDb();
-  const rows: (typeof jobs.$inferSelect)[] = [];
-  for (const page of chunk(ids)) {
-    const result = await db.select().from(jobs).where(inArray(jobs.id, page));
-    rows.push(...result);
-  }
+  const rows = await db
+    .select()
+    .from(jobs)
+    .where(
+      and(
+        sql`lower(${jobs.source}) = ${source.toLowerCase()}`,
+        sql`lower(${jobs.company}) = ${company.toLowerCase()}`,
+      ),
+    );
   return rows.map(toJob);
 }
 

@@ -16,8 +16,8 @@ export {
   countJobs,
   getCompanyNames,
   getCompanyStats,
+  getJobsByBoard,
   getJobsByCompany,
-  getJobsByIds,
   searchJobs,
 } from "./job-queries";
 export {

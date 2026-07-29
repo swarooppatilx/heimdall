@@ -1,24 +1,46 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { crawlAll, shouldRunTick, sweepSlice } from "./crawler";
 import { createCrawlBudget } from "./http";
+import type { Job } from "./job";
+
+const { fetchJobsMock, getJobsByBoardMock, deleteJobsByIdsMock } = vi.hoisted(() => ({
+  fetchJobsMock: vi.fn(),
+  getJobsByBoardMock: vi.fn(),
+  deleteJobsByIdsMock: vi.fn(),
+}));
 
 vi.mock("./fetch-jobs", () => ({
-  fetchJobs: vi.fn((_entry: unknown, budget?: { used: number }) => {
-    if (budget) budget.used += 1;
-    return Promise.resolve([]);
-  }),
+  fetchJobs: (...args: unknown[]) => fetchJobsMock(...args),
 }));
 
 vi.mock("./db", () => ({
-  deleteJobsByIds: vi.fn(async () => {}),
-  getJobsByIds: vi.fn(async () => []),
+  deleteJobsByIds: (...args: unknown[]) => deleteJobsByIdsMock(...args),
+  getJobsByBoard: (...args: unknown[]) => getJobsByBoardMock(...args),
   insertJobs: vi.fn(async () => {}),
   recordCrawl: vi.fn(async () => {}),
   updateJobs: vi.fn(async () => {}),
 }));
 
+function makeJob(id: string): Job {
+  return {
+    id,
+    title: `Role ${id}`,
+    company: "c0",
+    location: "remote",
+    department: "engineering",
+    url: `https://example.com/${id}`,
+    postedAt: new Date("2026-08-20"),
+    source: "greenhouse",
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
+    if (budget) budget.used += 1;
+    return Promise.resolve([]);
+  });
+  getJobsByBoardMock.mockResolvedValue([]);
 });
 
 const TICK_MS = 30 * 60 * 1000;
@@ -109,5 +131,33 @@ describe("crawlAll", () => {
     const run = await crawlAll(registry.slice(0, 6), tight);
     expect(run.results.length).toBeLessThan(6);
     expect(run.results.length + run.skipped).toBe(6);
+  });
+
+  it("propagates deletions when a board shrinks", async () => {
+    const board = [makeJob("j1"), makeJob("j2"), makeJob("j3")];
+    getJobsByBoardMock.mockResolvedValue(board);
+    fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
+      if (budget) budget.used += 1;
+      return Promise.resolve([makeJob("j2")]);
+    });
+
+    const run = await crawlAll(registry.slice(0, 1), createCrawlBudget());
+
+    expect(run.results[0]?.status).toBe("ok");
+    expect(deleteJobsByIdsMock).toHaveBeenCalledWith(["j1", "j3"]);
+  });
+
+  it("guards against mass deletions on emptied boards", async () => {
+    const board = Array.from({ length: 12 }, (_, i) => makeJob(`j${i}`));
+    getJobsByBoardMock.mockResolvedValue(board);
+    fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
+      if (budget) budget.used += 1;
+      return Promise.resolve([makeJob("j0")]);
+    });
+
+    const run = await crawlAll(registry.slice(0, 1), createCrawlBudget());
+
+    expect(run.results[0]?.status).toBe("ok");
+    expect(deleteJobsByIdsMock).not.toHaveBeenCalled();
   });
 });

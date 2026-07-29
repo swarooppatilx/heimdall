@@ -1,4 +1,4 @@
-import { deleteJobsByIds, getJobsByIds, insertJobs, recordCrawl, updateJobs } from "./db";
+import { deleteJobsByIds, getJobsByBoard, insertJobs, recordCrawl, updateJobs } from "./db";
 import { diffJobs, isSuspiciousDeletion } from "./diff";
 import { fetchJobs } from "./fetch-jobs";
 import { type CrawlBudget, createCrawlBudget } from "./http";
@@ -97,12 +97,7 @@ async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<Cra
   const start = Date.now();
   try {
     const jobs = await fetchJobs(entry, budget);
-    if (jobs.length === 0) {
-      const durationMs = Date.now() - start;
-      await recordSafe(entry, "ok", 0, durationMs);
-      return { company: entry.name, status: "ok", jobsFound: 0, durationMs };
-    }
-    const existing = await getJobsByIds(jobs.map((job) => job.id));
+    const existing = await getJobsByBoard(entry.provider, entry.name);
     const diff = diffJobs(existing, jobs);
     await insertJobs(diff.inserts);
     await updateJobs(diff.updates);
