@@ -10,7 +10,7 @@ import {
   getRecentCrawlSamples,
 } from "../src/lib/db";
 import { configureFreshness } from "../src/lib/freshness";
-import { logEvent } from "../src/lib/logger";
+import { formatError, logEvent } from "../src/lib/logger";
 import { getRegistry } from "../src/lib/registry";
 import handler from "./open-next-handler.mjs";
 
@@ -34,8 +34,7 @@ export default {
   scheduled(controller: ScheduledController, env: CloudflareEnv, ctx: ExecutionContext) {
     ctx.waitUntil(
       runTick(controller, env).catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        logEvent("crawl_failed", { error: message });
+        logEvent("crawl_failed", { error: formatError(err) });
       }),
     );
   },

@@ -2,7 +2,7 @@ import { deleteJobsByIds, getJobsByIds, insertJobs, recordCrawl, updateJobs } fr
 import { diffJobs, isSuspiciousDeletion } from "./diff";
 import { fetchJobs } from "./fetch-jobs";
 import { type CrawlBudget, createCrawlBudget } from "./http";
-import { logEvent } from "./logger";
+import { formatError, logEvent } from "./logger";
 import { getRegistry, type RegistryEntry } from "./registry";
 
 export interface CrawlResult {
@@ -89,10 +89,7 @@ function recordSafe(
   error?: string,
 ): Promise<void> {
   return recordCrawl(entry.name, status, jobsFound, durationMs, error).catch((err: unknown) => {
-    logEvent("crawl_record_failed", {
-      company: entry.name,
-      error: err instanceof Error ? err.message : String(err),
-    });
+    logEvent("crawl_record_failed", { company: entry.name, error: formatError(err) });
   });
 }
 
@@ -128,7 +125,7 @@ async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<Cra
     };
   } catch (err) {
     const durationMs = Date.now() - start;
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = formatError(err);
     await recordSafe(entry, "error", 0, durationMs, msg);
     return {
       company: entry.name,
