@@ -12,7 +12,10 @@ export function getDb(): Promise<Db> {
       const { env } = await getCloudflareContext();
       configureFreshness((env as { FRESHNESS_DAYS?: string }).FRESHNESS_DAYS);
       return drizzle(env.DB);
-    })();
+    })().catch((err: unknown) => {
+      _db = null;
+      throw err;
+    });
   }
   return _db;
 }
