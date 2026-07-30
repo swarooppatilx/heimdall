@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createCrawlBudget, fetchJson } from "./http";
+import { createCrawlBudget, fetchJson } from "@/lib/http";
 
 describe("fetchJson", () => {
   beforeEach(() => {

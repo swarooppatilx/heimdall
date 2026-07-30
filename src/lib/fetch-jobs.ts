@@ -1,18 +1,18 @@
-import { normalizeDepartment } from "./department";
-import { resolveEmploymentType } from "./employment";
-import { detectExperienceLevel } from "./experience";
-import { freshnessCutoff } from "./freshness";
-import { formatPlace, resolvePlace } from "./gazetteer";
-import type { CrawlBudget } from "./http";
-import type { Job } from "./job";
-import { logEvent } from "./logger";
-import { fetchAshbyJobs } from "./providers/ashby";
-import { fetchGreenhouseJobs } from "./providers/greenhouse";
-import { fetchLeverJobs } from "./providers/lever";
-import { fetchSmartRecruitersJobs } from "./providers/smartrecruiters";
-import { fetchWorkdayJobs } from "./providers/workday";
-import type { RegistryEntry } from "./registry";
-import { sanitizeFilterValue } from "./sanitize";
+import { normalizeDepartment } from "@/lib/department";
+import { resolveEmploymentType } from "@/lib/employment";
+import { detectExperienceLevel } from "@/lib/experience";
+import { freshnessCutoff } from "@/lib/freshness";
+import { formatPlace, resolvePlace } from "@/lib/gazetteer";
+import type { CrawlBudget } from "@/lib/http";
+import type { Job } from "@/lib/job";
+import { logEvent } from "@/lib/logger";
+import { fetchAshbyJobs } from "@/lib/providers/ashby";
+import { fetchGreenhouseJobs } from "@/lib/providers/greenhouse";
+import { fetchLeverJobs } from "@/lib/providers/lever";
+import { fetchSmartRecruitersJobs } from "@/lib/providers/smartrecruiters";
+import { fetchWorkdayJobs } from "@/lib/providers/workday";
+import type { RegistryEntry } from "@/lib/registry";
+import { sanitizeFilterValue } from "@/lib/sanitize";
 
 type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
 

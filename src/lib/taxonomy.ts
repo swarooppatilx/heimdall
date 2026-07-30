@@ -1,9 +1,9 @@
-import { DEPARTMENTS } from "./department";
-import { EMPLOYMENT_TYPES } from "./employment";
-import { EXPERIENCE_LEVELS } from "./experience";
-import { LOCATION_CATALOG } from "./gazetteer";
-import registry from "./registry.json";
-import { sanitizeFilterValue } from "./sanitize";
+import { DEPARTMENTS } from "@/lib/department";
+import { EMPLOYMENT_TYPES } from "@/lib/employment";
+import { EXPERIENCE_LEVELS } from "@/lib/experience";
+import { LOCATION_CATALOG } from "@/lib/gazetteer";
+import registry from "@/lib/registry.json";
+import { sanitizeFilterValue } from "@/lib/sanitize";
 
 export const FILTER_SOURCES = [
   "greenhouse",

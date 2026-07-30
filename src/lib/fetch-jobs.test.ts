@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchJobs } from "./fetch-jobs";
+import { fetchJobs } from "@/lib/fetch-jobs";
 
 const entry = { name: "testco", provider: "greenhouse" };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlace } from "./gazetteer";
+import { resolvePlace } from "@/lib/gazetteer";
 
 describe("filter matching contract", () => {
   it("collapses location aliases to canonical countries", () => {

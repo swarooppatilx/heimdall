@@ -1,9 +1,9 @@
-import { inferDepartment } from "../department";
-import { type CrawlBudget, fetchJson } from "../http";
-import type { Job } from "../job";
-import { splitLocations } from "../locations";
-import { normalizeLocation } from "../normalize";
-import { mapPostings } from "../postings";
+import { inferDepartment } from "@/lib/department";
+import { type CrawlBudget, fetchJson } from "@/lib/http";
+import type { Job } from "@/lib/job";
+import { splitLocations } from "@/lib/locations";
+import { normalizeLocation } from "@/lib/normalize";
+import { mapPostings } from "@/lib/postings";
 
 interface AshbyJob {
   id: string;

@@ -1,5 +1,5 @@
-import { assessBoards, driftedBoards } from "../src/lib/board-health";
-import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "../src/lib/crawler";
+import { assessBoards, driftedBoards } from "@/lib/board-health";
+import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/lib/crawler";
 import {
   bindDb,
   dedupeCrossSourceJobs,
@@ -8,10 +8,10 @@ import {
   getJobQuality,
   getLatestCrawlUnix,
   getRecentCrawlSamples,
-} from "../src/lib/db";
-import { configureFreshness } from "../src/lib/freshness";
-import { formatError, logEvent } from "../src/lib/logger";
-import { getRegistry } from "../src/lib/registry";
+} from "@/lib/db";
+import { configureFreshness } from "@/lib/freshness";
+import { formatError, logEvent } from "@/lib/logger";
+import { getRegistry } from "@/lib/registry";
 import handler from "./open-next-handler.mjs";
 
 interface ScheduledController {

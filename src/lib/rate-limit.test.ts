@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { checkRateLimit, rateLimitResponse } from "./rate-limit";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 function fakeRequest(ip = "127.0.0.1"): Request {
   return new Request("http://localhost/api/test", {

@@ -1,9 +1,9 @@
-import { deleteJobsByIds, getJobsByBoard, insertJobs, recordCrawl, updateJobs } from "./db";
-import { diffJobs, isSuspiciousDeletion } from "./diff";
-import { fetchJobs } from "./fetch-jobs";
-import { type CrawlBudget, createCrawlBudget } from "./http";
-import { formatError, logEvent } from "./logger";
-import { getRegistry, type RegistryEntry } from "./registry";
+import { deleteJobsByIds, getJobsByBoard, insertJobs, recordCrawl, updateJobs } from "@/lib/db";
+import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
+import { fetchJobs } from "@/lib/fetch-jobs";
+import { type CrawlBudget, createCrawlBudget } from "@/lib/http";
+import { formatError, logEvent } from "@/lib/logger";
+import { getRegistry, type RegistryEntry } from "@/lib/registry";
 
 export interface CrawlResult {
   company: string;

@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle } from "drizzle-orm/d1";
-import { configureFreshness } from "./freshness";
+import { configureFreshness } from "@/lib/freshness";
 
 export type Db = ReturnType<typeof drizzle>;
 

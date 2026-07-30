@@ -1,7 +1,7 @@
 import { and, eq, gte, isNotNull, ne, sql } from "drizzle-orm";
-import { jobLocations, jobs } from "../db/schema";
-import { getDb } from "./db-connection";
-import { freshnessCutoff } from "./freshness";
+import { jobLocations, jobs } from "@/db/schema";
+import { getDb } from "@/lib/db-connection";
+import { freshnessCutoff } from "@/lib/freshness";
 import {
   FILTER_COMPANIES,
   FILTER_DEPARTMENTS,
@@ -9,7 +9,7 @@ import {
   FILTER_EXPERIENCE_LEVELS,
   FILTER_LOCATIONS,
   FILTER_SOURCES,
-} from "./taxonomy";
+} from "@/lib/taxonomy";
 
 export interface FacetOption {
   value: string;

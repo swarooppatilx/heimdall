@@ -1,11 +1,11 @@
 import { eq, inArray, lt, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
-import { jobLocations, jobs } from "../db/schema";
-import type { Db } from "./db-connection";
-import { chunk, getDb } from "./db-connection";
-import { freshnessCutoff } from "./freshness";
-import { resolvePlace } from "./gazetteer";
-import type { Job } from "./job";
+import { jobLocations, jobs } from "@/db/schema";
+import type { Db } from "@/lib/db-connection";
+import { chunk, getDb } from "@/lib/db-connection";
+import { freshnessCutoff } from "@/lib/freshness";
+import { resolvePlace } from "@/lib/gazetteer";
+import type { Job } from "@/lib/job";
 
 function toRow(job: Job): typeof jobs.$inferInsert {
   return {

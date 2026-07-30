@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { serializeJsonLd } from "./json-ld";
+import { serializeJsonLd } from "@/components/json-ld";
 
 describe("serializeJsonLd", () => {
   it("escapes script-breaking angle brackets", () => {

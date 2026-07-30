@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { crawlAll, shouldRunTick, sweepSlice } from "./crawler";
-import { createCrawlBudget } from "./http";
-import type { Job } from "./job";
+import { crawlAll, shouldRunTick, sweepSlice } from "@/lib/crawler";
+import { createCrawlBudget } from "@/lib/http";
+import type { Job } from "@/lib/job";
 
 const { fetchJobsMock, getJobsByBoardMock, deleteJobsByIdsMock } = vi.hoisted(() => ({
   fetchJobsMock: vi.fn(),

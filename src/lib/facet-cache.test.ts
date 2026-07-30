@@ -23,7 +23,7 @@ vi.mock("./facets", () => ({
   getFacetOptions: () => dbGet(),
 }));
 
-import { getFacetOptionsCached } from "./facet-cache";
+import { getFacetOptionsCached } from "@/lib/facet-cache";
 
 beforeEach(() => {
   kvStore.clear();

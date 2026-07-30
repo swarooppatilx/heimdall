@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeFilterValue } from "./sanitize";
+import { sanitizeFilterValue } from "@/lib/sanitize";
 
 describe("sanitizeFilterValue", () => {
   it("lowercases and strips bracketed suffixes", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMatchQuery } from "./search";
+import { buildMatchQuery } from "@/lib/search";
 
 describe("buildMatchQuery", () => {
   it("quotes tokens and prefixes the last for search", () => {

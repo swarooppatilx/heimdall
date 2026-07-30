@@ -1,13 +1,13 @@
 import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, like, ne, sql } from "drizzle-orm";
-import { jobLocations, jobs } from "../db/schema";
-import { getDb } from "./db-connection";
-import { resolveEmploymentType } from "./employment";
-import { freshnessCutoff } from "./freshness";
-import { resolvePlace } from "./gazetteer";
-import type { Job } from "./job";
-import { sanitizeFilterValue } from "./sanitize";
-import { buildMatchQuery } from "./search";
+import { jobLocations, jobs } from "@/db/schema";
+import { getDb } from "@/lib/db-connection";
+import { resolveEmploymentType } from "@/lib/employment";
+import { freshnessCutoff } from "@/lib/freshness";
+import { resolvePlace } from "@/lib/gazetteer";
+import type { Job } from "@/lib/job";
+import { sanitizeFilterValue } from "@/lib/sanitize";
+import { buildMatchQuery } from "@/lib/search";
 
 function toJob(row: typeof jobs.$inferSelect): Job {
   return {

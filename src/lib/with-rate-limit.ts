@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
-import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "./rate-limit";
+import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "@/lib/rate-limit";
 
 interface RateLimitConfig {
   binding: RateLimitBinding;

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Job } from "@/lib/job";
-import { mapPostings } from "./postings";
+import { mapPostings } from "@/lib/postings";
 
 function job(id: string): Job {
   return {

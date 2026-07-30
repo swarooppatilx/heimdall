@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveEmploymentType } from "./employment";
+import { resolveEmploymentType } from "@/lib/employment";
 
 describe("resolveEmploymentType", () => {
   it("maps live provider variants onto standard enums", () => {

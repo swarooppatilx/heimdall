@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchWorkdayJobs, postedAtFrom } from "./workday";
+import { fetchWorkdayJobs, postedAtFrom } from "@/lib/providers/workday";
 
 const ENDPOINT = "https://micron.wd1.myworkdayjobs.com/wday/cxs/micron/External/jobs";
 

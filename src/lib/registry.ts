@@ -1,4 +1,4 @@
-import registryData from "./registry.json";
+import registryData from "@/lib/registry.json";
 
 export interface RegistryEntry {
   name: string;

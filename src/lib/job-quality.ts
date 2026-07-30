@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
-import { jobs } from "../db/schema";
-import { getDb } from "./db-connection";
-import { EMPLOYMENT_TYPES } from "./employment";
+import { jobs } from "@/db/schema";
+import { getDb } from "@/lib/db-connection";
+import { EMPLOYMENT_TYPES } from "@/lib/employment";
 
 const canonicalTypes = EMPLOYMENT_TYPES.map((type) => `'${type}'`).join(", ");
 

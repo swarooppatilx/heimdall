@@ -4,7 +4,7 @@ import {
   currentFreshnessDays,
   DEFAULT_FRESHNESS_DAYS,
   freshnessCutoff,
-} from "./freshness";
+} from "@/lib/freshness";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

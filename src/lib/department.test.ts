@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeDepartment } from "./department";
+import { normalizeDepartment } from "@/lib/department";
 
 describe("normalizeDepartment", () => {
   it("passes canonical buckets through", () => {

@@ -1,5 +1,5 @@
-import { cacheKv } from "./cache-kv";
-import { type FacetOptions, getFacetOptions } from "./facets";
+import { cacheKv } from "@/lib/cache-kv";
+import { type FacetOptions, getFacetOptions } from "@/lib/facets";
 
 const CACHE_KEY = "facet-options";
 const EDGE_TTL_SECONDS = 60;
