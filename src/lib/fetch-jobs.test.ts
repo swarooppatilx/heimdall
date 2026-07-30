@@ -120,3 +120,56 @@ describe("fetchJobs", () => {
     expect(jobs).toHaveLength(0);
   });
 });
+
+describe("fetchJobs url validation", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date("2026-08-20T12:00:00.000Z") });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("drops postings whose url is not a safe http(s) link", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            jobs: [
+              {
+                id: 1,
+                title: "Safe Role",
+                location: { name: "Remote" },
+                updated_at: "2026-08-15T12:00:00.000Z",
+                absolute_url: "https://boards.greenhouse.io/testco/jobs/1",
+              },
+              {
+                id: 2,
+                title: "Evil Role",
+                location: { name: "Remote" },
+                updated_at: "2026-08-15T12:00:00.000Z",
+                absolute_url: "javascript:alert(1)",
+              },
+              {
+                id: 3,
+                title: "Broken Role",
+                location: { name: "Remote" },
+                updated_at: "2026-08-15T12:00:00.000Z",
+                absolute_url: "not-a-url",
+              },
+            ],
+          }),
+      }),
+    );
+
+    const jobs = await fetchJobs(entry);
+
+    expect(jobs.map((job) => job.title)).toEqual(["Safe Role"]);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("postings_invalid_url"));
+    logSpy.mockRestore();
+  });
+});

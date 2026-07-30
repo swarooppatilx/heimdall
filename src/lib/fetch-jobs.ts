@@ -5,6 +5,7 @@ import { freshnessCutoff } from "./freshness";
 import { formatPlace, resolvePlace } from "./gazetteer";
 import type { CrawlBudget } from "./http";
 import type { Job } from "./job";
+import { logEvent } from "./logger";
 import { fetchAshbyJobs } from "./providers/ashby";
 import { fetchGreenhouseJobs } from "./providers/greenhouse";
 import { fetchLeverJobs } from "./providers/lever";
@@ -46,6 +47,16 @@ function deriveFields(job: Job): Job {
   };
 }
 
+const ALLOWED_URL_PROTOCOLS = new Set(["http:", "https:"]);
+
+function hasSafeUrl(url: string): boolean {
+  try {
+    return ALLOWED_URL_PROTOCOLS.has(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchJobs(entry: RegistryEntry, budget?: CrawlBudget): Promise<Job[]> {
   const fetchProviderJobs = PROVIDERS[entry.provider];
 
@@ -53,12 +64,16 @@ export async function fetchJobs(entry: RegistryEntry, budget?: CrawlBudget): Pro
     throw new Error(`Unknown provider: ${entry.provider}`);
   }
 
-  const jobs = await fetchProviderJobs(entry, budget);
+  const mapped = await fetchProviderJobs(entry, budget);
   const company = entry.label ?? entry.name;
+
+  const unsafeUrls = mapped.filter((job) => !hasSafeUrl(job.url)).length;
+  if (unsafeUrls > 0) logEvent("postings_invalid_url", { company, skipped: unsafeUrls });
 
   const cutoffMs = Date.parse(freshnessCutoff());
 
-  return jobs
+  return mapped
+    .filter((job) => hasSafeUrl(job.url))
     .filter((job) => {
       if (Number.isNaN(job.postedAt.getTime())) return false;
       return job.postedAt.getTime() >= cutoffMs;
