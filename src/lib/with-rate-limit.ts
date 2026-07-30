@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+import { formatError, logEvent } from "@/lib/logger";
 import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "./rate-limit";
 
 interface RateLimitConfig {
@@ -13,6 +15,14 @@ export function withRateLimit(
   return async (request) => {
     const limit = await checkRateLimit(request, config);
     if (!limit.allowed) return rateLimitResponse(limit.resetMs);
-    return handler(request);
+    try {
+      return await handler(request);
+    } catch (err) {
+      logEvent("api_error", {
+        path: new URL(request.url).pathname,
+        error: formatError(err),
+      });
+      return NextResponse.json({ error: "internal_error" }, { status: 500 });
+    }
   };
 }
