@@ -3,6 +3,7 @@ import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
+import { mapPostings } from "../postings";
 
 interface WorkdayPosting {
   title: string;
@@ -114,7 +115,7 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
     offsets.push(offset);
   }
 
-  const postings = [...first.jobPostings];
+  const postings = [...(first.jobPostings ?? [])];
   const totalPages = offsets.length + 1;
   let failedPages = 0;
   for (let i = 0; i < offsets.length; i += PAGE_CONCURRENCY) {
@@ -123,7 +124,7 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
       chunk.map((offset) => fetchPageWithRetry(apiUrl, offset, budget)),
     );
     for (const result of settled) {
-      if (result.status === "fulfilled") postings.push(...result.value.jobPostings);
+      if (result.status === "fulfilled") postings.push(...(result.value.jobPostings ?? []));
       else failedPages += 1;
     }
   }
@@ -132,5 +133,5 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
     throw new Error(`Workday pagination incomplete: ${failedPages} of ${totalPages} pages failed`);
   }
 
-  return postings.map((p) => mapJob(p, tenant, apiUrl));
+  return mapPostings(postings, tenant, (p) => mapJob(p, tenant, apiUrl));
 }

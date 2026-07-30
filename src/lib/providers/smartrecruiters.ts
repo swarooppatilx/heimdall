@@ -3,6 +3,7 @@ import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
+import { mapPostings } from "../postings";
 
 interface SmartRecruitersPosting {
   id: string;
@@ -64,7 +65,7 @@ export async function fetchSmartRecruitersJobs(
   company: string,
   budget?: CrawlBudget,
 ): Promise<Job[]> {
-  const allJobs: Job[] = [];
+  const postings: SmartRecruitersPosting[] = [];
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const offset = page * PAGE_SIZE;
@@ -76,10 +77,10 @@ export async function fetchSmartRecruitersJobs(
       undefined,
       budget,
     );
-    allJobs.push(...data.content.map((j) => mapJob(j, company)));
+    postings.push(...(data.content ?? []));
 
     if (offset + PAGE_SIZE >= data.totalFound || data.content.length === 0) break;
   }
 
-  return allJobs;
+  return mapPostings(postings, company, (j) => mapJob(j, company));
 }

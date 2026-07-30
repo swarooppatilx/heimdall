@@ -3,6 +3,7 @@ import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
+import { mapPostings } from "../postings";
 
 interface GreenhouseJob {
   id: number;
@@ -42,7 +43,7 @@ function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp)
 export async function fetchGreenhouseJobs(board: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
   const data = await fetchJson<{ jobs: GreenhouseJob[] }>(url, board, undefined, undefined, budget);
-  return data.jobs.map((j: GreenhouseJob) => mapJob(j, board));
+  return mapPostings(data.jobs, board, (j) => mapJob(j, board));
 }
 
 export function mapJob(raw: GreenhouseJob, board: string): Job {

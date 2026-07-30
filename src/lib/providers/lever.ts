@@ -3,6 +3,7 @@ import { type CrawlBudget, fetchJson } from "../http";
 import type { Job } from "../job";
 import { splitLocations } from "../locations";
 import { normalizeLocation } from "../normalize";
+import { mapPostings } from "../postings";
 
 interface LeverPosting {
   id: string;
@@ -32,5 +33,5 @@ function mapJob(raw: LeverPosting, company: string): Job {
 export async function fetchLeverJobs(company: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://api.lever.co/v0/postings/${company}`;
   const data = await fetchJson<LeverPosting[]>(url, company, undefined, undefined, budget);
-  return data.map((p: LeverPosting) => mapJob(p, company));
+  return mapPostings(data, company, (p) => mapJob(p, company));
 }
