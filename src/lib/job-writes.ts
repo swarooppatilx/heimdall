@@ -141,10 +141,10 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
     await db.batch([
       db.delete(jobs).where(inArray(jobs.id, page)),
       db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
-      db.run(
-        sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.join(page.map((id) => sql`${id}`, sql`, `))})`,
-      ),
     ]);
+    await db.run(
+      sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.join(page.map((id) => sql`${id}`, sql`, `))})`,
+    );
   }
 }
 
