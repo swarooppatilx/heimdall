@@ -36,10 +36,7 @@ describe("fetchAshbyJobs", () => {
   });
 
   it("fetches and maps jobs correctly", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchAshbyJobs("testco");
 
@@ -59,10 +56,7 @@ describe("fetchAshbyJobs", () => {
   });
 
   it("infers department from title when empty", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchAshbyJobs("testco");
 
@@ -70,10 +64,7 @@ describe("fetchAshbyJobs", () => {
   });
 
   it("normalizes location", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchAshbyJobs("testco");
 
@@ -82,19 +73,13 @@ describe("fetchAshbyJobs", () => {
   });
 
   it("throws on HTTP error", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      status: 403,
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 403 }));
 
     await expect(fetchAshbyJobs("nope")).rejects.toThrow("Failed to fetch jobs from nope: 403");
   });
 
   it("calls the correct URL", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ jobs: [] }),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json({ jobs: [] }));
 
     await fetchAshbyJobs("mycompany");
 

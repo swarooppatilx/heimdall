@@ -49,10 +49,7 @@ describe("fetchSmartRecruitersJobs", () => {
   });
 
   it("fetches and maps jobs correctly", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
@@ -74,10 +71,7 @@ describe("fetchSmartRecruitersJobs", () => {
   });
 
   it("infers department when department and function are empty", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
@@ -85,10 +79,7 @@ describe("fetchSmartRecruitersJobs", () => {
   });
 
   it("normalizes remote locations", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
@@ -136,14 +127,8 @@ describe("fetchSmartRecruitersJobs", () => {
     };
 
     vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(page1),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(page2),
-      } as Response);
+      .mockResolvedValueOnce(Response.json(page1))
+      .mockResolvedValueOnce(Response.json(page2));
 
     const jobs = await fetchSmartRecruitersJobs("testco");
 
@@ -152,10 +137,7 @@ describe("fetchSmartRecruitersJobs", () => {
   });
 
   it("throws on HTTP error", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      status: 404,
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 404 }));
 
     await expect(fetchSmartRecruitersJobs("nope")).rejects.toThrow(
       "Failed to fetch jobs from nope: 404",
@@ -163,10 +145,7 @@ describe("fetchSmartRecruitersJobs", () => {
   });
 
   it("calls the correct URL", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ totalFound: 0, content: [] }),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json({ totalFound: 0, content: [] }));
 
     await fetchSmartRecruitersJobs("mycompany");
 

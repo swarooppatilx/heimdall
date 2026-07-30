@@ -43,10 +43,7 @@ describe("fetchGreenhouseJobs", () => {
   });
 
   it("fetches and maps jobs correctly", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
@@ -69,10 +66,7 @@ describe("fetchGreenhouseJobs", () => {
   });
 
   it("prefers first_published over updated_at for freshness", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
@@ -80,10 +74,7 @@ describe("fetchGreenhouseJobs", () => {
   });
 
   it("falls back to updated_at when first_published is missing", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
@@ -91,10 +82,7 @@ describe("fetchGreenhouseJobs", () => {
   });
 
   it("infers department from title when metadata is absent", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 
@@ -102,10 +90,7 @@ describe("fetchGreenhouseJobs", () => {
   });
 
   it("normalizes location", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");
 

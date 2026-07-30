@@ -34,10 +34,7 @@ describe("fetchLeverJobs", () => {
   });
 
   it("fetches and maps jobs correctly", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchLeverJobs("example");
 
@@ -56,10 +53,7 @@ describe("fetchLeverJobs", () => {
   });
 
   it("handles missing location and department", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchLeverJobs("example");
 
@@ -68,19 +62,13 @@ describe("fetchLeverJobs", () => {
   });
 
   it("throws on HTTP error", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      status: 500,
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }));
 
     await expect(fetchLeverJobs("bad")).rejects.toThrow("Failed to fetch jobs from bad: 500");
   });
 
   it("calls the correct URL", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    } as Response);
+    vi.mocked(fetch).mockResolvedValue(Response.json([]));
 
     await fetchLeverJobs("testco");
 

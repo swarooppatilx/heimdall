@@ -14,10 +14,7 @@ function posting(i: number, overrides: Record<string, unknown> = {}) {
 }
 
 function page(total: number, items: ReturnType<typeof posting>[]) {
-  return {
-    ok: true,
-    json: () => Promise.resolve({ total, jobPostings: items }),
-  };
+  return Response.json({ total, jobPostings: items });
 }
 
 describe("postedAtFrom", () => {
@@ -52,7 +49,7 @@ describe("fetchWorkdayJobs", () => {
   });
 
   it("maps postings with derived urls and ids", async () => {
-    vi.mocked(fetch).mockResolvedValue(page(1, [posting(7)]) as never);
+    vi.mocked(fetch).mockResolvedValue(page(1, [posting(7)]));
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
 
@@ -68,9 +65,7 @@ describe("fetchWorkdayJobs", () => {
   });
 
   it("treats multi-location placeholders as unknown", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      page(2, [posting(9, { locationsText: "2 Locations" })]) as never,
-    );
+    vi.mocked(fetch).mockResolvedValue(page(2, [posting(9, { locationsText: "2 Locations" })]));
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
 
@@ -81,9 +76,9 @@ describe("fetchWorkdayJobs", () => {
     const mock = vi.mocked(fetch);
     mock.mockImplementation((_url, init) => {
       const { offset } = JSON.parse(String(init?.body));
-      if (offset === 0) return Promise.resolve(page(45, [posting(1)]) as never);
-      if (offset === 20) return Promise.resolve(page(45, [posting(2)]) as never);
-      return Promise.resolve(page(45, [posting(3), posting(4)]) as never);
+      if (offset === 0) return Promise.resolve(page(45, [posting(1)]));
+      if (offset === 20) return Promise.resolve(page(45, [posting(2)]));
+      return Promise.resolve(page(45, [posting(3), posting(4)]));
     });
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
@@ -101,7 +96,7 @@ describe("fetchWorkdayJobs", () => {
     const mock = vi.mocked(fetch);
     mock.mockImplementation((_url, init) => {
       const { offset } = JSON.parse(String(init?.body));
-      return Promise.resolve(page(100_000, [posting(offset)]) as never);
+      return Promise.resolve(page(100_000, [posting(offset)]));
     });
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
@@ -117,9 +112,9 @@ describe("fetchWorkdayJobs", () => {
       if (offset === 20) {
         const seen = attempts.get(offset) ?? 0;
         attempts.set(offset, seen + 1);
-        if (seen === 0) return Promise.resolve({ ok: false, status: 503 } as never);
+        if (seen === 0) return Promise.resolve(new Response(null, { status: 503 }));
       }
-      return Promise.resolve(page(41, [posting(offset)]) as never);
+      return Promise.resolve(page(41, [posting(offset)]));
     });
 
     const jobs = await fetchWorkdayJobs(ENDPOINT);
@@ -131,8 +126,8 @@ describe("fetchWorkdayJobs", () => {
     const mock = vi.mocked(fetch);
     mock.mockImplementation((_url, init) => {
       const { offset } = JSON.parse(String(init?.body));
-      if (offset === 20) return Promise.resolve({ ok: false, status: 500 } as never);
-      return Promise.resolve(page(41, [posting(offset)]) as never);
+      if (offset === 20) return Promise.resolve(new Response(null, { status: 500 }));
+      return Promise.resolve(page(41, [posting(offset)]));
     });
 
     await expect(fetchWorkdayJobs(ENDPOINT)).rejects.toThrow("pagination incomplete");

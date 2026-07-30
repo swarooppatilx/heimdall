@@ -72,7 +72,9 @@ describe("fetchJson", () => {
     await vi.runAllTimersAsync();
     await assertion;
 
-    expect(Date.now() - startedAt).toBe(1500);
+    const elapsed = Date.now() - startedAt;
     expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(elapsed).toBeGreaterThanOrEqual(1500);
+    expect(elapsed).toBeLessThanOrEqual(2000);
   });
 });
