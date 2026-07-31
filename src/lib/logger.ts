@@ -11,5 +11,6 @@ export function formatError(err: unknown): string {
     .split("\n")
     .slice(1, 1 + STACK_FRAMES)
     .map((line) => line.trim());
-  return frames.length > 0 ? `${message} — ${frames.join(" | ")}` : message;
+  if (frames.length > 0) return `${message} — ${frames.join(" | ")}`;
+  return `${message} [no stack]`;
 }
