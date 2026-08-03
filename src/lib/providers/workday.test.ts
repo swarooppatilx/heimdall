@@ -137,3 +137,22 @@ describe("fetchWorkdayJobs", () => {
     await expect(fetchWorkdayJobs("")).rejects.toThrow("Missing workday api url");
   });
 });
+
+describe("fetchWorkdayJobs budget guard", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("stops paginating when the external subrequest budget is spent", async () => {
+    vi.mocked(fetch).mockResolvedValue(page(1000, [posting(1)]));
+
+    await expect(fetchWorkdayJobs(ENDPOINT, { used: 45 })).rejects.toThrow(
+      /Workday budget exhausted/,
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});

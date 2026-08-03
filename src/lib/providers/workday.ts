@@ -22,6 +22,13 @@ const MAX_PAGES = 200;
 const PAGE_CONCURRENCY = 10;
 const PAGE_RETRIES = 1;
 const WORKDAY_TIMEOUT_MS = 20_000;
+const EXTERNAL_SUBREQUEST_LIMIT = 50;
+const SUBREQUEST_HEADROOM = 10;
+
+function hasExternalBudgetLeft(budget?: CrawlBudget): boolean {
+  if (!budget) return true;
+  return budget.used < EXTERNAL_SUBREQUEST_LIMIT - SUBREQUEST_HEADROOM;
+}
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function postedAtFrom(raw: string | undefined): Date {
@@ -118,7 +125,12 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
   const postings = [...(first.jobPostings ?? [])];
   const totalPages = offsets.length + 1;
   let failedPages = 0;
+  let exhaustedBudget = false;
   for (let i = 0; i < offsets.length; i += PAGE_CONCURRENCY) {
+    if (budget && !hasExternalBudgetLeft(budget)) {
+      exhaustedBudget = true;
+      break;
+    }
     const chunk = offsets.slice(i, i + PAGE_CONCURRENCY);
     const settled = await Promise.allSettled(
       chunk.map((offset) => fetchPageWithRetry(apiUrl, offset, budget)),
@@ -127,6 +139,12 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
       if (result.status === "fulfilled") postings.push(...(result.value.jobPostings ?? []));
       else failedPages += 1;
     }
+  }
+
+  if (exhaustedBudget) {
+    throw new Error(
+      `Workday budget exhausted for ${tenant}: loaded ${postings.length} of ${totalPages} pages`,
+    );
   }
 
   if (failedPages > 0) {
