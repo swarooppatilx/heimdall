@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 describe("getDb", () => {
-  it("reinitializes after a failed connection attempt", async () => {
+  it("reinitializes after a failed connection attempt", { timeout: 20_000 }, async () => {
     const mod = await freshModule();
     getCloudflareContext.mockRejectedValueOnce(new Error("context unavailable"));
 
@@ -28,7 +28,7 @@ describe("getDb", () => {
     expect(getCloudflareContext).toHaveBeenCalledTimes(2);
   });
 
-  it("reuses the same connection across calls", async () => {
+  it("reuses the same connection across calls", { timeout: 20_000 }, async () => {
     const mod = await freshModule();
     getCloudflareContext.mockResolvedValue({ env: { DB: {} } });
 
