@@ -11,6 +11,7 @@ export const FILTER_SOURCES = [
   "ashby",
   "smartrecruiters",
   "workday",
+  "workable",
 ] as const;
 
 export const FILTER_COMPANIES: readonly string[] = [
