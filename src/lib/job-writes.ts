@@ -34,13 +34,16 @@ interface LocationFacet {
   country: string;
 }
 
-function ftsStatements(db: Db, job: Job): BatchItem<"sqlite">[] {
-  const clear = db.run(sql`DELETE FROM jobs_fts WHERE job_id = ${job.id}`);
-  const insert = db.run(
-    sql`INSERT INTO jobs_fts (title, company, location, department, job_id)
-        VALUES (${job.title}, ${job.company}, ${job.location}, ${job.department.trim()}, ${job.id})`,
+async function syncJobFts(db: Db, page: Job[]): Promise<void> {
+  const ids = sql.join(
+    page.map((job) => sql`${job.id}`),
+    sql`, `,
   );
-  return [clear, insert];
+  await db.run(sql`DELETE FROM jobs_fts WHERE job_id IN (${ids})`);
+  await db.run(sql`
+    INSERT INTO jobs_fts (title, company, location, department, job_id)
+    SELECT title, company, location, department, id FROM jobs WHERE id IN (${ids})
+  `);
 }
 
 export function locationFacets(job: Job): LocationFacet[] {
@@ -106,9 +109,9 @@ export async function insertJobs(items: Job[]): Promise<void> {
           }),
       );
       statements.push(...facetStatements(db, job));
-      statements.push(...ftsStatements(db, job));
     }
     await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
+    await syncJobFts(db, page);
   }
 }
 
@@ -128,9 +131,9 @@ export async function updateJobs(items: Job[]): Promise<void> {
           .where(eq(jobs.id, job.id)),
       );
       statements.push(...facetStatements(db, job));
-      statements.push(...ftsStatements(db, job));
     }
     await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
+    await syncJobFts(db, page);
   }
 }
 
