@@ -34,15 +34,19 @@ interface LocationFacet {
   country: string;
 }
 
+function literalIdList(page: Job[]): string {
+  return page.map((job) => `'${job.id.replaceAll("'", "''")}'`).join(", ");
+}
+
+// FTS5 virtual tables reject bound parameters inside DELETE ... IN, so ids are
+// inlined as escaped literals. Raw statements never join db.batch() (drizzle
+// issue #2277).
 async function syncJobFts(db: Db, page: Job[]): Promise<void> {
-  const ids = sql.join(
-    page.map((job) => sql`${job.id}`),
-    sql`, `,
-  );
-  await db.run(sql`DELETE FROM jobs_fts WHERE job_id IN (${ids})`);
+  const ids = literalIdList(page);
+  await db.run(sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.raw(ids)})`);
   await db.run(sql`
     INSERT INTO jobs_fts (title, company, location, department, job_id)
-    SELECT title, company, location, department, id FROM jobs WHERE id IN (${ids})
+    SELECT title, company, location, department, id FROM jobs WHERE id IN (${sql.raw(ids)})
   `);
 }
 
