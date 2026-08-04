@@ -23,7 +23,7 @@ const PAGE_CONCURRENCY = 10;
 const PAGE_RETRIES = 1;
 const WORKDAY_TIMEOUT_MS = 20_000;
 const EXTERNAL_SUBREQUEST_LIMIT = 50;
-const SUBREQUEST_HEADROOM = 10;
+const SUBREQUEST_HEADROOM = 15;
 
 function hasExternalBudgetLeft(budget?: CrawlBudget): boolean {
   if (!budget) return true;
@@ -143,7 +143,7 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
 
   if (exhaustedBudget) {
     throw new Error(
-      `Workday budget exhausted for ${tenant}: loaded ${postings.length} of ${totalPages} pages`,
+      `Workday budget exhausted for ${tenant}: ${postings.length} postings loaded of ~${first.total} listed`,
     );
   }
 
