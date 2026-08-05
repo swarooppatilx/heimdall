@@ -1,7 +1,7 @@
 import { inferDepartment } from "@/lib/department";
+import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { splitLocations } from "@/lib/locations";
 import { normalizeLocation } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
