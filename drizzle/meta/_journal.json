@@ -64,6 +64,13 @@
       "when": 1784679949000,
       "tag": "0008_jobs_fts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1785889179000,
+      "tag": "0009_location_repairs",
+      "breakpoints": true
     }
   ]
 }
