@@ -3,7 +3,7 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 function fakeRequest(ip = "127.0.0.1"): Request {
   return new Request("http://localhost/api/test", {
-    headers: { "x-forwarded-for": ip },
+    headers: { "cf-connecting-ip": ip },
   });
 }
 

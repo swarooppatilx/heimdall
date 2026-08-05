@@ -24,13 +24,7 @@ interface EdgeLimiter {
 }
 
 function getClientIp(request: Request): string {
-  const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp) return cfIp;
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || "127.0.0.1";
-  const real = request.headers.get("x-real-ip");
-  if (real) return real;
-  return "127.0.0.1";
+  return request.headers.get("cf-connecting-ip") ?? "unknown";
 }
 
 async function checkEdgeLimit(
@@ -76,6 +70,10 @@ export async function checkRateLimit(
 
   let entry = store.get(key);
   if (!entry) {
+    if (store.size >= MEMORY_PRUNE_THRESHOLD) {
+      // unknown clients get rejected rather than growing an unbounded map
+      return { allowed: false, resetMs: opts.windowMs };
+    }
     entry = { timestamps: [] };
     store.set(key, entry);
   }
@@ -99,6 +97,7 @@ export function rateLimitResponse(resetMs: number): Response {
       headers: {
         "Retry-After": String(Math.ceil(resetMs / 1000)),
         "Content-Type": "application/json",
+        "Cache-Control": "no-store",
       },
     },
   );
