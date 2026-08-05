@@ -10,16 +10,28 @@ import { timeAgo } from "@/lib/time-ago";
 
 const companyStats = cache(getCompanyStats);
 
+function decodeCompany(raw: string): string | null {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ name: string }>;
 }): Promise<Metadata> {
   const { name } = await params;
-  const company = decodeURIComponent(name);
+  const company = decodeCompany(name);
+  if (!company) notFound();
   const stats = await companyStats(company);
   return {
     title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
+    alternates: {
+      canonical: `/company/${company}`,
+    },
     description: `browse ${stats.total} fresh tech job openings at ${company}. direct from the company career page.`,
     openGraph: {
       title: `${company} — fresh tech jobs`,
@@ -36,7 +48,8 @@ export async function generateMetadata({
 
 export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  const company = decodeURIComponent(name);
+  const company = decodeCompany(name);
+  if (!company) notFound();
   const jobs = await getJobsByCompany(company);
   const stats = await companyStats(company);
 

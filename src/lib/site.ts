@@ -1,1 +1,1 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://heimdall.dev";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://heimdall.daenerys.workers.dev";
