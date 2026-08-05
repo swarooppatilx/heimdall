@@ -21,6 +21,12 @@ interface PublicCrawlStatus {
   createdAt: string;
 }
 
+// D1 datetime('now') is UTC but carries no zone suffix; without the marker
+// browsers parse it as local time and "synced" ages inflate by the UTC offset.
+function toIsoUtc(dbTimestamp: string): string {
+  return new Date(`${dbTimestamp.replace(" ", "T")}Z`).toISOString();
+}
+
 function toPublic({
   company,
   status,
@@ -28,7 +34,7 @@ function toPublic({
   durationMs,
   createdAt,
 }: CrawlRecord): PublicCrawlStatus {
-  return { company, status, jobsFound, durationMs, createdAt };
+  return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
 }
 
 export const GET = withRateLimit(
