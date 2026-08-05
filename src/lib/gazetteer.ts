@@ -5,6 +5,7 @@ export interface Place {
 }
 
 const COUNTRY_CANONICAL: Record<string, string> = {
+  korea: "south korea",
   usa: "united states",
   "u.s.": "united states",
   us: "united states",
@@ -75,7 +76,6 @@ const COUNTRIES = new Set([
   "slovenia",
   "south africa",
   "south korea",
-  "korea",
   "spain",
   "sweden",
   "switzerland",
@@ -147,7 +147,7 @@ const CITY_ALIASES: Record<string, [string, string]> = {
   berkeley: ["Berkeley", "United States"],
   fremont: ["Fremont", "United States"],
   "los angeles": ["Los Angeles", "United States"],
-  la: ["Los Angeles", "United States"],
+  "baton rouge": ["Baton Rouge", "United States"],
   "santa monica": ["Los Angeles", "United States"],
   sandiego: ["San Diego", "United States"],
   "san diego": ["San Diego", "United States"],
@@ -329,6 +329,12 @@ const CITY_ALIASES: Record<string, [string, string]> = {
   reykjavík: ["Reykjavik", "Iceland"],
 };
 
+// Ambiguous city names whose alias default is wrong for some countries.
+const CITY_COUNTRY_OVERRIDES: Record<string, Record<string, string>> = {
+  cambridge: { "united kingdom": "Cambridge" },
+  reading: { "united states": "Reading" },
+};
+
 const US_STATES: Record<string, string> = {
   al: "United States",
   ak: "United States",
@@ -397,7 +403,7 @@ const GARBAGE_PATTERN =
   /^(n\/?a|location|unknown|hybrid|onsite|on-site|in-office|in-pune|office|hq|headquarters?|global|multiple locations|\d+\s+locations?|blank.*|add all.*|various.*|not applicable)$/i;
 const STREET_PATTERN = /^\d+\s+\w+/;
 
-const SEGMENT_SPLIT = /[,/•|;\u2014\u2013]+/;
+const SEGMENT_SPLIT = /[,/\u2022|;\u2014\u2013]+|\s+-\s+/;
 const NOISE_CHARS = /^[\s\-().]*$/;
 
 function cleanSegment(segment: string): string {
@@ -420,12 +426,17 @@ function lookupCity(token: string): [string, string] | undefined {
   return CITY_ALIASES[token];
 }
 
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function fuzzyCity(text: string): [string, string] | undefined {
   let bestAlias = "";
   let best: [string, string] | undefined;
   for (const [alias, place] of Object.entries(CITY_ALIASES)) {
     if (alias.length < 5 || alias.length <= bestAlias.length) continue;
-    if (text.includes(alias)) {
+    const pattern = new RegExp(`\\b${escapeRegExp(alias)}\\b`);
+    if (pattern.test(text)) {
       bestAlias = alias;
       best = [place[0], place[1]];
     }
@@ -449,30 +460,45 @@ export function resolvePlace(raw: string): Place | null {
     .map(cleanSegment)
     .filter((s) => s.length > 0 && !NOISE_CHARS.test(s));
 
-  if (segments.some((s) => REMOTE_PATTERN.test(s))) return { remote: true };
+  const explicitCountrySegments = (segmentsList: string[]) => {
+    for (const segment of [...segmentsList].reverse()) {
+      const country = lookupCountry(segment);
+      if (country) return country;
+    }
+    for (const segment of segmentsList) {
+      const state = lookupRegionState(segment);
+      if (state) return state;
+    }
+    return undefined;
+  };
 
-  let country: string | undefined;
+  if (segments.some((s) => REMOTE_PATTERN.test(s))) {
+    const stripped = segments
+      .map((segment) => segment.replace(REMOTE_PATTERN, " ").replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+    const remoteCountry = explicitCountrySegments(stripped);
+    return remoteCountry ? { remote: true, country: remoteCountry } : { remote: true };
+  }
+
+  let country = explicitCountrySegments(segments);
   let city: string | undefined;
 
-  for (const segment of [...segments].reverse()) {
-    if (!country) country = lookupCountry(segment);
-  }
   for (const segment of segments) {
     const hit = lookupCity(segment);
-    if (hit) {
-      city = hit[0];
-      country = country ?? hit[1];
+    if (!hit) continue;
+    const explicit = country?.toLowerCase();
+    const override = explicit ? CITY_COUNTRY_OVERRIDES[segment]?.[explicit] : undefined;
+    if (override) {
+      city = override.toLowerCase();
+      country = explicit;
       break;
     }
-  }
-  if (!city) {
-    for (const segment of segments) {
-      const state = lookupRegionState(segment);
-      if (state) {
-        country = country ?? state;
-        break;
-      }
+    if (explicit && explicit !== hit[1].toLowerCase() && CITY_COUNTRY_OVERRIDES[segment]) {
+      continue;
     }
+    city = hit[0];
+    country = country ?? hit[1];
+    break;
   }
   if (!(city || country)) {
     const fuzzy = fuzzyCity(lowered);
@@ -490,7 +516,9 @@ export function resolvePlace(raw: string): Place | null {
 }
 
 export function formatPlace(place: Place): string {
-  if (place.remote) return "remote";
+  if (place.remote) {
+    return place.country ? `remote, ${place.country}` : "remote";
+  }
   if (place.city && place.country) return `${place.city}, ${place.country}`;
   if (place.city) return place.city;
   if (place.country) return place.country;
@@ -513,3 +541,10 @@ export const LOCATION_CATALOG: LocationCatalog = {
     ).values(),
   ].sort((a, b) => a.value.localeCompare(b.value)),
 };
+
+export function splitLocations(raw: string): string[] {
+  return raw
+    .split(/\s*[;•|]\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}

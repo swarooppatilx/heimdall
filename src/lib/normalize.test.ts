@@ -15,10 +15,10 @@ describe("normalizeLocation", () => {
     it("collapses every remote variant into one bucket", () => {
       expect(normalizeLocation("Remote")).toBe("remote");
       expect(normalizeLocation("remote")).toBe("remote");
-      expect(normalizeLocation("Remote, US")).toBe("remote");
-      expect(normalizeLocation("Remote, United States")).toBe("remote");
-      expect(normalizeLocation("Remote - United Kingdom")).toBe("remote");
-      expect(normalizeLocation("REMOTE — India")).toBe("remote");
+      expect(normalizeLocation("Remote, US")).toBe("us");
+      expect(normalizeLocation("Remote, United States")).toBe("united states");
+      expect(normalizeLocation("Remote - United Kingdom")).toBe("united kingdom");
+      expect(normalizeLocation("REMOTE — India")).toBe("india");
     });
   });
 
@@ -42,7 +42,7 @@ describe("normalizeLocation", () => {
 
   describe("multi-location strings", () => {
     it("takes the first location only", () => {
-      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("remote");
+      expect(normalizeLocation("Remote, Canada; Remote, United States")).toBe("canada");
       expect(normalizeLocation("San Francisco; New York")).toBe("san francisco");
     });
   });

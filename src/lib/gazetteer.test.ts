@@ -42,11 +42,22 @@ describe("resolvePlace", () => {
 
   it("marks remote locations", () => {
     expect(resolvePlace("remote")).toEqual({ remote: true });
-    expect(resolvePlace("remote - united states")).toEqual({ remote: true });
-    expect(resolvePlace("us remote")).toEqual({ remote: true });
+    expect(resolvePlace("us remote")).toEqual({ remote: true, country: "united states" });
     expect(resolvePlace("work from home - emea")).toEqual({ remote: true });
-    expect(resolvePlace("-remote, bulgaria-")).toEqual({ remote: true });
+    expect(resolvePlace("-remote, bulgaria-")).toEqual({ remote: true, country: "bulgaria" });
     expect(resolvePlace("distributed")).toEqual({ remote: true });
+  });
+
+  it("keeps the city when an explicit country matches a known override", () => {
+    expect(resolvePlace("Cambridge, United Kingdom")).toEqual({
+      city: "cambridge",
+      country: "united kingdom",
+    });
+    expect(resolvePlace("Reading, PA")).toEqual({ city: "reading", country: "united states" });
+    expect(resolvePlace("Baton Rouge, LA")).toEqual({
+      city: "baton rouge",
+      country: "united states",
+    });
   });
   it("rejects garbage into unknown", () => {
     const garbage = [

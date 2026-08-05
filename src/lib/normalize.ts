@@ -7,10 +7,10 @@ export function normalizeLocation(raw: string): string {
     .map((s) => s.trim())
     .filter(Boolean);
   const first = parts[0] ?? trimmed;
+  const withoutLeadingRemote = first.replace(/^\s*remote\b[\s,\-—–:|]*/i, "").trim();
+  if (!withoutLeadingRemote) return "remote";
 
-  if (/^remote\b/i.test(first)) return "remote";
-
-  const segments = first
+  const segments = withoutLeadingRemote
     .split(/\s*,\s*/)
     .map((s) => s.trim())
     .filter(Boolean)
