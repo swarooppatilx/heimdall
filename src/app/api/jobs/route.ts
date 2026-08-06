@@ -8,6 +8,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 export const dynamic = "force-dynamic";
 
 const EDGE_TTL_SECONDS = 60;
+const MAX_OFFSET = 10_000;
 const KV_TTL_SECONDS = 300;
 
 interface CachedJobsPage {
@@ -75,6 +76,10 @@ export const GET = withRateLimit(
     const pageOffset = parseIntParam(searchParams, "offset");
     if (pageLimit !== undefined) page.limit = pageLimit;
     if (pageOffset !== undefined) page.offset = pageOffset;
+
+    if ((pageOffset ?? 0) > MAX_OFFSET) {
+      return NextResponse.json({ error: "offset too large" }, { status: 400 });
+    }
 
     const cacheKey = await hashedCacheKey("jobs", request.url);
     const cached = await readCachedPage(cacheKey);
