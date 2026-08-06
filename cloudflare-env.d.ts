@@ -10,6 +10,7 @@ interface __BaseEnv_CloudflareEnv {
 	ASSETS: Fetcher;
 	NEXT_PUBLIC_SITE_URL: "https://heimdall.daenerys.workers.dev";
 	FRESHNESS_DAYS: "15";
+	CRAWL_STATUS_TOKEN?: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

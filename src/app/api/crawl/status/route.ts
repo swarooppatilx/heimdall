@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import {
@@ -37,9 +38,31 @@ function toPublic({
   return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
 }
 
+function constantTimeEqual(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const left = encoder.encode(a);
+  const right = encoder.encode(b);
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i += 1) diff |= left[i] === right[i] ? 0 : 1;
+  return diff === 0;
+}
+
+async function authorized(request: Request): Promise<boolean> {
+  const { env } = await getCloudflareContext();
+  const expected = (env as CloudflareEnv).CRAWL_STATUS_TOKEN;
+  if (!expected) return true;
+  const provided = request.headers.get("x-crawl-status-token");
+  if (!provided) return false;
+  return constantTimeEqual(expected, provided);
+}
+
 export const GET = withRateLimit(
   { binding: "STATUS_RATE_LIMITER", windowMs: 60_000, max: 30 },
-  async () => {
+  async (request) => {
+    if (!(await authorized(request))) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
     const [latest, history, samples] = await Promise.all([
       getLatestCrawls(),
       getCrawlHistory(),
