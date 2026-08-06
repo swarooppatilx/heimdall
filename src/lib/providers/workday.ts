@@ -115,6 +115,9 @@ export async function fetchWorkdayJobs(apiUrl: string, budget?: CrawlBudget): Pr
   const tenant = segments[2] ?? apiUrl;
 
   const first = await fetchPageWithRetry(apiUrl, 0, budget);
+  if (!Number.isFinite(first.total) || first.total <= 0) {
+    throw new Error(`Workday total missing for ${tenant}`);
+  }
   const maxOffset = Math.min(first.total, MAX_PAGES * PAGE_SIZE);
 
   const offsets: number[] = [];
