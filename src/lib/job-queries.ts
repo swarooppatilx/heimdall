@@ -1,5 +1,5 @@
 import type { AnyColumn } from "drizzle-orm";
-import { and, asc, count, desc, eq, gte, like, ne, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { jobLocations, jobs } from "@/db/schema";
 import { getDb } from "@/lib/db-connection";
 import { resolveEmploymentType } from "@/lib/employment";
@@ -53,6 +53,8 @@ const POSTED_WINDOWS_MS: Record<string, number> = {
   week: DAYS_PER_WEEK * MS_PER_DAY,
 };
 
+export const POSTED_WINDOWS = Object.keys(POSTED_WINDOWS_MS);
+
 export interface PageOptions {
   limit?: number;
   offset?: number;
@@ -60,6 +62,10 @@ export interface PageOptions {
 
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 500;
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\function facetMatch(");
+}
 
 function facetMatch(city: string | undefined, country: string | undefined) {
   const conds = [sql`${jobLocations.jobId} = ${jobs.id}`];
@@ -106,7 +112,9 @@ function jobConditions(filters: JobFilters) {
     } else if (place?.country) {
       conditions.push(facetMatch(undefined, place.country));
     } else {
-      conditions.push(like(jobs.location, `%${filters.location}%`));
+      conditions.push(
+        sql`${jobs.location} LIKE ${`%${escapeLike(filters.location)}%`} ESCAPE '\\'`,
+      );
     }
   }
   if (filters.city) {

@@ -3,6 +3,7 @@ import { cacheKv, hashedCacheKey } from "@/lib/cache-kv";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { countJobs, searchJobs } from "@/lib/db";
 import type { Job } from "@/lib/job";
+import { POSTED_WINDOWS } from "@/lib/job-queries";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,10 @@ export const GET = withRateLimit(
     const pageOffset = parseIntParam(searchParams, "offset");
     if (pageLimit !== undefined) page.limit = pageLimit;
     if (pageOffset !== undefined) page.offset = pageOffset;
+
+    if (filters.posted && !POSTED_WINDOWS.includes(filters.posted)) {
+      return NextResponse.json({ error: "invalid posted window" }, { status: 400 });
+    }
 
     if ((pageOffset ?? 0) > MAX_OFFSET) {
       return NextResponse.json({ error: "offset too large" }, { status: 400 });

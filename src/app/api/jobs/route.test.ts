@@ -200,3 +200,29 @@ describe("GET /api/jobs response cache", () => {
     expect(mockSearchJobs).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("GET /api/jobs filter validation", () => {
+  beforeEach(() => {
+    mockSearchJobs.mockReset();
+    mockSearchJobs.mockResolvedValue([]);
+    kvGet.mockReset();
+  });
+
+  it("rejects unknown posted windows with 400", async () => {
+    const res = await GET(makeRequest({ posted: "fortnight" }));
+    expect(res.status).toBe(400);
+    expect(mockSearchJobs).not.toHaveBeenCalled();
+  });
+
+  it("accepts known posted windows", async () => {
+    const res = await GET(makeRequest({ posted: "week" }));
+    expect(res.status).toBe(200);
+    expect(mockSearchJobs).toHaveBeenCalled();
+  });
+
+  it("rejects offsets beyond the deep-pagination cap", async () => {
+    const res = await GET(makeRequest({ offset: "20000" }));
+    expect(res.status).toBe(400);
+    expect(mockSearchJobs).not.toHaveBeenCalled();
+  });
+});
