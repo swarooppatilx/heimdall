@@ -2,7 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FilterSelect } from "@/components/filter-select";
 import { ActiveFilterChips } from "@/components/jobs/active-filter-chips";
 import { JobCard } from "@/components/jobs/job-card";
@@ -60,7 +68,7 @@ function JobsPage() {
     sort,
   };
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useJobFilters(filters);
   const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
@@ -120,6 +128,10 @@ function JobsPage() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) {
+        return;
+      }
       if (e.key === "/" && document.activeElement !== searchRef.current) {
         e.preventDefault();
         searchRef.current?.focus();
@@ -233,6 +245,15 @@ function JobsPage() {
         ? `showing ${jobs.length} of ${total} fresh roles`
         : `${jobCards.length} fresh role${jobCards.length === 1 ? "" : "s"}`;
 
+  const ANNOUNCEMENT_DEBOUNCE_MS = 600;
+  const [announcement, setAnnouncement] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnnouncement(isLoading ? "" : isError ? "fetching failed" : countLabel);
+    }, ANNOUNCEMENT_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [countLabel, isLoading, isError]);
+
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -309,7 +330,7 @@ function JobsPage() {
         <ActiveFilterChips chips={chips} onClearAll={clearAllFilters} />
 
         <ResultsToolbar
-          countLabel={countLabel}
+          countLabel={announcement}
           syncedAt={syncedAt}
           syncStale={syncStale}
           advancedCount={advancedCount}
@@ -324,7 +345,20 @@ function JobsPage() {
           sort={sort}
           onSortChange={setSort}
         />
-        {!(isLoading || isError) && jobCards.length === 0 && (
+        {isError ? (
+          <div className="rounded-lg border border-dashed border-destructive/40 p-8 text-center">
+            <p className="text-sm text-muted-foreground">something went wrong fetching jobs</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-4"
+            >
+              try again
+            </Button>
+          </div>
+        ) : !(isLoading || isError) && jobCards.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
             <p className="text-sm text-muted-foreground">no roles match these filters</p>
             {chips.length > 0 && (
@@ -339,10 +373,10 @@ function JobsPage() {
               </Button>
             )}
           </div>
-        )}
+        ) : null}
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
-        <ul id="job-results" className="flex flex-col gap-2">
+        <ul id="job-results" tabIndex={-1} className="flex flex-col gap-2">
           {Boolean(isLoading) && SKELETON_KEYS.map((key) => <JobCardSkeleton key={key} />)}
           {!isLoading &&
             jobCards.map(({ job, openings }) => (
@@ -350,7 +384,20 @@ function JobsPage() {
             ))}
         </ul>
 
-        <div ref={sentinelRef} aria-hidden="true" className="h-1" />
+        {!(isError || isFetchingNextPage) && (
+          <div ref={sentinelRef} aria-hidden="true" className="h-1" />
+        )}
+        {isError && hasNextPage && jobCards.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            className="mx-auto mt-2"
+          >
+            load more
+          </Button>
+        )}
 
         {isFetchingNextPage === true && (
           <ul className="mt-2 flex flex-col gap-2">

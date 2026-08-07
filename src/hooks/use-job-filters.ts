@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import type { Job } from "@/lib/job";
 
 const PAGE_SIZE = 50;
@@ -45,6 +45,7 @@ export function useJobFilters(filters: JobFiltersInput) {
       const jobs = (await res.json()) as Job[];
       return { jobs, total: Number(res.headers.get("X-Total-Count") ?? 0) };
     },
+    placeholderData: keepPreviousData,
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.jobs.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,

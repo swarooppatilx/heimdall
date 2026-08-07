@@ -13,7 +13,10 @@ export function useQueryParam(
   opts?: QueryParamOptions,
 ): [string, (v: string) => void, (v: string) => void] {
   const router = useRouter();
-  const [value, setValueState] = useState(initial);
+  const [value, setValueState] = useState(() => {
+    if (typeof window === "undefined") return initial;
+    return new URLSearchParams(window.location.search).get(key) ?? initial;
+  });
 
   const commit = useCallback(
     (v: string) => {
@@ -42,7 +45,6 @@ export function useQueryParam(
   useEffect(() => {
     const syncFromUrl = () =>
       setValueState(new URLSearchParams(window.location.search).get(key) ?? initial);
-    syncFromUrl();
     window.addEventListener("popstate", syncFromUrl);
     return () => window.removeEventListener("popstate", syncFromUrl);
   }, [key, initial]);
