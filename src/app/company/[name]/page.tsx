@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
-import { Button } from "@/components/ui/button";
 import { getCompanyStats, getJobsByCompany } from "@/lib/db";
-import { isRemoteLocation } from "@/lib/location";
-import { timeAgo } from "@/lib/time-ago";
+import { dedupeJobs } from "@/lib/job";
 
 const companyStats = cache(getCompanyStats);
 
@@ -130,48 +129,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
         <ul id="job-results" className="flex flex-col gap-2">
-          {jobs.map((job) => (
-            <li
-              key={job.id}
-              className="group rounded-lg border border-border/60 p-4 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="w-full min-w-0 sm:w-auto sm:flex-1">
-                  <h2 className="break-words text-sm font-semibold text-foreground sm:text-base">
-                    {job.title}
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{job.location}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    {isRemoteLocation(job.location) && (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground">
-                        remote
-                      </span>
-                    )}
-                    <span>
-                      {[job.department, job.experienceLevel === "mid" ? null : job.experienceLevel]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                    <span>{timeAgo(job.postedAt)}</span>
-                  </div>
-                </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-primary hover:text-primary-foreground"
-                >
-                  <a
-                    href={job.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Apply to ${job.title}`}
-                  >
-                    apply
-                  </a>
-                </Button>
-              </div>
-            </li>
+          {dedupeJobs(jobs, (job) => job.title.toLowerCase()).map(({ key, job, openings }) => (
+            <JobCard key={key} job={job} openings={openings} />
           ))}
         </ul>
       </main>

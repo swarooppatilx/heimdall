@@ -12,7 +12,6 @@ import {
   useState,
 } from "react";
 import { FilterSelect } from "@/components/filter-select";
-import { ActiveFilterChips } from "@/components/jobs/active-filter-chips";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
 import { ResultsToolbar } from "@/components/jobs/results-toolbar";
@@ -21,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { FacetOptions } from "@/lib/db";
-import type { Job } from "@/lib/job";
+import { dedupeJobs } from "@/lib/job";
 
 interface CrawlStatusEntry {
   company: string;
@@ -89,20 +88,10 @@ function JobsPage() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const jobCards = useMemo(() => {
-    const primary = new Map<string, Job>();
-    const counts = new Map<string, number>();
-    for (const job of jobs) {
-      const key = `${job.company}|${job.title.toLowerCase()}`;
-      if (!primary.has(key)) primary.set(key, job);
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-    return [...primary.entries()].map(([key, job]) => ({
-      key,
-      job,
-      openings: counts.get(key) ?? 1,
-    }));
-  }, [jobs]);
+  const jobCards = useMemo(
+    () => dedupeJobs(jobs, (job) => `${job.company}|${job.title.toLowerCase()}`),
+    [jobs],
+  );
 
   const { data: filterOptions } = useQuery<FacetOptions>({
     queryKey: ["filters"],
@@ -180,59 +169,9 @@ function JobsPage() {
     return ["remote", ...countries.map((c) => c.value), ...cities.map((t) => t.value)];
   }, [filterOptions]);
 
-  const chips = useMemo(() => {
-    const list: { key: string; label: string; onRemove: () => void }[] = [];
-    if (company)
-      list.push({ key: "company", label: `company: ${company}`, onRemove: () => setCompany("") });
-    if (location)
-      list.push({
-        key: "location",
-        label: `location: ${location}`,
-        onRemove: () => setLocation(""),
-      });
-    if (source)
-      list.push({ key: "source", label: `source: ${source}`, onRemove: () => setSource("") });
-    if (department)
-      list.push({
-        key: "department",
-        label: `department: ${department}`,
-        onRemove: () => setDepartment(""),
-      });
-    if (employmentType)
-      list.push({
-        key: "employmentType",
-        label: `type: ${employmentType}`,
-        onRemove: () => setEmploymentType(""),
-      });
-    if (experience)
-      list.push({
-        key: "experience",
-        label: `seniority: ${experience}`,
-        onRemove: () => setExperience(""),
-      });
-    if (posted)
-      list.push({
-        key: "posted",
-        label: `posted: ${posted === "week" ? "this week" : posted}`,
-        onRemove: () => setPosted(""),
-      });
-    return list;
-  }, [
-    company,
-    location,
-    source,
-    department,
-    experience,
-    posted,
-    employmentType,
-    setCompany,
-    setLocation,
-    setSource,
-    setDepartment,
-    setEmploymentType,
-    setExperience,
-    setPosted,
-  ]);
+  const hasFilters = Boolean(
+    company || location || source || department || experience || posted || employmentType,
+  );
 
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
   const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
@@ -327,12 +266,11 @@ function JobsPage() {
           </div>
         </section>
 
-        <ActiveFilterChips chips={chips} onClearAll={clearAllFilters} />
-
         <ResultsToolbar
           countLabel={announcement}
           syncedAt={syncedAt}
           syncStale={syncStale}
+          hasFilters={hasFilters}
           advancedCount={advancedCount}
           filterOptions={filterOptions}
           experience={experience}
@@ -361,7 +299,7 @@ function JobsPage() {
         ) : !(isLoading || isError) && jobCards.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-8 text-center">
             <p className="text-sm text-muted-foreground">no roles match these filters</p>
-            {chips.length > 0 && (
+            {hasFilters && (
               <Button
                 type="button"
                 variant="outline"
