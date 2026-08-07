@@ -201,7 +201,7 @@ function JobsPage() {
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/5 backdrop-blur-3xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-baseline gap-2">
             <h1 className="text-lg font-semibold tracking-tight">heimdall</h1>

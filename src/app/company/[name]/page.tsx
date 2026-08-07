@@ -72,7 +72,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/5 backdrop-blur-3xl">
         <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
           <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
             ← all jobs
