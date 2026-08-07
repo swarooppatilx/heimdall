@@ -9,7 +9,6 @@ export {
 } from "@/lib/crawl-store";
 export { bindDb } from "@/lib/db-connection";
 export type { FacetOptions } from "@/lib/facets";
-export { getFacetOptions } from "@/lib/facets";
 export { getJobQuality } from "@/lib/job-quality";
 export type { JobFilters, PageOptions } from "@/lib/job-queries";
 export {
