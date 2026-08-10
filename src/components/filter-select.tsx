@@ -27,7 +27,7 @@ export function FilterSelect({
   return (
     <Combobox value={value || null} onValueChange={(v) => onChange(v ?? "")} items={options}>
       <ComboboxInput placeholder={placeholder} showClear className={className} />
-      <ComboboxContent>
+      <ComboboxContent className="min-w-0">
         <ComboboxEmpty>no results</ComboboxEmpty>
         <ComboboxList>
           {(item: string) => (

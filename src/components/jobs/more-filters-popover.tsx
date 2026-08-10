@@ -13,7 +13,6 @@ interface MoreFiltersPopoverProps {
   onSourceChange: (value: string) => void;
   employmentType: string;
   onEmploymentTypeChange: (value: string) => void;
-  onClearAll: () => void;
 }
 
 export function MoreFiltersPopover({
@@ -25,13 +24,13 @@ export function MoreFiltersPopover({
   onSourceChange,
   employmentType,
   onEmploymentTypeChange,
-  onClearAll,
 }: MoreFiltersPopoverProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
+          suppressHydrationWarning
           className={`min-h-9 rounded-md border px-2.5 text-xs transition-colors ${
             advancedCount > 0
               ? "border-ring/40 bg-ring/10 text-ring"
@@ -41,7 +40,7 @@ export function MoreFiltersPopover({
           {advancedCount > 0 ? `more filters · ${advancedCount}` : "+ more filters"}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-4">
+      <PopoverContent align="end" className="w-64 max-w-[calc(100vw-2rem)] p-4">
         <div className="space-y-4">
           <div>
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">seniority</p>
@@ -74,17 +73,6 @@ export function MoreFiltersPopover({
             />
           </div>
         </div>
-        {advancedCount > 0 && (
-          <div className="mt-4 flex justify-end border-t border-border pt-3">
-            <button
-              type="button"
-              onClick={onClearAll}
-              className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-            >
-              clear all filters
-            </button>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );

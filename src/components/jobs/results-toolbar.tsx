@@ -1,5 +1,7 @@
 "use client";
 
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreFiltersPopover } from "@/components/jobs/more-filters-popover";
 import { SortMenu } from "@/components/jobs/sort-menu";
 import type { FacetOptions } from "@/lib/db";
@@ -9,6 +11,7 @@ interface ResultsToolbarProps {
   countLabel: string;
   syncedAt: string | undefined;
   syncStale: boolean;
+  hasFilters: boolean;
   advancedCount: number;
   filterOptions: FacetOptions | undefined;
   experience: string;
@@ -26,6 +29,7 @@ export function ResultsToolbar({
   countLabel,
   syncedAt,
   syncStale,
+  hasFilters,
   advancedCount,
   filterOptions,
   experience,
@@ -56,6 +60,16 @@ export function ResultsToolbar({
         ) : null}
       </p>
       <div className="flex items-center gap-1">
+        {hasFilters === true && (
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="inline-flex min-h-9 items-center gap-1 rounded-md border border-ring/40 bg-ring/10 px-2.5 text-xs text-ring transition-colors hover:border-ring/60"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="size-3" />
+            clear
+          </button>
+        )}
         <MoreFiltersPopover
           advancedCount={advancedCount}
           filterOptions={filterOptions}
@@ -65,7 +79,6 @@ export function ResultsToolbar({
           onSourceChange={onSourceChange}
           employmentType={employmentType}
           onEmploymentTypeChange={onEmploymentTypeChange}
-          onClearAll={onClearAll}
         />
         <SortMenu sort={sort} onSortChange={onSortChange} />
       </div>
