@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUpDownIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DropdownMenu,
@@ -23,18 +23,19 @@ export function SortMenu({ sort, onSortChange }: SortMenuProps) {
           type="button"
           className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
           aria-label="Sort jobs"
+          suppressHydrationWarning
         >
-          sort · {sort === "company" ? "company a–z" : "newest first"}
-          <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} className="size-3.5" />
+          <HugeiconsIcon icon={ArrowUpDownIcon} strokeWidth={2} className="size-3.5" />
+          {sort === "company" ? "alphabetical" : "newest"}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end" className="min-w-28">
         <DropdownMenuRadioGroup
           value={sort || "newest"}
           onValueChange={(v) => onSortChange(v === "newest" ? "" : v)}
         >
-          <DropdownMenuRadioItem value="newest">newest first</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="company">company a–z</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="newest">newest</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="company">alphabetical</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
