@@ -58,15 +58,15 @@ export async function fetchJson<T>(
   budget?: CrawlBudget,
 ): Promise<T> {
   let lastError: unknown;
+  let prevRetryAfter: number | undefined;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    let delayMs: number | undefined;
-    if (attempt > 1) await sleep(backoffDelay(attempt, delayMs));
+    if (attempt > 1) await sleep(backoffDelay(attempt, prevRetryAfter));
     try {
       if (budget) budget.used += 1;
       const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
       if (res.ok) return await parseJson<T>(res, source);
       lastError = new Error(`Failed to fetch jobs from ${source}: ${res.status}`);
-      delayMs = retryAfterMs(res);
+      prevRetryAfter = retryAfterMs(res);
       res.body?.cancel();
       if (res.status < 500 && res.status !== 429) break;
     } catch (err) {
