@@ -3,7 +3,7 @@
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import * as React from "react";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -14,10 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 
 const Combobox = ComboboxPrimitive.Root;
-
-function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
-  return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />;
-}
 
 function ComboboxTrigger({ className, children, ...props }: ComboboxPrimitive.Trigger.Props) {
   return (
@@ -148,26 +144,6 @@ function ComboboxItem({ className, children, ...props }: ComboboxPrimitive.Item.
   );
 }
 
-function ComboboxGroup({ className, ...props }: ComboboxPrimitive.Group.Props) {
-  return (
-    <ComboboxPrimitive.Group data-slot="combobox-group" className={cn(className)} {...props} />
-  );
-}
-
-function ComboboxLabel({ className, ...props }: ComboboxPrimitive.GroupLabel.Props) {
-  return (
-    <ComboboxPrimitive.GroupLabel
-      data-slot="combobox-label"
-      className={cn("px-3.5 py-2.5 text-xs text-muted-foreground", className)}
-      {...props}
-    />
-  );
-}
-
-function ComboboxCollection({ ...props }: ComboboxPrimitive.Collection.Props) {
-  return <ComboboxPrimitive.Collection data-slot="combobox-collection" {...props} />;
-}
-
 function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
   return (
     <ComboboxPrimitive.Empty
@@ -176,16 +152,6 @@ function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
         "hidden w-full justify-center py-2 text-center text-sm text-muted-foreground group-data-empty/combobox-content:flex",
         className,
       )}
-      {...props}
-    />
-  );
-}
-
-function ComboboxSeparator({ className, ...props }: ComboboxPrimitive.Separator.Props) {
-  return (
-    <ComboboxPrimitive.Separator
-      data-slot="combobox-separator"
-      className={cn("-mx-1 my-1 h-px bg-border/50", className)}
       {...props}
     />
   );
@@ -238,35 +204,14 @@ function ComboboxChip({
   );
 }
 
-function ComboboxChipsInput({ className, ...props }: ComboboxPrimitive.Input.Props) {
-  return (
-    <ComboboxPrimitive.Input
-      data-slot="combobox-chip-input"
-      className={cn("min-w-16 flex-1 outline-none", className)}
-      {...props}
-    />
-  );
-}
-
-function useComboboxAnchor() {
-  return React.useRef<HTMLDivElement | null>(null);
-}
-
 export {
   Combobox,
   ComboboxChip,
   ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
-  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxLabel,
   ComboboxList,
-  ComboboxSeparator,
   ComboboxTrigger,
-  ComboboxValue,
-  useComboboxAnchor,
 };
