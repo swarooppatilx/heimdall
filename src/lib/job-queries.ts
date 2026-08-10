@@ -64,7 +64,7 @@ const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 500;
 
 function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, "\\function facetMatch(");
+  return value.replace(/[\\%_]/g, "\\$&");
 }
 
 function facetMatch(city: string | undefined, country: string | undefined) {
