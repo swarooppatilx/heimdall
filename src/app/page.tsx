@@ -35,6 +35,54 @@ const HOURS_PER_DAY = 24;
 const MS_PER_HOUR = 3_600_000;
 const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 const SKELETON_PRELOAD_COUNT = 4;
+const ANNOUNCEMENT_DEBOUNCE_MS = 600;
+
+function useInfiniteScroll(
+  fetchNextPage: () => void,
+  hasNextPage: boolean,
+  isFetchingNextPage: boolean,
+) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  return sentinelRef;
+}
+
+function useSearchShortcut(
+  searchRef: React.RefObject<HTMLInputElement | null>,
+  setQuery: (value: string) => void,
+) {
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) {
+        return;
+      }
+      if (e.key === "/" && document.activeElement !== searchRef.current) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setQuery("");
+        searchRef.current?.blur();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [searchRef, setQuery]);
+}
 
 function JobsPage() {
   const router = useRouter();
@@ -72,21 +120,7 @@ function JobsPage() {
   const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: "400px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const sentinelRef = useInfiniteScroll(fetchNextPage, hasNextPage, isFetchingNextPage);
 
   const jobCards = useMemo(
     () => dedupeJobs(jobs, (job) => `${job.company}|${job.title.toLowerCase()}`),
@@ -115,24 +149,7 @@ function JobsPage() {
     },
   });
 
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) {
-        return;
-      }
-      if (e.key === "/" && document.activeElement !== searchRef.current) {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-      if (e.key === "Escape") {
-        setQuery("");
-        searchRef.current?.blur();
-      }
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [setQuery]);
+  useSearchShortcut(searchRef, setQuery);
 
   const clearAllFilters = useCallback(() => {
     setQuery("");
@@ -184,7 +201,6 @@ function JobsPage() {
         ? `showing ${jobs.length} of ${total} fresh roles`
         : `${jobCards.length} fresh role${jobCards.length === 1 ? "" : "s"}`;
 
-  const ANNOUNCEMENT_DEBOUNCE_MS = 600;
   const [announcement, setAnnouncement] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => {
