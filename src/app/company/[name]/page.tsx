@@ -45,6 +45,23 @@ export async function generateMetadata({
   };
 }
 
+function StatCard({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h2>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <span key={item} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
   const company = decodeCompany(name);
@@ -89,42 +106,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
         </div>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Departments
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {stats.departments.map((d) => (
-                <span key={d} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Locations
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {stats.locations.map((l) => (
-                <span key={l} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
-                  {l}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Sources
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {stats.sources.map((s) => (
-                <span key={s} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
+          <StatCard title="Departments" items={stats.departments} />
+          <StatCard title="Locations" items={stats.locations} />
+          <StatCard title="Sources" items={stats.sources} />
         </div>
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
