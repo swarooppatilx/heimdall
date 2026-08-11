@@ -86,8 +86,67 @@ function eqColumnLower(column: AnyColumn, value: string) {
   return sql`lower(${column}) = lower(${value})`;
 }
 
+function companyCondition(value: string | undefined) {
+  if (!value) return undefined;
+  return eqJobCompany(sanitizeFilterValue(value));
+}
+
+function locationCondition(value: string | undefined) {
+  if (!value) return undefined;
+  const place = resolvePlace(value);
+  if (place?.remote) return eq(jobs.isRemote, 1);
+  if (place?.city) return facetMatch(place.city, place.country);
+  if (place?.country) return facetMatch(undefined, place.country);
+  return sql`${jobs.location} LIKE ${`%${escapeLike(value)}%`} ESCAPE '\\'`;
+}
+
+function cityCountryCondition(city: string | undefined, country: string | undefined) {
+  if (city) return facetMatch(city, country);
+  if (country) return facetMatch(undefined, country);
+  return undefined;
+}
+
+function sourceCondition(value: string | undefined) {
+  if (!value) return undefined;
+  return eqColumnLower(jobs.source, sanitizeFilterValue(value));
+}
+
+function experienceCondition(value: string | undefined) {
+  if (!value) return undefined;
+  return eqColumnLower(jobs.experienceLevel, sanitizeFilterValue(value));
+}
+
+function departmentCondition(value: string | undefined) {
+  if (!value) return undefined;
+  return eqColumnLower(jobs.department, sanitizeFilterValue(value));
+}
+
+function employmentTypeCondition(value: string | undefined) {
+  if (!value) return undefined;
+  const resolved = resolveEmploymentType(sanitizeFilterValue(value));
+  return eqColumnLower(jobs.employmentType, resolved ?? sanitizeFilterValue(value));
+}
+
+function postedCondition(value: string | undefined) {
+  if (!value) return undefined;
+  const windowMs = POSTED_WINDOWS_MS[value];
+  if (!windowMs) return undefined;
+  return gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString());
+}
+
 function jobConditions(filters: JobFilters) {
-  const conditions = [gte(jobs.postedAt, freshnessCutoff())];
+  const conditions = [
+    gte(jobs.postedAt, freshnessCutoff()),
+    companyCondition(filters.company),
+    locationCondition(filters.location),
+    cityCountryCondition(filters.city, filters.country),
+    sourceCondition(filters.source),
+    experienceCondition(filters.experience),
+    departmentCondition(filters.department),
+    employmentTypeCondition(filters.employmentType),
+    filters.earlyCareer === "true" ? eq(jobs.isEarlyCareer, 1) : undefined,
+    postedCondition(filters.posted),
+  ];
 
   if (filters.q) {
     const matchQuery = buildMatchQuery(filters.q);
@@ -100,51 +159,8 @@ function jobConditions(filters: JobFilters) {
       );
     }
   }
-  if (filters.company) {
-    conditions.push(eqJobCompany(sanitizeFilterValue(filters.company)));
-  }
-  if (filters.location) {
-    const place = resolvePlace(filters.location);
-    if (place?.remote) {
-      conditions.push(eq(jobs.isRemote, 1));
-    } else if (place?.city) {
-      conditions.push(facetMatch(place.city, place.country));
-    } else if (place?.country) {
-      conditions.push(facetMatch(undefined, place.country));
-    } else {
-      conditions.push(
-        sql`${jobs.location} LIKE ${`%${escapeLike(filters.location)}%`} ESCAPE '\\'`,
-      );
-    }
-  }
-  if (filters.city) {
-    conditions.push(facetMatch(filters.city, filters.country));
-  } else if (filters.country) {
-    conditions.push(facetMatch(undefined, filters.country));
-  }
-  if (filters.source) {
-    conditions.push(eqColumnLower(jobs.source, sanitizeFilterValue(filters.source)));
-  }
-  if (filters.experience) {
-    conditions.push(eqColumnLower(jobs.experienceLevel, sanitizeFilterValue(filters.experience)));
-  }
-  if (filters.department) {
-    conditions.push(eqColumnLower(jobs.department, sanitizeFilterValue(filters.department)));
-  }
-  if (filters.employmentType) {
-    const resolved = resolveEmploymentType(sanitizeFilterValue(filters.employmentType));
-    conditions.push(
-      eqColumnLower(jobs.employmentType, resolved ?? sanitizeFilterValue(filters.employmentType)),
-    );
-  }
-  if (filters.earlyCareer === "true") {
-    conditions.push(eq(jobs.isEarlyCareer, 1));
-  }
-  const windowMs = filters.posted ? POSTED_WINDOWS_MS[filters.posted] : undefined;
-  if (windowMs) {
-    conditions.push(gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString()));
-  }
-  return conditions;
+
+  return conditions.filter((c): c is NonNullable<typeof c> => c != null);
 }
 
 export async function countJobs(filters: JobFilters): Promise<number> {
