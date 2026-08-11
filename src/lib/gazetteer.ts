@@ -446,15 +446,68 @@ function fuzzyCity(text: string): [string, string] | undefined {
   return best;
 }
 
+function resolveExplicitCountry(segments: string[]): string | undefined {
+  for (const segment of [...segments].reverse()) {
+    const country = lookupCountry(segment);
+    if (country) return country;
+  }
+  for (const segment of segments) {
+    const state = lookupRegionState(segment);
+    if (state) return state;
+  }
+  return undefined;
+}
+
+function resolveStreetAddress(trimmed: string): Place | null {
+  if (!STREET_PATTERN.test(trimmed) || lookupCity(cleanSegment(trimmed))) return null;
+  const fuzzy = fuzzyCity(trimmed.toLowerCase());
+  return fuzzy ? { city: fuzzy[0], country: fuzzy[1] } : null;
+}
+
+function resolveRemote(segments: string[]): Place {
+  const stripped = segments
+    .map((segment) => segment.replace(REMOTE_PATTERN, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const remoteCountry = resolveExplicitCountry(stripped);
+  return remoteCountry ? { remote: true, country: remoteCountry } : { remote: true };
+}
+
+function resolveCityFromSegments(
+  segments: string[],
+  country: string | undefined,
+): { city: string; country: string | undefined } {
+  let resolvedCity: string | undefined;
+  let resolvedCountry = country;
+
+  for (const segment of segments) {
+    const hit = lookupCity(segment);
+    if (!hit) continue;
+    const explicit = resolvedCountry?.toLowerCase();
+    const override = explicit ? CITY_COUNTRY_OVERRIDES[segment]?.[explicit] : undefined;
+    if (override) {
+      resolvedCity = override.toLowerCase();
+      resolvedCountry = explicit;
+      break;
+    }
+    if (explicit && explicit !== hit[1].toLowerCase() && CITY_COUNTRY_OVERRIDES[segment]) {
+      continue;
+    }
+    resolvedCity = hit[0];
+    resolvedCountry = resolvedCountry ?? hit[1];
+    break;
+  }
+
+  return { city: resolvedCity ?? "", country: resolvedCountry };
+}
+
 export function resolvePlace(raw: string): Place | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
   if (/^\d+\s+locations?$/i.test(trimmed) || GARBAGE_PATTERN.test(trimmed)) return null;
-  if (STREET_PATTERN.test(trimmed) && !lookupCity(cleanSegment(trimmed))) {
-    const fuzzy = fuzzyCity(trimmed.toLowerCase());
-    return fuzzy ? { city: fuzzy[0], country: fuzzy[1] } : null;
-  }
+
+  const street = resolveStreetAddress(trimmed);
+  if (street) return street;
 
   const lowered = trimmed.toLowerCase();
   const segments = lowered
@@ -462,58 +515,22 @@ export function resolvePlace(raw: string): Place | null {
     .map(cleanSegment)
     .filter((s) => s.length > 0 && !NOISE_CHARS.test(s));
 
-  const explicitCountrySegments = (segmentsList: string[]) => {
-    for (const segment of [...segmentsList].reverse()) {
-      const country = lookupCountry(segment);
-      if (country) return country;
-    }
-    for (const segment of segmentsList) {
-      const state = lookupRegionState(segment);
-      if (state) return state;
-    }
-    return undefined;
-  };
+  if (segments.some((s) => REMOTE_PATTERN.test(s))) return resolveRemote(segments);
 
-  if (segments.some((s) => REMOTE_PATTERN.test(s))) {
-    const stripped = segments
-      .map((segment) => segment.replace(REMOTE_PATTERN, " ").replace(/\s+/g, " ").trim())
-      .filter(Boolean);
-    const remoteCountry = explicitCountrySegments(stripped);
-    return remoteCountry ? { remote: true, country: remoteCountry } : { remote: true };
-  }
+  const country = resolveExplicitCountry(segments);
+  const { city, country: finalCountry } = resolveCityFromSegments(segments, country);
 
-  let country = explicitCountrySegments(segments);
-  let city: string | undefined;
-
-  for (const segment of segments) {
-    const hit = lookupCity(segment);
-    if (!hit) continue;
-    const explicit = country?.toLowerCase();
-    const override = explicit ? CITY_COUNTRY_OVERRIDES[segment]?.[explicit] : undefined;
-    if (override) {
-      city = override.toLowerCase();
-      country = explicit;
-      break;
-    }
-    if (explicit && explicit !== hit[1].toLowerCase() && CITY_COUNTRY_OVERRIDES[segment]) {
-      continue;
-    }
-    city = hit[0];
-    country = country ?? hit[1];
-    break;
-  }
-  if (!(city || country)) {
+  if (!(city || finalCountry)) {
     const fuzzy = fuzzyCity(lowered);
     if (fuzzy) {
-      city = fuzzy[0];
-      country = fuzzy[1];
+      return { city: fuzzy[0].toLowerCase(), country: fuzzy[1].toLowerCase() };
     }
+    return null;
   }
 
-  if (!(city || country)) return null;
   return {
     ...(city ? { city: city.toLowerCase() } : {}),
-    ...(country ? { country: country.toLowerCase() } : {}),
+    ...(finalCountry ? { country: finalCountry.toLowerCase() } : {}),
   };
 }
 
