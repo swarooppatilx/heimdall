@@ -430,11 +430,13 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const MIN_ALIAS_LENGTH = 5;
+
 function fuzzyCity(text: string): [string, string] | undefined {
   let bestAlias = "";
   let best: [string, string] | undefined;
   for (const [alias, place] of Object.entries(CITY_ALIASES)) {
-    if (alias.length < 5 || alias.length <= bestAlias.length) continue;
+    if (alias.length < MIN_ALIAS_LENGTH || alias.length <= bestAlias.length) continue;
     const pattern = new RegExp(`\\b${escapeRegExp(alias)}\\b`);
     if (pattern.test(text)) {
       bestAlias = alias;

@@ -29,6 +29,7 @@ function hasExternalBudgetLeft(budget?: CrawlBudget): boolean {
   if (!budget) return true;
   return budget.used < EXTERNAL_SUBREQUEST_LIMIT - SUBREQUEST_HEADROOM;
 }
+// biome-ignore lint/style/noMagicNumbers: self-explanatory compound
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function postedAtFrom(raw: string | undefined): Date {

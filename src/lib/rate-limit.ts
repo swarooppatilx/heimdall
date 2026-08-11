@@ -5,6 +5,7 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+const MS_PER_SECOND = 1_000;
 
 export type RateLimitBinding = "JOBS_RATE_LIMITER" | "FILTERS_RATE_LIMITER" | "STATUS_RATE_LIMITER";
 
@@ -95,7 +96,7 @@ export function rateLimitResponse(resetMs: number): Response {
     {
       status: 429,
       headers: {
-        "Retry-After": String(Math.ceil(resetMs / 1000)),
+        "Retry-After": String(Math.ceil(resetMs / MS_PER_SECOND)),
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
       },

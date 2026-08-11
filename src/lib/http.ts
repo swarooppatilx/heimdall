@@ -4,6 +4,8 @@ const RETRY_BASE_MS = 500;
 const BACKOFF_MULTIPLIER = 2;
 const FIRST_RETRY_ATTEMPT = 2;
 const JITTER_MS = 250;
+const STATUS_SERVER_ERROR = 500;
+const STATUS_TOO_MANY_REQUESTS = 429;
 const MAX_BODY_SIZE = 20_971_520;
 const MS_PER_SECOND = 1_000;
 
@@ -68,7 +70,7 @@ export async function fetchJson<T>(
       lastError = new Error(`Failed to fetch jobs from ${source}: ${res.status}`);
       prevRetryAfter = retryAfterMs(res);
       res.body?.cancel();
-      if (res.status < 500 && res.status !== 429) break;
+      if (res.status < STATUS_SERVER_ERROR && res.status !== STATUS_TOO_MANY_REQUESTS) break;
     } catch (err) {
       lastError = err;
     }
