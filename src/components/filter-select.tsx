@@ -15,6 +15,8 @@ interface FilterSelectProps {
   options: string[];
   placeholder: string;
   className?: string;
+  id?: string;
+  "aria-label"?: string;
 }
 
 export function FilterSelect({
@@ -23,10 +25,18 @@ export function FilterSelect({
   options,
   placeholder,
   className,
+  id,
+  "aria-label": ariaLabel,
 }: FilterSelectProps) {
   return (
     <Combobox value={value || null} onValueChange={(v) => onChange(v ?? "")} items={options}>
-      <ComboboxInput placeholder={placeholder} showClear className={className} />
+      <ComboboxInput
+        placeholder={placeholder}
+        showClear
+        className={className}
+        id={id}
+        aria-label={ariaLabel}
+      />
       <ComboboxContent className="min-w-0">
         <ComboboxEmpty>no results</ComboboxEmpty>
         <ComboboxList>

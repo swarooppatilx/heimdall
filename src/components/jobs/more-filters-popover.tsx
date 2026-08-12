@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { FilterSelect } from "@/components/filter-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { FacetOptions } from "@/lib/db";
@@ -25,6 +26,10 @@ export function MoreFiltersPopover({
   employmentType,
   onEmploymentTypeChange,
 }: MoreFiltersPopoverProps) {
+  const experienceId = useId();
+  const sourceId = useId();
+  const typeId = useId();
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -43,8 +48,14 @@ export function MoreFiltersPopover({
       <PopoverContent align="end" className="w-64 max-w-[calc(100vw-2rem)] p-4">
         <div className="space-y-4">
           <div>
-            <p className="mb-1.5 text-xs font-medium text-muted-foreground">seniority</p>
+            <label
+              htmlFor={experienceId}
+              className="mb-1.5 block text-xs font-medium text-muted-foreground"
+            >
+              seniority
+            </label>
             <FilterSelect
+              id={experienceId}
               value={experience}
               onChange={onExperienceChange}
               options={["intern", "entry", "mid", "senior", "staff"]}
@@ -53,8 +64,14 @@ export function MoreFiltersPopover({
             />
           </div>
           <div>
-            <p className="mb-1.5 text-xs font-medium text-muted-foreground">source</p>
+            <label
+              htmlFor={sourceId}
+              className="mb-1.5 block text-xs font-medium text-muted-foreground"
+            >
+              source
+            </label>
             <FilterSelect
+              id={sourceId}
               value={source}
               onChange={onSourceChange}
               options={(filterOptions?.sources ?? []).map((o) => o.value)}
@@ -63,8 +80,14 @@ export function MoreFiltersPopover({
             />
           </div>
           <div>
-            <p className="mb-1.5 text-xs font-medium text-muted-foreground">type</p>
+            <label
+              htmlFor={typeId}
+              className="mb-1.5 block text-xs font-medium text-muted-foreground"
+            >
+              type
+            </label>
             <FilterSelect
+              id={typeId}
               value={employmentType}
               onChange={onEmploymentTypeChange}
               options={(filterOptions?.employmentTypes ?? []).map((o) => o.value)}
