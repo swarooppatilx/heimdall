@@ -23,17 +23,13 @@ export function JobCard({ job, openings }: JobCardProps) {
         <span className="sr-only">Apply</span>
       </a>
 
-      <div className="flex items-start justify-between gap-2">
+      <div className="relative z-10 flex items-start justify-between gap-2">
         <h2 className="min-w-0 flex-1 text-sm font-semibold text-foreground sm:text-base">
           <span className="truncate">{job.title}</span>
           {openings > 1 && (
-            <Link
-              href={`/?company=${encodeURIComponent(job.company)}&q=${encodeURIComponent(job.title)}`}
-              className="ml-1.5 inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 align-middle text-[10px] font-medium text-secondary-foreground hover:bg-secondary/80"
-              aria-label={`${openings} openings for ${job.title}`}
-            >
+            <span className="ml-1.5 inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 align-middle text-[10px] font-medium text-secondary-foreground">
               ×{openings}
-            </Link>
+            </span>
           )}
         </h2>
         <HugeiconsIcon
@@ -44,24 +40,23 @@ export function JobCard({ job, openings }: JobCardProps) {
         />
       </div>
 
-      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
+      <p className="relative z-10 mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
         <Link
           href={`/company/${encodeURIComponent(job.company)}`}
-          className="font-medium capitalize text-foreground/90 hover:text-foreground hover:underline"
+          className="font-medium text-foreground/90 hover:text-foreground hover:underline"
+          onClick={(e) => e.stopPropagation()}
         >
           {job.company}
         </Link>
         <span aria-hidden="true" className="text-muted-foreground/60">
           ·
         </span>
-        <span className="truncate capitalize text-muted-foreground">{job.location}</span>
+        <span className="truncate text-muted-foreground">{job.location}</span>
       </p>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-        {job.experienceLevel && job.experienceLevel !== "mid" && (
-          <span className="capitalize">{job.experienceLevel}</span>
-        )}
-        {Boolean(job.employmentType) && <span className="capitalize">{job.employmentType}</span>}
+      <div className="relative z-10 mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+        {job.experienceLevel && job.experienceLevel !== "mid" && <span>{job.experienceLevel}</span>}
+        {Boolean(job.employmentType) && <span>{job.employmentType}</span>}
         {Boolean(job.salary) && (
           <span className="font-medium text-foreground/80">{job.salary}</span>
         )}
