@@ -101,51 +101,32 @@ function jobUpsertSet(values: typeof jobs.$inferInsert) {
   };
 }
 
-export async function insertJobs(items: Job[]): Promise<void> {
+function jobStatements(db: Db, job: Job, mode: "insert" | "update"): BatchItem<"sqlite">[] {
+  const values = toRow(job);
+  const setFields = jobUpsertSet(values);
+  const jobStatement =
+    mode === "insert"
+      ? db.insert(jobs).values(values).onConflictDoUpdate({ target: jobs.id, set: setFields })
+      : db.update(jobs).set(setFields).where(eq(jobs.id, job.id));
+  return [jobStatement, ...facetStatements(db, job)];
+}
+
+async function writeJobs(items: Job[], mode: "insert" | "update"): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
   for (const page of chunk(items)) {
-    const statements: BatchItem<"sqlite">[] = [];
-    for (const job of page) {
-      const values = toRow(job);
-      statements.push(
-        db
-          .insert(jobs)
-          .values(values)
-          .onConflictDoUpdate({
-            target: jobs.id,
-            set: {
-              ...jobUpsertSet(values),
-            },
-          }),
-      );
-      statements.push(...facetStatements(db, job));
-    }
+    const statements = page.flatMap((job) => jobStatements(db, job, mode));
     await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
     await syncJobFts(db, page);
   }
 }
 
+export async function insertJobs(items: Job[]): Promise<void> {
+  return writeJobs(items, "insert");
+}
+
 export async function updateJobs(items: Job[]): Promise<void> {
-  if (items.length === 0) return;
-  const db = await getDb();
-  for (const page of chunk(items)) {
-    const statements: BatchItem<"sqlite">[] = [];
-    for (const job of page) {
-      const values = toRow(job);
-      statements.push(
-        db
-          .update(jobs)
-          .set({
-            ...jobUpsertSet(values),
-          })
-          .where(eq(jobs.id, job.id)),
-      );
-      statements.push(...facetStatements(db, job));
-    }
-    await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
-    await syncJobFts(db, page);
-  }
+  return writeJobs(items, "update");
 }
 
 export async function deleteJobsByIds(ids: string[]): Promise<void> {
