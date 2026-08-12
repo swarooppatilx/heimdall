@@ -46,7 +46,7 @@ export function useJobFilters(filters: JobFiltersInput) {
       return { jobs, total: Number(res.headers.get("X-Total-Count") ?? 0) };
     },
     placeholderData: keepPreviousData,
-    initialPageParam: undefined as number | undefined,
+    initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.jobs.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
   });

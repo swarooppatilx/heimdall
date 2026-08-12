@@ -153,7 +153,7 @@ export async function deleteStaleJobs(): Promise<number> {
 export async function dedupeCrossSourceJobs(): Promise<number> {
   const db = await getDb();
   const cutoff = freshnessCutoff();
-  const result = (await db.run(sql`
+  const rows = await db.all<{ id: string }>(sql`
     SELECT id FROM jobs WHERE id IN (
       SELECT id FROM (
         SELECT
@@ -169,8 +169,8 @@ export async function dedupeCrossSourceJobs(): Promise<number> {
       )
       WHERE rn > 1 AND lo != hi
     )
-  `)) as unknown as { rows: { id: string }[] };
-  const ids = result.rows.map((row) => String(row.id));
+  `);
+  const ids = rows.map((row) => String(row.id));
   if (ids.length === 0) return 0;
   await deleteJobsByIds(ids);
   return ids.length;
