@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowUpRightIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
