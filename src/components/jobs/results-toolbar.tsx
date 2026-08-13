@@ -60,13 +60,18 @@ export function ResultsToolbar({
         ) : null}
       </p>
       <div className="flex items-center gap-1">
-        {hasFilters === true && (
+        {Boolean(hasFilters) && (
           <button
             type="button"
             onClick={onClearAll}
             className="inline-flex min-h-9 items-center gap-1 rounded-md border border-ring/40 bg-ring/10 px-2.5 text-xs text-ring transition-colors hover:border-ring/60"
           >
-            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="size-3" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              strokeWidth={2}
+              className="size-3"
+              aria-hidden="true"
+            />
             clear
           </button>
         )}

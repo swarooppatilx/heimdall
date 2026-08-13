@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const kvStore = new Map<string, string>();
+// biome-ignore lint/suspicious/useAwait: mock implementation returns promise by design
 const kvGet = vi.fn(async (key: string, options?: { type?: "json" }) => {
   const raw = kvStore.get(key);
   if (raw == null) return null;
   return options?.type === "json" ? (JSON.parse(raw) as unknown) : raw;
 });
+// biome-ignore lint/suspicious/useAwait: mock implementation returns promise by design
 const kvPut = vi.fn(async (key: string, value: string) => {
   kvStore.set(key, value);
 });

@@ -24,6 +24,7 @@ interface ExecutionContext {
   waitUntil(promise: Promise<unknown>): void;
 }
 
+// biome-ignore lint/style/noMagicNumbers: self-explanatory compound
 const STALE_ALERT_MS = 30 * 60 * 1000;
 const DRIFT_WINDOW_HOURS = 48;
 const DRIFT_MIN_EMPTY = 6;

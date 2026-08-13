@@ -84,6 +84,43 @@ function useSearchShortcut(
   }, [searchRef, setQuery]);
 }
 
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="rounded-lg border border-dashed border-destructive/40 p-8 text-center">
+      <p className="text-sm text-muted-foreground">something went wrong fetching jobs</p>
+      <Button type="button" variant="outline" size="sm" onClick={onRetry} className="mt-4">
+        try again
+      </Button>
+    </div>
+  );
+}
+
+function EmptyState({ hasFilters, onClear }: { hasFilters: boolean; onClear: () => void }) {
+  return (
+    <div className="rounded-lg border border-dashed border-border p-8 text-center">
+      <p className="text-sm text-muted-foreground">no roles match these filters</p>
+      {Boolean(hasFilters) && (
+        <Button type="button" variant="outline" size="sm" onClick={onClear} className="mt-4">
+          clear all filters
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function resolveCountLabel(
+  isLoading: boolean,
+  isError: boolean,
+  total: number,
+  jobsShown: number,
+  dedupedCount: number,
+): string {
+  if (isLoading) return "loading...";
+  if (isError) return "something went wrong fetching jobs — try again";
+  if (total > jobsShown) return `showing ${jobsShown} of ${total} fresh roles`;
+  return `${dedupedCount} fresh role${dedupedCount === 1 ? "" : "s"}`;
+}
+
 function JobsPage() {
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -193,13 +230,7 @@ function JobsPage() {
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
   const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
 
-  const countLabel = isLoading
-    ? "loading..."
-    : isError
-      ? "something went wrong fetching jobs — try again"
-      : total > jobs.length
-        ? `showing ${jobs.length} of ${total} fresh roles`
-        : `${jobCards.length} fresh role${jobCards.length === 1 ? "" : "s"}`;
+  const countLabel = resolveCountLabel(isLoading, isError, total, jobs.length, jobCards.length);
 
   const [announcement, setAnnouncement] = useState("");
   useEffect(() => {
@@ -299,35 +330,10 @@ function JobsPage() {
           sort={sort}
           onSortChange={setSort}
         />
-        {isError ? (
-          <div className="rounded-lg border border-dashed border-destructive/40 p-8 text-center">
-            <p className="text-sm text-muted-foreground">something went wrong fetching jobs</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              className="mt-4"
-            >
-              try again
-            </Button>
-          </div>
-        ) : !(isLoading || isError) && jobCards.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-8 text-center">
-            <p className="text-sm text-muted-foreground">no roles match these filters</p>
-            {hasFilters && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                className="mt-4"
-              >
-                clear all filters
-              </Button>
-            )}
-          </div>
-        ) : null}
+        {Boolean(isError) && <ErrorState onRetry={() => refetch()} />}
+        {!(isError || isLoading) && jobCards.length === 0 && (
+          <EmptyState hasFilters={hasFilters} onClear={clearAllFilters} />
+        )}
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
         <ul id="job-results" tabIndex={-1} className="flex flex-col gap-2">
@@ -353,7 +359,7 @@ function JobsPage() {
           </Button>
         )}
 
-        {isFetchingNextPage === true && (
+        {Boolean(isFetchingNextPage) && (
           <ul className="mt-2 flex flex-col gap-2">
             {SKELETON_KEYS.slice(0, SKELETON_PRELOAD_COUNT).map((key) => (
               <JobCardSkeleton key={key} />

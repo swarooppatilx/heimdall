@@ -122,11 +122,11 @@ async function writeJobs(items: Job[], mode: "insert" | "update"): Promise<void>
 }
 
 export async function insertJobs(items: Job[]): Promise<void> {
-  return writeJobs(items, "insert");
+  await writeJobs(items, "insert");
 }
 
 export async function updateJobs(items: Job[]): Promise<void> {
-  return writeJobs(items, "update");
+  await writeJobs(items, "update");
 }
 
 export async function deleteJobsByIds(ids: string[]): Promise<void> {
