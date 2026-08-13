@@ -45,23 +45,6 @@ export async function generateMetadata({
   };
 }
 
-function StatCard({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="rounded-lg border border-border p-4">
-      <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h2>
-      <div className="flex flex-wrap gap-1.5">
-        {items.map((item) => (
-          <span key={item} className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
-            {item}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default async function CompanyPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
   const company = decodeCompany(name);
@@ -103,12 +86,6 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
           <p className="mt-1 text-sm text-muted-foreground">
             {stats.total} open position{stats.total === 1 ? "" : "s"}
           </p>
-        </div>
-
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <StatCard title="Departments" items={stats.departments} />
-          <StatCard title="Locations" items={stats.locations} />
-          <StatCard title="Sources" items={stats.sources} />
         </div>
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
