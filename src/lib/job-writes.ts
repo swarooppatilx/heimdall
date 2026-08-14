@@ -2,10 +2,20 @@ import { eq, inArray, lt, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { jobLocations, jobs } from "@/db/schema";
 import type { Db } from "@/lib/db-connection";
-import { chunk, getDb } from "@/lib/db-connection";
+import { getDb } from "@/lib/db-connection";
 import { freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
+
+const CHUNK_SIZE = 100;
+
+function chunk<T>(items: T[]): T[][] {
+  const pages: T[][] = [];
+  for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+    pages.push(items.slice(i, i + CHUNK_SIZE));
+  }
+  return pages;
+}
 
 function toRow(job: Job): typeof jobs.$inferInsert {
   return {

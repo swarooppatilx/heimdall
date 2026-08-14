@@ -23,13 +23,3 @@ export function getDb(): Promise<Db> {
 export function bindDb(database: D1Database): void {
   _db = Promise.resolve(drizzle(database));
 }
-
-const CHUNK_SIZE = 100;
-
-export function chunk<T>(items: T[]): T[][] {
-  const pages: T[][] = [];
-  for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-    pages.push(items.slice(i, i + CHUNK_SIZE));
-  }
-  return pages;
-}
