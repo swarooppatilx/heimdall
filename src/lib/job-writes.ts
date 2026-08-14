@@ -57,7 +57,7 @@ async function syncJobFts(db: Db, page: Job[]): Promise<void> {
   `);
 }
 
-export function locationFacets(job: Job): LocationFacet[] {
+function locationFacets(job: Job): LocationFacet[] {
   const raw = [job.location, ...(job.locations ?? [])];
   const seen = new Set<string>();
   const facets: LocationFacet[] = [];
