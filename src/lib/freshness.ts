@@ -1,4 +1,3 @@
-// biome-ignore lint/style/noMagicNumbers: self-explanatory compound
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const DEFAULT_FRESHNESS_DAYS = 15;

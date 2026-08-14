@@ -7,7 +7,6 @@ export interface JobDiff {
   deletedIds: string[];
 }
 
-// biome-ignore lint/style/noMagicNumbers: self-explanatory compound
 const DRIFT_MS = 60 * 1000;
 const GUARD_MIN_EXISTING = 10;
 const GUARD_MAX_DELETE_SHARE = 0.5;
