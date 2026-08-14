@@ -1,7 +1,7 @@
 import { deleteJobsByIds, getJobsByBoard, insertJobs, recordCrawl, updateJobs } from "@/lib/db";
 import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
 import { fetchJobs } from "@/lib/fetch-jobs";
-import { type CrawlBudget, createCrawlBudget } from "@/lib/http";
+import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry, type RegistryEntry } from "@/lib/registry";
 
@@ -21,12 +21,6 @@ const TICK_MARGIN_MINUTES = 2;
 const TICK_MARGIN_MS = TICK_MARGIN_MINUTES * MS_PER_MINUTE;
 const TICKS_PER_SWEEP = 16;
 const CRAWL_CONCURRENCY = 6;
-const EXTERNAL_SUBREQUEST_LIMIT = 50;
-const SUBREQUEST_HEADROOM = 15;
-
-function hasBudgetLeft(budget: CrawlBudget): boolean {
-  return budget.used < EXTERNAL_SUBREQUEST_LIMIT - SUBREQUEST_HEADROOM;
-}
 
 export function shouldRunTick(lastCrawlUnix: number | null, now: number): boolean {
   if (lastCrawlUnix === null) return true;

@@ -13,8 +13,15 @@ export interface CrawlBudget {
   used: number;
 }
 
+export const EXTERNAL_SUBREQUEST_LIMIT = 50;
+const SUBREQUEST_HEADROOM = 15;
+
 export function createCrawlBudget(): CrawlBudget {
   return { used: 0 };
+}
+
+export function hasBudgetLeft(budget: CrawlBudget): boolean {
+  return budget.used < EXTERNAL_SUBREQUEST_LIMIT - SUBREQUEST_HEADROOM;
 }
 
 function sleep(ms: number): Promise<void> {
