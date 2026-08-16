@@ -105,19 +105,9 @@ function cityCountryCondition(city: string | undefined, country: string | undefi
   return undefined;
 }
 
-function sourceCondition(value: string | undefined) {
+function columnCondition(column: AnyColumn, value: string | undefined) {
   if (!value) return undefined;
-  return eqColumnLower(jobs.source, sanitizeFilterValue(value));
-}
-
-function experienceCondition(value: string | undefined) {
-  if (!value) return undefined;
-  return eqColumnLower(jobs.experienceLevel, sanitizeFilterValue(value));
-}
-
-function departmentCondition(value: string | undefined) {
-  if (!value) return undefined;
-  return eqColumnLower(jobs.department, sanitizeFilterValue(value));
+  return eqColumnLower(column, sanitizeFilterValue(value));
 }
 
 function employmentTypeCondition(value: string | undefined) {
@@ -139,9 +129,9 @@ function jobConditions(filters: JobFilters) {
     companyCondition(filters.company),
     locationCondition(filters.location),
     cityCountryCondition(filters.city, filters.country),
-    sourceCondition(filters.source),
-    experienceCondition(filters.experience),
-    departmentCondition(filters.department),
+    columnCondition(jobs.source, filters.source),
+    columnCondition(jobs.experienceLevel, filters.experience),
+    columnCondition(jobs.department, filters.department),
     employmentTypeCondition(filters.employmentType),
     filters.earlyCareer === "true" ? eq(jobs.isEarlyCareer, 1) : undefined,
     postedCondition(filters.posted),
