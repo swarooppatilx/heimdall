@@ -1,4 +1,4 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const DEFAULT_FRESHNESS_DAYS = 15;
 const MIN_FRESHNESS_DAYS = 1;

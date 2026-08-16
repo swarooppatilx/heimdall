@@ -1,4 +1,5 @@
 import { inferDepartment } from "@/lib/department";
+import { DAY_MS } from "@/lib/freshness";
 import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson, hasBudgetLeft } from "@/lib/http";
 import type { Job } from "@/lib/job";
@@ -22,8 +23,6 @@ const MAX_PAGES = 200;
 const PAGE_CONCURRENCY = 10;
 const PAGE_RETRIES = 1;
 const WORKDAY_TIMEOUT_MS = 20_000;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function postedAtFrom(raw: string | undefined): Date {
   const text = (raw ?? "")

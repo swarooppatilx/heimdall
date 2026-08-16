@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { jobLocations, jobs } from "@/db/schema";
 import { getDb } from "@/lib/db-connection";
 import { resolveEmploymentType } from "@/lib/employment";
-import { freshnessCutoff } from "@/lib/freshness";
+import { DAY_MS, freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
@@ -46,11 +46,10 @@ export interface JobFilters {
   sort?: string;
 }
 
-const MS_PER_DAY = 86_400_000;
 const DAYS_PER_WEEK = 7;
 const POSTED_WINDOWS_MS: Record<string, number> = {
-  today: MS_PER_DAY,
-  week: DAYS_PER_WEEK * MS_PER_DAY,
+  today: DAY_MS,
+  week: DAYS_PER_WEEK * DAY_MS,
 };
 
 export const POSTED_WINDOWS = Object.keys(POSTED_WINDOWS_MS);
