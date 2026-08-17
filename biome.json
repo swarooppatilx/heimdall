@@ -99,7 +99,12 @@
       },
       "complexity": {
         "noImplicitCoercions": "error",
-        "noExcessiveLinesPerFunction": "off",
+        "noExcessiveLinesPerFunction": {
+          "level": "warn",
+          "options": {
+            "maxLines": 80
+          }
+        },
         "useMaxParams": {
           "level": "error",
           "options": {
@@ -110,7 +115,7 @@
         "noExcessiveCognitiveComplexity": {
           "level": "warn",
           "options": {
-            "maxAllowedComplexity": 25
+            "maxAllowedComplexity": 20
           }
         },
         "noBannedTypes": "error",
