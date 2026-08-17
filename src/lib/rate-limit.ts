@@ -39,7 +39,8 @@ async function checkEdgeLimit(
     if (!limiter) return null;
     const result = await limiter.limit({ key });
     return { allowed: result.success, resetMs: opts.windowMs };
-  } catch {
+  } catch (err) {
+    console.log("checkEdgeLimit: failed to access rate limiter", err);
     return null;
   }
 }

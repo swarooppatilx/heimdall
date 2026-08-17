@@ -7,7 +7,8 @@ export function cacheKv(): KVNamespace | undefined {
   try {
     const { env } = getCloudflareContext();
     return (env as { CACHE?: KVNamespace }).CACHE;
-  } catch {
+  } catch (err) {
+    console.log("cacheKv: failed to get Cloudflare context", err);
     return undefined;
   }
 }
