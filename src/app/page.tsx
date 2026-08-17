@@ -19,16 +19,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
+import type { CrawlStatusEntry } from "@/lib/crawl-status";
 import type { FacetOptions } from "@/lib/db";
 import { dedupeJobs } from "@/lib/job";
-
-interface CrawlStatusEntry {
-  company: string;
-  status: string;
-  jobsFound: number;
-  durationMs: number;
-  createdAt: string;
-}
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const HOURS_PER_DAY = 24;

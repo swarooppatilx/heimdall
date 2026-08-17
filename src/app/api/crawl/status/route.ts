@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
+import type { CrawlStatusEntry } from "@/lib/crawl-status";
 import {
   type CrawlRecord,
   getCrawlHistory,
@@ -14,14 +15,6 @@ export const dynamic = "force-dynamic";
 const DRIFT_WINDOW_HOURS = 48;
 const DRIFT_MIN_EMPTY = 6;
 
-interface PublicCrawlStatus {
-  company: string;
-  status: string;
-  jobsFound: number;
-  durationMs: number;
-  createdAt: string;
-}
-
 // D1 datetime('now') is UTC but carries no zone suffix; without the marker
 // browsers parse it as local time and "synced" ages inflate by the UTC offset.
 function toIsoUtc(dbTimestamp: string): string {
@@ -34,7 +27,7 @@ function toPublic({
   jobsFound,
   durationMs,
   createdAt,
-}: CrawlRecord): PublicCrawlStatus {
+}: CrawlRecord): CrawlStatusEntry {
   return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
 }
 
