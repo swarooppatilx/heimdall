@@ -9,6 +9,14 @@ import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 import { buildMatchQuery } from "@/lib/search";
 
+function parseLocations(raw: string, fallback: string): string[] {
+  try {
+    return JSON.parse(raw) as string[];
+  } catch {
+    return [fallback];
+  }
+}
+
 function toJob(row: typeof jobs.$inferSelect): Job {
   return {
     id: row.id,
@@ -21,7 +29,7 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     source: row.source,
     employmentType: row.employmentType,
     salary: row.salary,
-    locations: JSON.parse(row.locations) as string[],
+    locations: parseLocations(row.locations, row.location),
     region: row.region,
     isEarlyCareer: row.isEarlyCareer === 1,
     experienceLevel: row.experienceLevel,
