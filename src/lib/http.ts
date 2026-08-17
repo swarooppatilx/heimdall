@@ -13,7 +13,7 @@ export interface CrawlBudget {
   used: number;
 }
 
-export const EXTERNAL_SUBREQUEST_LIMIT = 50;
+const EXTERNAL_SUBREQUEST_LIMIT = 50;
 const SUBREQUEST_HEADROOM = 15;
 
 export function createCrawlBudget(): CrawlBudget {

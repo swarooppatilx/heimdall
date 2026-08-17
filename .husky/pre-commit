@@ -1,4 +1,5 @@
 npx lint-staged
+npx knip
 npx tsc --noEmit
 npx next build
 npm test

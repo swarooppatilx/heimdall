@@ -5,7 +5,7 @@ import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry, type RegistryEntry } from "@/lib/registry";
 
-export interface CrawlResult {
+interface CrawlResult {
   company: string;
   status: "ok" | "error";
   jobsFound: number;

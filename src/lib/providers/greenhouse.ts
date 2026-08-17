@@ -46,7 +46,7 @@ export async function fetchGreenhouseJobs(board: string, budget?: CrawlBudget): 
   return mapPostings(data.jobs, board, (j) => mapJob(j, board));
 }
 
-export function mapJob(raw: GreenhouseJob, board: string): Job {
+function mapJob(raw: GreenhouseJob, board: string): Job {
   const locationParts = splitLocations(raw.location.name);
   const primary = normalizeLocation(locationParts[0] ?? "");
   const department = (
