@@ -230,30 +230,11 @@ export async function getJobsByCompany(company: string): Promise<Job[]> {
   return rows.map(toJob);
 }
 
-export async function getCompanyStats(company: string): Promise<{
-  total: number;
-  departments: string[];
-  locations: string[];
-  sources: string[];
-}> {
+export async function countJobsByCompany(company: string): Promise<number> {
   const db = await getDb();
-  const scope = and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff()));
-
-  const [totalRows, departments, locations, sources] = await Promise.all([
-    db.select({ count: sql<number>`count(*)` }).from(jobs).where(scope),
-    db
-      .selectDistinct({ value: jobs.department })
-      .from(jobs)
-      .where(scope)
-      .orderBy(asc(jobs.department)),
-    db.selectDistinct({ value: jobs.location }).from(jobs).where(scope).orderBy(asc(jobs.location)),
-    db.selectDistinct({ value: jobs.source }).from(jobs).where(scope).orderBy(asc(jobs.source)),
-  ]);
-
-  return {
-    total: Number(totalRows[0]?.count ?? 0),
-    departments: departments.map((r) => r.value),
-    locations: locations.map((r) => r.value),
-    sources: sources.map((r) => r.value),
-  };
+  const [row] = await db
+    .select({ value: count() })
+    .from(jobs)
+    .where(and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff())));
+  return row?.value ?? 0;
 }

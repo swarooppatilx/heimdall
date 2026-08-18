@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
-import { getCompanyStats, getJobsByCompany } from "@/lib/db";
+import { countJobsByCompany, getJobsByCompany } from "@/lib/db";
 import { dedupeJobs } from "@/lib/job";
-
-const companyStats = cache(getCompanyStats);
 
 function decodeCompany(raw: string): string | null {
   try {
@@ -25,22 +22,22 @@ export async function generateMetadata({
   const { name } = await params;
   const company = decodeCompany(name);
   if (!company) notFound();
-  const stats = await companyStats(company);
+  const total = await countJobsByCompany(company);
   return {
-    title: `${company} — ${stats.total} open position${stats.total === 1 ? "" : "s"}`,
+    title: `${company} — ${total} open position${total === 1 ? "" : "s"}`,
     alternates: {
       canonical: `/company/${company}`,
     },
-    description: `browse ${stats.total} fresh tech job openings at ${company}. direct from the company career page.`,
+    description: `browse ${total} fresh tech job openings at ${company}. direct from the company career page.`,
     openGraph: {
       title: `${company} — fresh tech jobs`,
-      description: `${stats.total} open positions at ${company}.`,
+      description: `${total} open positions at ${company}.`,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: `${company} — fresh tech jobs`,
-      description: `${stats.total} open positions at ${company}.`,
+      description: `${total} open positions at ${company}.`,
     },
   };
 }
@@ -50,9 +47,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
   const company = decodeCompany(name);
   if (!company) notFound();
   const jobs = await getJobsByCompany(company);
-  const stats = await companyStats(company);
 
-  if (jobs.length === 0 || stats.total === 0) {
+  if (jobs.length === 0) {
     notFound();
   }
 
@@ -84,7 +80,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">{company}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {stats.total} open position{stats.total === 1 ? "" : "s"}
+            {jobs.length} open position{jobs.length === 1 ? "" : "s"}
           </p>
         </div>
 

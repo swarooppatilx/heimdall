@@ -13,8 +13,8 @@ export { getJobQuality } from "@/lib/job-quality";
 export type { JobFilters, PageOptions } from "@/lib/job-queries";
 export {
   countJobs,
+  countJobsByCompany,
   getCompanyNames,
-  getCompanyStats,
   getJobsByBoard,
   getJobsByCompany,
   searchJobs,
