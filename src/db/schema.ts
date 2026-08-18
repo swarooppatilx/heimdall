@@ -27,6 +27,11 @@ export const jobs = sqliteTable(
     index("idx_jobs_posted_at").on(table.postedAt),
     index("idx_jobs_company_posted_at").on(table.company, table.postedAt),
     index("idx_jobs_city_country").on(table.city, table.country),
+    index("idx_jobs_source").on(table.source),
+    index("idx_jobs_department").on(table.department),
+    index("idx_jobs_experience_level").on(table.experienceLevel),
+    index("idx_jobs_employment_type").on(table.employmentType),
+    index("idx_jobs_is_remote").on(table.isRemote),
   ],
 );
 
