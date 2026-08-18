@@ -77,20 +77,20 @@ function escapeLike(value: string): string {
 function facetMatch(city: string | undefined, country: string | undefined) {
   const conds = [sql`${jobLocations.jobId} = ${jobs.id}`];
   if (city) {
-    conds.push(sql`lower(${jobLocations.city}) = ${city.toLowerCase()}`);
+    conds.push(sql`${jobLocations.city} = ${city.toLowerCase()}`);
   }
   if (country) {
-    conds.push(sql`lower(${jobLocations.country}) = ${country.toLowerCase()}`);
+    conds.push(sql`${jobLocations.country} = ${country.toLowerCase()}`);
   }
   return sql`exists (select 1 from ${jobLocations} where ${sql.join(conds, sql` and `)})`;
 }
 
 function eqJobCompany(value: string) {
-  return sql`lower(${jobs.company}) = lower(${value})`;
+  return sql`${jobs.company} = ${value}`;
 }
 
 function eqColumnLower(column: AnyColumn, value: string) {
-  return sql`lower(${column}) = lower(${value})`;
+  return sql`${column} = ${value}`;
 }
 
 function companyCondition(value: string | undefined) {
@@ -203,8 +203,8 @@ export async function getJobsByBoard(source: string, company: string): Promise<J
     .from(jobs)
     .where(
       and(
-        sql`lower(${jobs.source}) = ${source.toLowerCase()}`,
-        sql`lower(${jobs.company}) = ${company.toLowerCase()}`,
+        sql`${jobs.source} = ${source.toLowerCase()}`,
+        sql`${jobs.company} = ${company.toLowerCase()}`,
       ),
     );
   return rows.map(toJob);

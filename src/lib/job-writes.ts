@@ -169,11 +169,11 @@ export async function dedupeCrossSourceJobs(): Promise<number> {
         SELECT
           id,
           row_number() OVER (
-            PARTITION BY company, lower(title), city
+            PARTITION BY company, title, city
             ORDER BY posted_at ASC, source ASC, id ASC
           ) AS rn,
-          min(source) OVER (PARTITION BY company, lower(title), city) AS lo,
-          max(source) OVER (PARTITION BY company, lower(title), city) AS hi
+          min(source) OVER (PARTITION BY company, title, city) AS lo,
+          max(source) OVER (PARTITION BY company, title, city) AS hi
         FROM jobs
         WHERE city IS NOT NULL AND country IS NOT NULL AND posted_at >= ${cutoff}
       )
