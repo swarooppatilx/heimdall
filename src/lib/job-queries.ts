@@ -160,16 +160,15 @@ function jobConditions(filters: JobFilters) {
   return conditions.filter((c): c is NonNullable<typeof c> => c != null);
 }
 
-export async function countJobs(filters: JobFilters): Promise<number> {
-  const db = await getDb();
-  const [row] = await db
-    .select({ value: count() })
-    .from(jobs)
-    .where(and(...jobConditions(filters)));
-  return row?.value ?? 0;
+export interface SearchResult {
+  jobs: Job[];
+  total: number;
 }
 
-export async function searchJobs(filters: JobFilters, page?: PageOptions): Promise<Job[]> {
+export async function searchJobsWithCount(
+  filters: JobFilters,
+  page?: PageOptions,
+): Promise<SearchResult> {
   const db = await getDb();
 
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
@@ -187,13 +186,19 @@ export async function searchJobs(filters: JobFilters, page?: PageOptions): Promi
         : [desc(jobs.postedAt)];
 
   const rows = await db
-    .select()
+    .select({ total: sql<number>`count(*) over()` })
     .from(jobs)
     .where(and(...jobConditions(filters)))
     .orderBy(...orderBy)
     .limit(limit)
     .offset(offset);
-  return rows.map(toJob);
+
+  const total = rows[0]?.total ?? 0;
+  const mapped = rows.map((r) => {
+    const { total: _, ...rest } = r as typeof r & Record<string, unknown>;
+    return toJob(rest as typeof jobs.$inferSelect);
+  });
+  return { jobs: mapped, total };
 }
 
 export async function getJobsByBoard(source: string, company: string): Promise<Job[]> {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cacheKv, hashedCacheKey } from "@/lib/cache-kv";
 import type { JobFilters, PageOptions } from "@/lib/db";
-import { countJobs, searchJobs } from "@/lib/db";
+import { searchJobsWithCount } from "@/lib/db";
 import type { Job } from "@/lib/job";
 import { POSTED_WINDOWS } from "@/lib/job-queries";
 import { withRateLimit } from "@/lib/with-rate-limit";
@@ -94,7 +94,7 @@ export const GET = withRateLimit(
       });
     }
 
-    const [jobs, total] = await Promise.all([searchJobs(filters, page), countJobs(filters)]);
+    const { jobs, total } = await searchJobsWithCount(filters, page);
     await writeCachedPage(cacheKey, { total, jobs });
 
     return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });

@@ -12,12 +12,11 @@ export type { FacetOptions } from "@/lib/facets";
 export { getJobQuality } from "@/lib/job-quality";
 export type { JobFilters, PageOptions } from "@/lib/job-queries";
 export {
-  countJobs,
   countJobsByCompany,
   getCompanyNames,
   getJobsByBoard,
   getJobsByCompany,
-  searchJobs,
+  searchJobsWithCount,
 } from "@/lib/job-queries";
 export {
   dedupeCrossSourceJobs,
