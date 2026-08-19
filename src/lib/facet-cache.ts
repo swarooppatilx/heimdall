@@ -2,7 +2,7 @@ import { cacheKv } from "@/lib/cache-kv";
 import { type FacetOptions, getFacetOptions } from "@/lib/facets";
 
 const CACHE_KEY = "facet-options";
-const EDGE_TTL_SECONDS = 60;
+const EDGE_TTL_SECONDS = 300;
 const KV_TTL_SECONDS = 3600;
 
 export async function getFacetOptionsCached(): Promise<FacetOptions> {

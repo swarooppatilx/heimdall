@@ -8,7 +8,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const EDGE_TTL_SECONDS = 60;
+const EDGE_TTL_SECONDS = 300;
 const MAX_OFFSET = 10_000;
 const KV_TTL_SECONDS = 300;
 
