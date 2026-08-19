@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { logEvent } from "@/lib/logger";
 
 const HEX_RADIX = 16;
 const MIN_WIDTH = 2;
@@ -8,7 +9,7 @@ export function cacheKv(): KVNamespace | undefined {
     const { env } = getCloudflareContext();
     return (env as { CACHE?: KVNamespace }).CACHE;
   } catch (err) {
-    console.log("cacheKv: failed to get Cloudflare context", err);
+    logEvent("kv_cache_disabled", { error: String(err) });
     return undefined;
   }
 }
