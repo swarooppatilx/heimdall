@@ -28,6 +28,7 @@ export function dedupeJobs(jobs: Job[], keyFn: (job: Job) => string): DedupedJob
   const primary = new Map<string, Job>();
   const counts = new Map<string, number>();
   for (const job of jobs) {
+    if (!(job.title && job.company)) continue;
     const key = keyFn(job);
     if (!primary.has(key)) primary.set(key, job);
     counts.set(key, (counts.get(key) ?? 0) + 1);
