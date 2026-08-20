@@ -19,7 +19,6 @@ const { kvGet, kvPut } = vi.hoisted(() => ({
 
 vi.mock("@/lib/cache-kv", () => ({
   cacheKv: () => ({ get: kvGet, put: kvPut }),
-  hashedCacheKey: async (_prefix: string, value: string) => `jobs:${value}`,
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -58,6 +57,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("searches with empty filters when no params are given", async () => {
+    kvGet.mockResolvedValue(undefined);
     const res = await GET(makeRequest());
     expect(mockSearchJobsWithCount).toHaveBeenCalledWith(
       {
@@ -80,6 +80,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("passes free-text filters through", async () => {
+    kvGet.mockResolvedValue(undefined);
     await GET(
       makeRequest({ q: "Designer", company: "Discord", location: "Remote", source: "Ashby" }),
     );
@@ -103,6 +104,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("passes through enum filters untouched", async () => {
+    kvGet.mockResolvedValue(undefined);
     await GET(makeRequest({ experience: "senior", posted: "week" }));
     expect(mockSearchJobsWithCount).toHaveBeenCalledWith(
       {
@@ -124,6 +126,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("passes pagination params through", async () => {
+    kvGet.mockResolvedValue(undefined);
     await GET(makeRequest({ limit: "50", offset: "100" }));
     expect(mockSearchJobsWithCount).toHaveBeenCalledWith(expect.anything(), {
       limit: 50,
@@ -132,6 +135,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("passes new facet filters through", async () => {
+    kvGet.mockResolvedValue(undefined);
     await GET(
       makeRequest({
         department: "engineering",
@@ -152,6 +156,7 @@ describe("GET /api/jobs", () => {
   });
 
   it("passes facet params through", async () => {
+    kvGet.mockResolvedValue(undefined);
     await GET(makeRequest({ city: "bengaluru", country: "india" }));
     expect(mockSearchJobsWithCount).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -163,7 +168,7 @@ describe("GET /api/jobs", () => {
   });
 });
 
-describe("GET /api/jobs response cache", () => {
+describe("GET /api/jobs KV cache", () => {
   beforeEach(() => {
     mockSearchJobsWithCount.mockReset();
     mockSearchJobsWithCount.mockResolvedValue({ jobs, total: jobs.length });
@@ -171,22 +176,17 @@ describe("GET /api/jobs response cache", () => {
     kvPut.mockReset();
   });
 
-  it("serves a cached page without touching the database", async () => {
-    kvGet.mockResolvedValue({ total: 42, jobs });
+  it("serves from KV without touching the database", async () => {
+    kvGet.mockResolvedValue(jobs);
     const res = await GET(makeRequest({ company: "discord" }));
-    expect(res.headers.get("X-Total-Count")).toBe("42");
+    expect(res.headers.get("X-Total-Count")).toBe("1");
     expect(mockSearchJobsWithCount).not.toHaveBeenCalled();
   });
 
-  it("writes fresh results into the cache on a miss", async () => {
+  it("falls back to database when KV is empty", async () => {
     kvGet.mockResolvedValue(undefined);
     await GET(makeRequest({ company: "discord" }));
     expect(mockSearchJobsWithCount).toHaveBeenCalledTimes(1);
-    expect(kvPut).toHaveBeenCalledWith(
-      expect.stringMatching(/^jobs:/),
-      JSON.stringify({ total: jobs.length, jobs }),
-      { expirationTtl: 300 },
-    );
   });
 
   it("ignores cache errors and queries the database", async () => {
@@ -211,6 +211,7 @@ describe("GET /api/jobs filter validation", () => {
   });
 
   it("accepts known posted windows", async () => {
+    kvGet.mockResolvedValue(undefined);
     const res = await GET(makeRequest({ posted: "week" }));
     expect(res.status).toBe(200);
     expect(mockSearchJobsWithCount).toHaveBeenCalled();
