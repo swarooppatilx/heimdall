@@ -22,7 +22,7 @@ export function SortMenu({ sort, onSortChange }: SortMenuProps) {
         <button
           type="button"
           className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Sort jobs"
+          aria-label={`Sort: ${sort === "company" ? "alphabetical" : "newest"}`}
           suppressHydrationWarning
         >
           <HugeiconsIcon icon={ArrowUpDownIcon} strokeWidth={2} className="size-3.5" />
