@@ -185,20 +185,23 @@ export async function searchJobsWithCount(
           ]
         : [desc(jobs.postedAt)];
 
-  const rows = await db
-    .select({ total: sql<number>`count(*) over()` })
-    .from(jobs)
-    .where(and(...jobConditions(filters)))
-    .orderBy(...orderBy)
-    .limit(limit)
-    .offset(offset);
+  const conditions = and(...jobConditions(filters));
 
-  const total = rows[0]?.total ?? 0;
-  const mapped = rows.map((r) => {
-    const { total: _, ...rest } = r as typeof r & Record<string, unknown>;
-    return toJob(rest as typeof jobs.$inferSelect);
-  });
-  return { jobs: mapped, total };
+  const [jobRows, countResult] = await Promise.all([
+    db
+      .select()
+      .from(jobs)
+      .where(conditions)
+      .orderBy(...orderBy)
+      .limit(limit)
+      .offset(offset),
+    db.select({ value: count() }).from(jobs).where(conditions),
+  ]);
+
+  return {
+    jobs: jobRows.map(toJob),
+    total: countResult[0]?.value ?? 0,
+  };
 }
 
 export async function getJobsByBoard(source: string, company: string): Promise<Job[]> {
