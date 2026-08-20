@@ -17,6 +17,7 @@ import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
 import { ResultsToolbar } from "@/components/jobs/results-toolbar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { CrawlStatusEntry } from "@/lib/crawl-status";
@@ -28,6 +29,7 @@ const HOURS_PER_DAY = 24;
 const MS_PER_HOUR = 3_600_000;
 const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 const SKELETON_PRELOAD_COUNT = 4;
+const SEARCH_DEBOUNCE_MS = 300;
 const ANNOUNCEMENT_DEBOUNCE_MS = 600;
 
 function useInfiniteScroll(
@@ -128,13 +130,14 @@ function JobsPage() {
   const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [sort, setSort] = useQueryParam("sort", "");
   const deferredQuery = useDeferredValue(query);
+  const debouncedQuery = useDebouncedValue(deferredQuery, SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
-    commitQuery(deferredQuery);
-  }, [commitQuery, deferredQuery]);
+    commitQuery(debouncedQuery);
+  }, [commitQuery, debouncedQuery]);
 
   const filters = {
-    q: deferredQuery,
+    q: debouncedQuery,
     company,
     location,
     experience,
@@ -265,7 +268,7 @@ function JobsPage() {
               className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:pr-16 sm:text-base"
               aria-label="Search jobs"
             />
-            <kbd className="pointer-events-none absolute top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground sm:right-3 sm:block">
+            <kbd className="pointer-events-none absolute top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground md:right-3 md:block">
               /
             </kbd>
           </div>
