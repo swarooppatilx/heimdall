@@ -27,7 +27,7 @@ export function JobCard({ job, openings }: JobCardProps) {
 
       <div className="relative flex items-start justify-between gap-2">
         <h2 className="min-w-0 flex-1 text-sm font-semibold text-foreground sm:text-base">
-          <span className="truncate">{job.title}</span>
+          <span className="break-words">{job.title}</span>
           {openings > 1 && (
             <span className="ml-1.5 inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 align-middle text-[10px] font-medium text-secondary-foreground">
               ×{openings}
