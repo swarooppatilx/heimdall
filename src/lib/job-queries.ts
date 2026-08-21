@@ -7,7 +7,6 @@ import { DAY_MS, freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
-import { buildMatchQuery } from "@/lib/search";
 
 function parseLocations(raw: string, fallback: string): string[] {
   try {
@@ -70,7 +69,7 @@ export interface PageOptions {
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 500;
 
-function escapeLike(value: string): string {
+export function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
 }
 
@@ -146,15 +145,8 @@ function jobConditions(filters: JobFilters) {
   ];
 
   if (filters.q) {
-    const matchQuery = buildMatchQuery(filters.q);
-    if (matchQuery) {
-      conditions.push(
-        sql`EXISTS (
-          SELECT 1 FROM jobs_fts
-          WHERE jobs_fts.job_id = ${jobs.id} AND jobs_fts MATCH ${matchQuery}
-        )`,
-      );
-    }
+    const escaped = escapeLike(filters.q);
+    conditions.push(sql`${jobs.title} LIKE ${`%${escaped}%`} ESCAPE '\\'`);
   }
 
   return conditions.filter((c): c is NonNullable<typeof c> => c != null);
@@ -174,16 +166,8 @@ export async function searchJobsWithCount(
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
 
-  const matchQuery = filters.q ? buildMatchQuery(filters.q) : "";
   const orderBy =
-    filters.sort === "company"
-      ? [asc(jobs.company), desc(jobs.postedAt)]
-      : matchQuery
-        ? [
-            sql`(SELECT rank FROM jobs_fts
-                WHERE jobs_fts.job_id = ${jobs.id} AND jobs_fts MATCH ${matchQuery})`,
-          ]
-        : [desc(jobs.postedAt)];
+    filters.sort === "company" ? [asc(jobs.company), desc(jobs.postedAt)] : [desc(jobs.postedAt)];
 
   const conditions = and(...jobConditions(filters));
 
@@ -223,7 +207,7 @@ export async function getCompanyNames(): Promise<string[]> {
   const rows = await db
     .selectDistinct({ value: jobs.company })
     .from(jobs)
-    .where(ne(jobs.company, ""))
+    .where(and(ne(jobs.company, ""), gte(jobs.postedAt, freshnessCutoff())))
     .orderBy(asc(jobs.company));
   return rows.map((r) => r.value);
 }
@@ -245,4 +229,10 @@ export async function countJobsByCompany(company: string): Promise<number> {
     .from(jobs)
     .where(and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff())));
   return row?.value ?? 0;
+}
+
+export async function getAllFreshJobs(): Promise<Job[]> {
+  const db = await getDb();
+  const rows = await db.select().from(jobs).where(gte(jobs.postedAt, freshnessCutoff()));
+  return rows.map(toJob);
 }
