@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS `idx_jobs_dedupe` ON `jobs` (`company`, `title`, `city`, `posted_at`);

@@ -44,29 +44,6 @@ interface LocationFacet {
   country: string;
 }
 
-function escapedIdList(ids: string[]): string {
-  return ids.map((id) => `'${id.replaceAll("'", "''")}'`).join(", ");
-}
-
-async function deleteFtsRows(db: Db, ids: string[]): Promise<void> {
-  await db.run(sql`DELETE FROM jobs_fts WHERE job_id IN (${sql.raw(escapedIdList(ids))})`);
-}
-
-// FTS5 virtual tables reject bound parameters inside DELETE ... IN, so ids are
-// inlined as escaped literals. Raw statements never join db.batch() (drizzle
-// issue #2277).
-async function syncJobFts(db: Db, page: Job[]): Promise<void> {
-  const ids = escapedIdList(page.map((job) => job.id));
-  await deleteFtsRows(
-    db,
-    page.map((job) => job.id),
-  );
-  await db.run(sql`
-    INSERT INTO jobs_fts (title, company, location, department, job_id)
-    SELECT title, company, location, department, id FROM jobs WHERE id IN (${sql.raw(ids)})
-  `);
-}
-
 function locationFacets(job: Job): LocationFacet[] {
   const raw = [job.location, ...(job.locations ?? [])];
   const seen = new Set<string>();
@@ -127,7 +104,6 @@ async function writeJobs(items: Job[], mode: "insert" | "update"): Promise<void>
   for (const page of chunk(items)) {
     const statements = page.flatMap((job) => jobStatements(db, job, mode));
     await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
-    await syncJobFts(db, page);
   }
 }
 
@@ -147,15 +123,11 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
       db.delete(jobs).where(inArray(jobs.id, page)),
       db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
     ]);
-    await deleteFtsRows(db, page);
   }
 }
 
 export async function deleteStaleJobs(): Promise<number> {
   const db = await getDb();
-  await db.run(
-    sql`DELETE FROM jobs_fts WHERE job_id IN (SELECT id FROM jobs WHERE posted_at < ${freshnessCutoff()})`,
-  );
   const result = await db.delete(jobs).where(lt(jobs.postedAt, freshnessCutoff()));
   return result.meta.changes ?? 0;
 }
