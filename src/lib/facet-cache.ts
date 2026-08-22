@@ -1,3 +1,4 @@
+import { trackKvCache } from "@/lib/analytics";
 import { cacheKv } from "@/lib/cache-kv";
 import { type FacetOptions, getFacetOptions } from "@/lib/facets";
 
@@ -13,12 +14,16 @@ export async function getFacetOptionsCached(): Promise<FacetOptions> {
         type: "json",
         cacheTtl: EDGE_TTL_SECONDS,
       });
-      if (hit) return hit;
+      if (hit) {
+        trackKvCache({ operation: "read", key: CACHE_KEY, hit: true });
+        return hit;
+      }
     } catch {
       // fall through to the database on cache errors
     }
   }
 
+  trackKvCache({ operation: "read", key: CACHE_KEY, hit: false });
   const options = await getFacetOptions();
 
   if (cache) {
@@ -31,4 +36,17 @@ export async function getFacetOptionsCached(): Promise<FacetOptions> {
     }
   }
   return options;
+}
+
+export async function warmFacetCache(): Promise<void> {
+  const cache = cacheKv();
+  if (!cache) return;
+  try {
+    const options = await getFacetOptions();
+    await cache.put(CACHE_KEY, JSON.stringify(options), {
+      expirationTtl: KV_TTL_SECONDS,
+    });
+  } catch {
+    // best effort — stale cache is acceptable
+  }
 }

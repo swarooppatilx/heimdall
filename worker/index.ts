@@ -1,3 +1,4 @@
+import { setAnalyticsBinding, trackCrawlTick } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/lib/crawler";
 import {
@@ -5,11 +6,14 @@ import {
   dedupeCrossSourceJobs,
   deleteOldCrawls,
   deleteStaleJobs,
+  getAllFreshJobs,
   getJobQuality,
   getLatestCrawlUnix,
   getRecentCrawlSamples,
 } from "@/lib/db";
+import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
+import { writeAllJobsToKV } from "@/lib/jobs-kv";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
 import handler from "./open-next-handler.mjs";
@@ -43,6 +47,7 @@ export default {
 
 async function runTick(controller: ScheduledController, env: CloudflareEnv): Promise<void> {
   bindDb(env.DB);
+  setAnalyticsBinding(env.ANALYTICS);
   configureFreshness(env.FRESHNESS_DAYS);
 
   const lastCrawlAt = await getLatestCrawlUnix();
@@ -56,6 +61,11 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const removed = sweepStart ? await deleteStaleJobs() : 0;
   const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
   const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
+
+  const allJobs = await getAllFreshJobs();
+  await writeAllJobsToKV(allJobs);
+  await warmFacetCache();
+
   const failed = run.results.filter((r) => r.status === "error").length;
   logEvent("scheduled_crawl", {
     cron: controller.cron,
@@ -68,6 +78,18 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
     expiredCrawls,
     skipped: run.skipped,
     durationMs: run.durationMs,
+  });
+
+  trackCrawlTick({
+    durationMs: run.durationMs,
+    companies: run.results.length,
+    ok: run.results.length - failed,
+    failed,
+    discovered: run.discovered,
+    removed,
+    deduped,
+    skipped: run.skipped,
+    sweep: sweepOrdinal(controller.scheduledTime),
   });
 
   const latestCrawlAt = await getLatestCrawlUnix();

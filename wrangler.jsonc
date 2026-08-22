@@ -1,5 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  "keep_names": false,
   "name": "heimdall",
   "main": "worker/index.ts",
   "compatibility_date": "2026-06-15",
@@ -47,6 +48,12 @@
   "triggers": {
     "crons": ["*/30 * * * *"]
   },
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "heimdall"
+    }
+  ],
   "observability": {
     "enabled": true
   }
