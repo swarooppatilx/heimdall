@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import Script from "next/script";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import { SITE_URL } from "@/lib/site";
@@ -64,6 +65,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <JsonLd data={jsonLd} />
+        <Script
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN}", "spa": true}`}
+          strategy="afterInteractive"
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>

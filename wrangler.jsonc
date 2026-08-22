@@ -8,7 +8,8 @@
   "upload_source_maps": true,
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://heimdall.daenerys.workers.dev",
-    "FRESHNESS_DAYS": "15"
+    "FRESHNESS_DAYS": "15",
+    "NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "30c1eed54e67440c8dce414f993f30aa"
   },
   "assets": {
     "directory": ".open-next/assets",
