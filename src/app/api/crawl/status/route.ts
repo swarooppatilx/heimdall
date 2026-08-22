@@ -43,7 +43,7 @@ function constantTimeEqual(a: string, b: string): boolean {
 
 async function authorized(request: Request): Promise<boolean> {
   const { env } = await getCloudflareContext();
-  const expected = (env as CloudflareEnv).CRAWL_STATUS_TOKEN;
+  const expected = (env as unknown as Record<string, string>).CRAWL_STATUS_TOKEN;
   if (!expected) return true;
   const provided = request.headers.get("x-crawl-status-token");
   if (!provided) return false;

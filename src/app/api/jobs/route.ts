@@ -1,50 +1,21 @@
 import { NextResponse } from "next/server";
-import { cacheKv, hashedCacheKey } from "@/lib/cache-kv";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { searchJobsWithCount } from "@/lib/db";
-import type { Job } from "@/lib/job";
 import { POSTED_WINDOWS } from "@/lib/job-queries";
+import {
+  type JobFilters as KvJobFilters,
+  readAllJobsFromKV,
+  searchJobsFromKV,
+} from "@/lib/jobs-kv";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const EDGE_TTL_SECONDS = 300;
 const MAX_OFFSET = 10_000;
-const KV_TTL_SECONDS = 300;
-
-interface CachedJobsPage {
-  total: number;
-  jobs: Job[];
-}
 
 function parseIntParam(searchParams: URLSearchParams, key: string): number | undefined {
   const value = Number.parseInt(searchParams.get(key) ?? "", 10);
   return Number.isNaN(value) ? undefined : value;
-}
-
-async function readCachedPage(key: string): Promise<CachedJobsPage | undefined> {
-  const cache = cacheKv();
-  if (!cache) return undefined;
-  try {
-    return (
-      (await cache.get<CachedJobsPage>(key, {
-        type: "json",
-        cacheTtl: EDGE_TTL_SECONDS,
-      })) ?? undefined
-    );
-  } catch {
-    return undefined;
-  }
-}
-
-async function writeCachedPage(key: string, page: CachedJobsPage): Promise<void> {
-  const cache = cacheKv();
-  if (!cache) return;
-  try {
-    await cache.put(key, JSON.stringify(page), { expirationTtl: KV_TTL_SECONDS });
-  } catch {
-    // a failed cache write must not fail the request
-  }
 }
 
 export const GET = withRateLimit(
@@ -52,7 +23,7 @@ export const GET = withRateLimit(
   async (request) => {
     const { searchParams } = new URL(request.url);
 
-    const filters: JobFilters = {};
+    const filters: KvJobFilters = {};
     const filterParams = [
       ["q", "q"],
       ["company", "company"],
@@ -86,16 +57,19 @@ export const GET = withRateLimit(
       return NextResponse.json({ error: "offset too large" }, { status: 400 });
     }
 
-    const cacheKey = await hashedCacheKey("jobs", request.url);
-    const cached = await readCachedPage(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached.jobs, {
-        headers: { "X-Total-Count": String(cached.total) },
+    const allJobs = await readAllJobsFromKV();
+    if (allJobs) {
+      const result = searchJobsFromKV(allJobs, filters, page);
+      return NextResponse.json(result.jobs, {
+        headers: { "X-Total-Count": String(result.total) },
       });
     }
 
-    const { jobs, total } = await searchJobsWithCount(filters, page);
-    await writeCachedPage(cacheKey, { total, jobs });
+    const dbFilters: JobFilters = {};
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) dbFilters[key as keyof JobFilters] = value;
+    }
+    const { jobs, total } = await searchJobsWithCount(dbFilters, page);
 
     return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
   },
