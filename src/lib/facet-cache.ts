@@ -6,8 +6,10 @@ const CACHE_KEY = "facet-options";
 const EDGE_TTL_SECONDS = 300;
 const KV_TTL_SECONDS = 3600;
 
-export async function getFacetOptionsCached(): Promise<FacetOptions> {
-  const cache = cacheKv();
+export async function getFacetOptionsCached(
+  env: Pick<CloudflareEnv, "CACHE">,
+): Promise<FacetOptions> {
+  const cache = cacheKv(env);
   if (cache) {
     try {
       const hit = await cache.get<FacetOptions>(CACHE_KEY, {
@@ -38,8 +40,8 @@ export async function getFacetOptionsCached(): Promise<FacetOptions> {
   return options;
 }
 
-export async function warmFacetCache(): Promise<void> {
-  const cache = cacheKv();
+export async function warmFacetCache(env: Pick<CloudflareEnv, "CACHE">): Promise<void> {
+  const cache = cacheKv(env);
   if (!cache) return;
   try {
     const options = await getFacetOptions();

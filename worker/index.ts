@@ -63,8 +63,8 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
 
   const allJobs = await getAllFreshJobs();
-  await writeAllJobsToKV(allJobs);
-  await warmFacetCache();
+  await writeAllJobsToKV(allJobs, env);
+  await warmFacetCache(env);
 
   const failed = run.results.filter((r) => r.status === "error").length;
   logEvent("scheduled_crawl", {

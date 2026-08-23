@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getFacetOptionsCached } from "@/lib/facet-cache";
 
 const kvStore = new Map<string, string>();
 // biome-ignore lint/suspicious/useAwait: mock implementation returns promise by design
@@ -12,11 +13,7 @@ const kvPut = vi.fn(async (key: string, value: string) => {
   kvStore.set(key, value);
 });
 
-vi.mock("@opennextjs/cloudflare", () => ({
-  getCloudflareContext: () => ({
-    env: { CACHE: { get: kvGet, put: kvPut } },
-  }),
-}));
+const cacheEnv = { CACHE: { get: kvGet, put: kvPut } } as unknown as Pick<CloudflareEnv, "CACHE">;
 
 const dbFacets = { remoteCount: 7, countries: [] };
 const dbGet = vi.fn(async () => dbFacets);
@@ -24,8 +21,6 @@ const dbGet = vi.fn(async () => dbFacets);
 vi.mock("./facets", () => ({
   getFacetOptions: () => dbGet(),
 }));
-
-import { getFacetOptionsCached } from "@/lib/facet-cache";
 
 beforeEach(() => {
   kvStore.clear();
@@ -36,7 +31,7 @@ beforeEach(() => {
 
 describe("getFacetOptionsCached", () => {
   it("reads through to the database and populates the cache", async () => {
-    await expect(getFacetOptionsCached()).resolves.toBe(dbFacets);
+    await expect(getFacetOptionsCached(cacheEnv)).resolves.toBe(dbFacets);
     expect(dbGet).toHaveBeenCalledTimes(1);
     expect(kvPut).toHaveBeenCalledWith("facet-options", JSON.stringify(dbFacets), {
       expirationTtl: 3600,
@@ -44,8 +39,8 @@ describe("getFacetOptionsCached", () => {
   });
 
   it("serves subsequent reads from the cache without touching the database", async () => {
-    await getFacetOptionsCached();
-    const second = await getFacetOptionsCached();
+    await getFacetOptionsCached(cacheEnv);
+    const second = await getFacetOptionsCached(cacheEnv);
     expect(second).toEqual(dbFacets);
     expect(dbGet).toHaveBeenCalledTimes(1);
     expect(kvGet).toHaveBeenCalledTimes(2);
@@ -53,7 +48,7 @@ describe("getFacetOptionsCached", () => {
 
   it("falls back to the database when the cache errors", async () => {
     kvGet.mockRejectedValueOnce(new Error("kv down"));
-    await expect(getFacetOptionsCached()).resolves.toBe(dbFacets);
+    await expect(getFacetOptionsCached(cacheEnv)).resolves.toBe(dbFacets);
     expect(dbGet).toHaveBeenCalledTimes(1);
   });
 });

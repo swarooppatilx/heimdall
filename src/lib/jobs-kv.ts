@@ -44,8 +44,10 @@ export interface SearchResult {
   total: number;
 }
 
-export async function readAllJobsFromKV(): Promise<Job[] | undefined> {
-  const cache = cacheKv();
+export async function readAllJobsFromKV(
+  env: Pick<CloudflareEnv, "CACHE">,
+): Promise<Job[] | undefined> {
+  const cache = cacheKv(env);
   if (!cache) return undefined;
   try {
     const jobs = await cache.get<Job[]>(ALL_JOBS_KEY, {
@@ -60,8 +62,11 @@ export async function readAllJobsFromKV(): Promise<Job[] | undefined> {
   }
 }
 
-export async function writeAllJobsToKV(jobs: Job[]): Promise<void> {
-  const cache = cacheKv();
+export async function writeAllJobsToKV(
+  jobs: Job[],
+  env: Pick<CloudflareEnv, "CACHE">,
+): Promise<void> {
+  const cache = cacheKv(env);
   if (!cache) return;
   try {
     await cache.put(ALL_JOBS_KEY, JSON.stringify(jobs), {

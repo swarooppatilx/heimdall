@@ -17,8 +17,10 @@ const { kvGet, kvPut } = vi.hoisted(() => ({
   kvPut: vi.fn(),
 }));
 
-vi.mock("@/lib/cache-kv", () => ({
-  cacheKv: () => ({ get: kvGet, put: kvPut }),
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: () => ({
+    env: { CACHE: { get: kvGet, put: kvPut } },
+  }),
 }));
 
 vi.mock("@/lib/rate-limit", () => ({

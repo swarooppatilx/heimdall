@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { searchJobsWithCount } from "@/lib/db";
@@ -57,7 +58,8 @@ export const GET = withRateLimit(
       return NextResponse.json({ error: "offset too large" }, { status: 400 });
     }
 
-    const allJobs = await readAllJobsFromKV();
+    const { env } = getCloudflareContext();
+    const allJobs = await readAllJobsFromKV(env);
     if (allJobs) {
       const result = searchJobsFromKV(allJobs, filters, page);
       return NextResponse.json(result.jobs, {
