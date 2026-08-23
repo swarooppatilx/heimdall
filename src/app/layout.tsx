@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Script from "next/script";
+import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import { SITE_URL } from "@/lib/site";
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
+        <Footer />
       </body>
     </html>
   );

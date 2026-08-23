@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
 import { countJobsByCompany, getJobsByCompany } from "@/lib/db";
@@ -68,13 +69,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/5 backdrop-blur-3xl">
-        <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
+      <Header
+        left={
           <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
             ← all jobs
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
         <div className="mb-8">

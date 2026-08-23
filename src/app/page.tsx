@@ -12,10 +12,10 @@ import {
   useState,
 } from "react";
 import { FilterSelect } from "@/components/filter-select";
+import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
 import { ResultsToolbar } from "@/components/jobs/results-toolbar";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useJobFilters } from "@/hooks/use-job-filters";
@@ -28,32 +28,8 @@ const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const HOURS_PER_DAY = 24;
 const MS_PER_HOUR = 3_600_000;
 const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
-const SKELETON_PRELOAD_COUNT = 4;
 const SEARCH_DEBOUNCE_MS = 300;
 const ANNOUNCEMENT_DEBOUNCE_MS = 600;
-
-function useInfiniteScroll(
-  fetchNextPage: () => void,
-  hasNextPage: boolean,
-  isFetchingNextPage: boolean,
-) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: "400px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
-  return sentinelRef;
-}
 
 function useSearchShortcut(
   searchRef: React.RefObject<HTMLInputElement | null>,
@@ -153,7 +129,19 @@ function JobsPage() {
   const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
 
-  const sentinelRef = useInfiniteScroll(fetchNextPage, hasNextPage, isFetchingNextPage);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!(el && hasNextPage) || isFetchingNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) fetchNextPage();
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const jobCards = useMemo(
     () => dedupeJobs(jobs, (job) => `${job.company}|${job.title.toLowerCase()}`),
@@ -244,17 +232,7 @@ function JobsPage() {
       >
         Skip to results
       </a>
-      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/5 backdrop-blur-3xl">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-lg font-semibold tracking-tight">heimdall</h1>
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              fresh tech jobs, direct from source
-            </span>
-          </div>
-          <ThemeToggle />
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
         <section aria-label="Search and filters" className="mb-6">
@@ -338,36 +316,11 @@ function JobsPage() {
             jobCards.map(({ job, openings }) => (
               <JobCard key={job.id} job={job} openings={openings} />
             ))}
+          {Boolean(isFetchingNextPage) &&
+            ["s1", "s2", "s3", "s4"].map((key) => <JobCardSkeleton key={key} />)}
         </ul>
 
-        {!(isError || isFetchingNextPage) && (
-          <div ref={sentinelRef} aria-hidden="true" className="h-1" />
-        )}
-        {isError && hasNextPage && jobCards.length > 0 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fetchNextPage()}
-            className="mx-auto mt-2"
-          >
-            load more
-          </Button>
-        )}
-
-        {Boolean(isFetchingNextPage) && (
-          <ul className="mt-2 flex flex-col gap-2">
-            {SKELETON_KEYS.slice(0, SKELETON_PRELOAD_COUNT).map((key) => (
-              <JobCardSkeleton key={key} />
-            ))}
-          </ul>
-        )}
-
-        {!hasNextPage && jobCards.length > 0 && !isLoading && !isError && (
-          <p className="mt-6 text-center text-xs text-muted-foreground" role="status">
-            you've reached the end — {jobCards.length} role{jobCards.length === 1 ? "" : "s"} shown
-          </p>
-        )}
+        {Boolean(hasNextPage) && <div ref={sentinelRef} aria-hidden="true" className="h-1" />}
       </main>
     </div>
   );
