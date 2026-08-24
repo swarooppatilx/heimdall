@@ -10,7 +10,6 @@ export const FILTER_SOURCES = [
   "lever",
   "ashby",
   "smartrecruiters",
-  "workday",
   "workable",
 ] as const;
 

@@ -5,12 +5,6 @@
     "label": "1Password"
   },
   {
-    "name": "adobe",
-    "provider": "workday",
-    "apiUrl": "https://adobe.wd5.myworkdayjobs.com/wday/cxs/adobe/external_experienced/jobs",
-    "label": "Adobe"
-  },
-  {
     "name": "adyen",
     "provider": "greenhouse",
     "label": "Adyen"
@@ -70,12 +64,6 @@
     "provider": "ashby"
   },
   {
-    "name": "amat",
-    "provider": "workday",
-    "apiUrl": "https://amat.wd1.myworkdayjobs.com/wday/cxs/amat/External/jobs",
-    "label": "Applied Materials"
-  },
-  {
     "name": "amo",
     "provider": "ashby"
   },
@@ -83,12 +71,6 @@
     "name": "amplitude",
     "provider": "ashby",
     "label": "Amplitude"
-  },
-  {
-    "name": "analogdevices",
-    "provider": "workday",
-    "apiUrl": "https://analogdevices.wd1.myworkdayjobs.com/wday/cxs/analogdevices/External/jobs",
-    "label": "Analog Devices"
   },
   {
     "name": "andurilindustries",
@@ -150,12 +132,6 @@
     "name": "aurorasolar",
     "provider": "ashby",
     "label": "Aurora Solar"
-  },
-  {
-    "name": "autodesk",
-    "provider": "workday",
-    "apiUrl": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext/jobs",
-    "label": "Autodesk"
   },
   {
     "name": "axiom",
@@ -222,12 +198,6 @@
     "label": "Block"
   },
   {
-    "name": "blueorigin",
-    "provider": "workday",
-    "apiUrl": "https://blueorigin.wd5.myworkdayjobs.com/wday/cxs/blueorigin/BlueOrigin/jobs",
-    "label": "Blue Origin"
-  },
-  {
     "name": "boomi",
     "provider": "ashby"
   },
@@ -250,12 +220,6 @@
     "name": "brex",
     "provider": "greenhouse",
     "label": "Brex"
-  },
-  {
-    "name": "broadcom",
-    "provider": "workday",
-    "apiUrl": "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career/jobs",
-    "label": "Broadcom"
   },
   {
     "name": "browserbase",
@@ -285,12 +249,6 @@
   {
     "name": "buzzfeed",
     "provider": "greenhouse"
-  },
-  {
-    "name": "cadence",
-    "provider": "workday",
-    "apiUrl": "https://cadence.wd1.myworkdayjobs.com/wday/cxs/cadence/External_Careers/jobs",
-    "label": "Cadence"
   },
   {
     "name": "calendly",
@@ -361,21 +319,9 @@
     "label": "Chime"
   },
   {
-    "name": "ciena",
-    "provider": "workday",
-    "apiUrl": "https://ciena.wd5.myworkdayjobs.com/wday/cxs/ciena/Careers/jobs",
-    "label": "Ciena"
-  },
-  {
     "name": "circleci",
     "provider": "greenhouse",
     "label": "CircleCI"
-  },
-  {
-    "name": "cisco",
-    "provider": "workday",
-    "apiUrl": "https://cisco.wd5.myworkdayjobs.com/wday/cxs/cisco/Cisco_Careers/jobs",
-    "label": "Cisco"
   },
   {
     "name": "clari",
@@ -488,12 +434,6 @@
     "name": "crookedmedia",
     "provider": "greenhouse",
     "label": "Crooked Media"
-  },
-  {
-    "name": "crowdstrike",
-    "provider": "workday",
-    "apiUrl": "https://crowdstrike.wd5.myworkdayjobs.com/wday/cxs/crowdstrike/crowdstrikecareers/jobs",
-    "label": "CrowdStrike"
   },
   {
     "name": "crusoe",
@@ -726,12 +666,6 @@
     "name": "fastly",
     "provider": "greenhouse",
     "label": "Fastly"
-  },
-  {
-    "name": "ffive",
-    "provider": "workday",
-    "apiUrl": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs/jobs",
-    "label": "F5"
   },
   {
     "name": "figma",
@@ -970,12 +904,6 @@
     "label": "Houzz"
   },
   {
-    "name": "hp",
-    "provider": "workday",
-    "apiUrl": "https://hp.wd5.myworkdayjobs.com/wday/cxs/hp/ExternalCareerSite/jobs",
-    "label": "HP Inc."
-  },
-  {
     "name": "httpie",
     "provider": "ashby",
     "label": "HTTPie"
@@ -993,12 +921,6 @@
     "name": "ideogram",
     "provider": "ashby",
     "label": "Ideogram"
-  },
-  {
-    "name": "illumina",
-    "provider": "workday",
-    "apiUrl": "https://illumina.wd1.myworkdayjobs.com/wday/cxs/illumina/illumina-careers/jobs",
-    "label": "Illumina"
   },
   {
     "name": "infisical",
@@ -1037,12 +959,6 @@
     "name": "instacart",
     "provider": "greenhouse",
     "label": "Instacart"
-  },
-  {
-    "name": "intel",
-    "provider": "workday",
-    "apiUrl": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs",
-    "label": "Intel"
   },
   {
     "name": "intercom",
@@ -1094,12 +1010,6 @@
   {
     "name": "kickstarter",
     "provider": "greenhouse"
-  },
-  {
-    "name": "kla",
-    "provider": "workday",
-    "apiUrl": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs",
-    "label": "KLA"
   },
   {
     "name": "klaviyo",
@@ -1241,12 +1151,6 @@
     "label": "Marqeta"
   },
   {
-    "name": "marvell",
-    "provider": "workday",
-    "apiUrl": "https://marvell.wd1.myworkdayjobs.com/wday/cxs/marvell/MarvellCareers/jobs",
-    "label": "Marvell"
-  },
-  {
     "name": "materialize",
     "provider": "ashby",
     "label": "Materialize"
@@ -1255,12 +1159,6 @@
     "name": "mattermost",
     "provider": "greenhouse",
     "label": "Mattermost"
-  },
-  {
-    "name": "medtronic",
-    "provider": "workday",
-    "apiUrl": "https://medtronic.wd1.myworkdayjobs.com/wday/cxs/medtronic/MedtronicCareers/jobs",
-    "label": "Medtronic"
   },
   {
     "name": "mercor",
@@ -1282,12 +1180,6 @@
   {
     "name": "metaview",
     "provider": "lever"
-  },
-  {
-    "name": "micron",
-    "provider": "workday",
-    "apiUrl": "https://micron.wd1.myworkdayjobs.com/wday/cxs/micron/External/jobs",
-    "label": "Micron Technology"
   },
   {
     "name": "middesk",
@@ -1337,12 +1229,6 @@
     "name": "motherduck",
     "provider": "ashby",
     "label": "MotherDuck"
-  },
-  {
-    "name": "motorolasolutions",
-    "provider": "workday",
-    "apiUrl": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers/jobs",
-    "label": "Motorola Solutions"
   },
   {
     "name": "mozilla",
@@ -1442,18 +1328,6 @@
     "name": "nuro",
     "provider": "greenhouse",
     "label": "Nuro"
-  },
-  {
-    "name": "nvidia",
-    "provider": "workday",
-    "apiUrl": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs",
-    "label": "NVIDIA"
-  },
-  {
-    "name": "nxp",
-    "provider": "workday",
-    "apiUrl": "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/jobs",
-    "label": "NXP Semiconductors"
   },
   {
     "name": "octopusdeploy",
@@ -1719,12 +1593,6 @@
     "label": "Relativity Space"
   },
   {
-    "name": "relx",
-    "provider": "workday",
-    "apiUrl": "https://relx.wd3.myworkdayjobs.com/wday/cxs/relx/relx/jobs",
-    "label": "RELX"
-  },
-  {
     "name": "rembrand",
     "provider": "lever"
   },
@@ -1828,12 +1696,6 @@
     "label": "Runway"
   },
   {
-    "name": "salesforce",
-    "provider": "workday",
-    "apiUrl": "https://salesforce.wd12.myworkdayjobs.com/wday/cxs/salesforce/External_Career_Site/jobs",
-    "label": "Slack (Salesforce)"
-  },
-  {
     "name": "salesloft",
     "provider": "workable",
     "label": "Salesloft"
@@ -1870,12 +1732,6 @@
     "name": "seaporttherapeutics",
     "provider": "greenhouse",
     "label": "Seaport Therapeutics"
-  },
-  {
-    "name": "sec",
-    "provider": "workday",
-    "apiUrl": "https://sec.wd3.myworkdayjobs.com/wday/cxs/sec/Samsung_Careers/jobs",
-    "label": "Samsung Electronics"
   },
   {
     "name": "secureframe",
@@ -2174,12 +2030,6 @@
     "label": "Trigger"
   },
   {
-    "name": "trimble",
-    "provider": "workday",
-    "apiUrl": "https://trimble.wd1.myworkdayjobs.com/wday/cxs/trimble/TrimbleCareers/jobs",
-    "label": "Trimble"
-  },
-  {
     "name": "tripadvisor",
     "provider": "greenhouse",
     "label": "Tripadvisor"
@@ -2297,12 +2147,6 @@
     "provider": "greenhouse"
   },
   {
-    "name": "verizon",
-    "provider": "workday",
-    "apiUrl": "https://verizon.wd12.myworkdayjobs.com/wday/cxs/verizon/verizon-careers/jobs",
-    "label": "Verizon"
-  },
-  {
     "name": "verkada",
     "provider": "greenhouse"
   },
@@ -2378,12 +2222,6 @@
     "name": "workato",
     "provider": "greenhouse",
     "label": "Workato"
-  },
-  {
-    "name": "workday",
-    "provider": "workday",
-    "apiUrl": "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday/jobs",
-    "label": "Workday"
   },
   {
     "name": "workos",

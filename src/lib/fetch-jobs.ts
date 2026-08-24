@@ -11,7 +11,6 @@ import { fetchGreenhouseJobs } from "@/lib/providers/greenhouse";
 import { fetchLeverJobs } from "@/lib/providers/lever";
 import { fetchSmartRecruitersJobs } from "@/lib/providers/smartrecruiters";
 import { fetchWorkableJobs } from "@/lib/providers/workable";
-import { fetchWorkdayJobs } from "@/lib/providers/workday";
 import type { RegistryEntry } from "@/lib/registry";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 
@@ -22,7 +21,6 @@ const PROVIDERS: Record<string, ProviderFetcher> = {
   lever: (entry, budget) => fetchLeverJobs(entry.name, budget),
   ashby: (entry, budget) => fetchAshbyJobs(entry.name, budget),
   smartrecruiters: (entry, budget) => fetchSmartRecruitersJobs(entry.name, budget),
-  workday: (entry, budget) => fetchWorkdayJobs(entry.apiUrl ?? "", budget),
   workable: (entry, budget) => fetchWorkableJobs(entry.name, budget),
 };
 
