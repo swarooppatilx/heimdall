@@ -21,6 +21,10 @@
     "label": "Affirm"
   },
   {
+    "name": "agoda",
+    "provider": "greenhouse"
+  },
+  {
     "name": "airbnb",
     "provider": "greenhouse",
     "label": "Airbnb"
@@ -35,9 +39,21 @@
     "provider": "workable"
   },
   {
+    "name": "aircall",
+    "provider": "lever"
+  },
+  {
     "name": "airtable",
     "provider": "greenhouse",
     "label": "Airtable"
+  },
+  {
+    "name": "airwallex",
+    "provider": "ashby"
+  },
+  {
+    "name": "alan",
+    "provider": "ashby"
   },
   {
     "name": "algolia",
@@ -45,10 +61,23 @@
     "label": "Algolia"
   },
   {
+    "name": "alpacahealth",
+    "provider": "ashby",
+    "label": "Alpaca Health"
+  },
+  {
+    "name": "altura",
+    "provider": "ashby"
+  },
+  {
     "name": "amat",
     "provider": "workday",
     "apiUrl": "https://amat.wd1.myworkdayjobs.com/wday/cxs/amat/External/jobs",
     "label": "Applied Materials"
+  },
+  {
+    "name": "amo",
+    "provider": "ashby"
   },
   {
     "name": "amplitude",
@@ -65,6 +94,15 @@
     "name": "andurilindustries",
     "provider": "greenhouse",
     "label": "Anduril"
+  },
+  {
+    "name": "angellist",
+    "provider": "lever",
+    "label": "AngelList"
+  },
+  {
+    "name": "antheia",
+    "provider": "greenhouse"
   },
   {
     "name": "anthropic",
@@ -92,13 +130,26 @@
     "label": "Astera Labs"
   },
   {
+    "name": "astranis",
+    "provider": "greenhouse"
+  },
+  {
     "name": "astronomer",
     "provider": "ashby",
     "label": "Astronomer"
   },
   {
+    "name": "atbay",
+    "provider": "greenhouse"
+  },
+  {
     "name": "atlassian",
     "provider": "workable"
+  },
+  {
+    "name": "aurorasolar",
+    "provider": "ashby",
+    "label": "Aurora Solar"
   },
   {
     "name": "autodesk",
@@ -116,7 +167,29 @@
     "provider": "ashby"
   },
   {
+    "name": "bayada",
+    "provider": "greenhouse",
+    "label": "BAYADA"
+  },
+  {
+    "name": "benchling",
+    "provider": "ashby"
+  },
+  {
     "name": "billcom",
+    "provider": "greenhouse",
+    "label": "Bill"
+  },
+  {
+    "name": "bisnow",
+    "provider": "lever"
+  },
+  {
+    "name": "bitmovin",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "bitso",
     "provider": "greenhouse"
   },
   {
@@ -139,6 +212,11 @@
     "provider": "ashby"
   },
   {
+    "name": "blenheimchalcot",
+    "provider": "greenhouse",
+    "label": "Blenheim Chalcot"
+  },
+  {
     "name": "block",
     "provider": "greenhouse",
     "label": "Block"
@@ -148,6 +226,10 @@
     "provider": "workday",
     "apiUrl": "https://blueorigin.wd5.myworkdayjobs.com/wday/cxs/blueorigin/BlueOrigin/jobs",
     "label": "Blue Origin"
+  },
+  {
+    "name": "boomi",
+    "provider": "ashby"
   },
   {
     "name": "boschgroup",
@@ -193,7 +275,16 @@
   {
     "name": "bunny",
     "provider": "ashby",
-    "label": "Bunny.net"
+    "label": "Bunny"
+  },
+  {
+    "name": "butcherbox",
+    "provider": "greenhouse",
+    "label": "Butcher Box"
+  },
+  {
+    "name": "buzzfeed",
+    "provider": "greenhouse"
   },
   {
     "name": "cadence",
@@ -214,6 +305,22 @@
     "name": "canonical",
     "provider": "greenhouse",
     "label": "Canonical"
+  },
+  {
+    "name": "capco",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "carbon",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "cardboard",
+    "provider": "ashby"
+  },
+  {
+    "name": "careem",
+    "provider": "greenhouse"
   },
   {
     "name": "carta",
@@ -241,7 +348,7 @@
   {
     "name": "character",
     "provider": "ashby",
-    "label": "Character.AI"
+    "label": "Character"
   },
   {
     "name": "checkr",
@@ -275,14 +382,34 @@
     "provider": "workable"
   },
   {
+    "name": "clerk",
+    "provider": "ashby"
+  },
+  {
     "name": "clickhouse",
     "provider": "ashby",
     "label": "ClickHouse"
   },
   {
+    "name": "clickhouse",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "close",
+    "provider": "ashby"
+  },
+  {
     "name": "cloudflare",
     "provider": "greenhouse",
     "label": "Cloudflare"
+  },
+  {
+    "name": "cloudsek",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "coalition",
+    "provider": "greenhouse"
   },
   {
     "name": "cockroachlabs",
@@ -295,6 +422,10 @@
     "label": "Coder"
   },
   {
+    "name": "cognition",
+    "provider": "ashby"
+  },
+  {
     "name": "cohere",
     "provider": "ashby",
     "label": "Cohere"
@@ -303,6 +434,10 @@
     "name": "coinbase",
     "provider": "greenhouse",
     "label": "Coinbase"
+  },
+  {
+    "name": "cointracker",
+    "provider": "ashby"
   },
   {
     "name": "column",
@@ -315,7 +450,20 @@
     "label": "Confluent"
   },
   {
+    "name": "consensys",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "constantcontact",
+    "provider": "greenhouse",
+    "label": "Constant Contact"
+  },
+  {
     "name": "contentful",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "conviva",
     "provider": "greenhouse"
   },
   {
@@ -324,9 +472,22 @@
     "label": "CoreWeave"
   },
   {
+    "name": "coupa",
+    "provider": "lever"
+  },
+  {
     "name": "coursera",
     "provider": "greenhouse",
     "label": "Coursera"
+  },
+  {
+    "name": "cribl",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "crookedmedia",
+    "provider": "greenhouse",
+    "label": "Crooked Media"
   },
   {
     "name": "crowdstrike",
@@ -356,7 +517,11 @@
   {
     "name": "customerio",
     "provider": "greenhouse",
-    "label": "Customer.io"
+    "label": "Customer"
+  },
+  {
+    "name": "dandy",
+    "provider": "ashby"
   },
   {
     "name": "databricks",
@@ -374,7 +539,23 @@
     "label": "Dataiku"
   },
   {
+    "name": "dave",
+    "provider": "ashby"
+  },
+  {
     "name": "decagon",
+    "provider": "ashby"
+  },
+  {
+    "name": "deel",
+    "provider": "ashby"
+  },
+  {
+    "name": "deepgram",
+    "provider": "ashby"
+  },
+  {
+    "name": "deepl",
     "provider": "ashby"
   },
   {
@@ -387,8 +568,18 @@
     "provider": "workable"
   },
   {
+    "name": "deliveroo",
+    "provider": "ashby"
+  },
+  {
     "name": "deliveryhero",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "Delivery Hero"
+  },
+  {
+    "name": "demo",
+    "provider": "lever",
+    "label": "DEMO Pharmaceuticals"
   },
   {
     "name": "depot",
@@ -402,7 +593,21 @@
   },
   {
     "name": "devrev",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "Dev Rev"
+  },
+  {
+    "name": "dexterity",
+    "provider": "lever"
+  },
+  {
+    "name": "diamondfoundry",
+    "provider": "lever",
+    "label": "Diamond Foundry"
+  },
+  {
+    "name": "directive",
+    "provider": "ashby"
   },
   {
     "name": "discord",
@@ -449,6 +654,11 @@
     "label": "E2B"
   },
   {
+    "name": "eightsleep",
+    "provider": "ashby",
+    "label": "Eight Sleep"
+  },
+  {
     "name": "elastic",
     "provider": "greenhouse",
     "label": "Elastic"
@@ -459,6 +669,22 @@
     "label": "ElevenLabs"
   },
   {
+    "name": "eliseai",
+    "provider": "ashby"
+  },
+  {
+    "name": "enablecomp",
+    "provider": "lever"
+  },
+  {
+    "name": "ensono",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "entrata",
+    "provider": "lever"
+  },
+  {
     "name": "envoy",
     "provider": "ashby",
     "label": "Envoy"
@@ -467,6 +693,24 @@
     "name": "epicgames",
     "provider": "greenhouse",
     "label": "Epic Games"
+  },
+  {
+    "name": "equip",
+    "provider": "ashby",
+    "label": "Equip Health"
+  },
+  {
+    "name": "equityzen",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "ethoslife",
+    "provider": "greenhouse",
+    "label": "Ethos"
+  },
+  {
+    "name": "everai",
+    "provider": "ashby"
   },
   {
     "name": "exa",
@@ -520,6 +764,36 @@
     "label": "Flexport"
   },
   {
+    "name": "flock",
+    "provider": "ashby"
+  },
+  {
+    "name": "fluidstack",
+    "provider": "ashby"
+  },
+  {
+    "name": "forbes",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "formenergy",
+    "provider": "ashby",
+    "label": "Form Energy"
+  },
+  {
+    "name": "formlabs",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "forward",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "fourkites",
+    "provider": "greenhouse",
+    "label": "Four Kites"
+  },
+  {
     "name": "fullstory",
     "provider": "ashby",
     "label": "Fullstory"
@@ -529,8 +803,26 @@
     "provider": "workable"
   },
   {
+    "name": "gemini",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "gener8tor",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "generalassembly",
+    "provider": "greenhouse",
+    "label": "General Assembly"
+  },
+  {
     "name": "getir",
     "provider": "workable"
+  },
+  {
+    "name": "gettyimages",
+    "provider": "lever",
+    "label": "Getty Images"
   },
   {
     "name": "gitbook",
@@ -547,11 +839,21 @@
     "label": "GitLab"
   },
   {
+    "name": "globalrelay",
+    "provider": "greenhouse",
+    "label": "Global Relay"
+  },
+  {
     "name": "glovo",
     "provider": "workable"
   },
   {
     "name": "godaddy",
+    "provider": "greenhouse",
+    "label": "GoDaddy"
+  },
+  {
+    "name": "goodtime",
     "provider": "greenhouse"
   },
   {
@@ -566,6 +868,11 @@
   {
     "name": "gorillas",
     "provider": "workable"
+  },
+  {
+    "name": "gostudent",
+    "provider": "greenhouse",
+    "label": "Go Student"
   },
   {
     "name": "grafanalabs",
@@ -583,9 +890,17 @@
     "label": "Greenhouse"
   },
   {
+    "name": "groww",
+    "provider": "greenhouse"
+  },
+  {
     "name": "gusto",
     "provider": "greenhouse",
     "label": "Gusto"
+  },
+  {
+    "name": "hackerone",
+    "provider": "ashby"
   },
   {
     "name": "harnessinc",
@@ -593,7 +908,16 @@
     "label": "Harness"
   },
   {
+    "name": "harrys",
+    "provider": "greenhouse",
+    "label": "Harry's"
+  },
+  {
     "name": "harvey",
+    "provider": "ashby"
+  },
+  {
+    "name": "helion",
     "provider": "ashby"
   },
   {
@@ -607,13 +931,43 @@
     "label": "Hex"
   },
   {
+    "name": "hiddenlayer",
+    "provider": "greenhouse"
+  },
+  {
     "name": "highbeam",
+    "provider": "ashby"
+  },
+  {
+    "name": "hive",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "hive",
+    "provider": "workable"
+  },
+  {
+    "name": "hiya",
     "provider": "ashby"
   },
   {
     "name": "honeycomb",
     "provider": "greenhouse",
     "label": "Honeycomb"
+  },
+  {
+    "name": "hopper",
+    "provider": "ashby"
+  },
+  {
+    "name": "hotstar",
+    "provider": "lever",
+    "label": "Disney+ Hotstar"
+  },
+  {
+    "name": "houzz",
+    "provider": "lever",
+    "label": "Houzz"
   },
   {
     "name": "hp",
@@ -625,6 +979,15 @@
     "name": "httpie",
     "provider": "ashby",
     "label": "HTTPie"
+  },
+  {
+    "name": "hubspot",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "huggingface",
+    "provider": "workable",
+    "label": "Hugging Face"
   },
   {
     "name": "ideogram",
@@ -644,12 +1007,22 @@
   },
   {
     "name": "inflectionai",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "Inflection AI"
   },
   {
     "name": "influxdata",
     "provider": "ashby",
     "label": "InfluxData"
+  },
+  {
+    "name": "infuse",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "inmobi",
+    "provider": "greenhouse",
+    "label": "InMobi"
   },
   {
     "name": "inngest",
@@ -677,21 +1050,36 @@
     "label": "Intercom"
   },
   {
+    "name": "intersystems",
+    "provider": "greenhouse"
+  },
+  {
     "name": "iterable",
     "provider": "greenhouse"
   },
   {
     "name": "izettle",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "i Zettle"
+  },
+  {
+    "name": "january",
+    "provider": "ashby"
   },
   {
     "name": "jetbrains",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "JetBrains"
   },
   {
     "name": "jfrog",
     "provider": "greenhouse",
     "label": "JFrog"
+  },
+  {
+    "name": "junipersquare",
+    "provider": "ashby",
+    "label": "Juniper Square"
   },
   {
     "name": "justworks",
@@ -729,6 +1117,14 @@
     "label": "Kong"
   },
   {
+    "name": "kraken",
+    "provider": "ashby"
+  },
+  {
+    "name": "lab0",
+    "provider": "workable"
+  },
+  {
     "name": "lambda",
     "provider": "ashby",
     "label": "Lambda"
@@ -754,7 +1150,28 @@
     "label": "LaunchDarkly"
   },
   {
+    "name": "leandata",
+    "provider": "ashby"
+  },
+  {
+    "name": "learnlux",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "legionhealth",
+    "provider": "ashby",
+    "label": "Legion Health"
+  },
+  {
     "name": "legora",
+    "provider": "ashby"
+  },
+  {
+    "name": "leland",
+    "provider": "ashby"
+  },
+  {
+    "name": "lemonade",
     "provider": "ashby"
   },
   {
@@ -781,6 +1198,10 @@
     "label": "LinkedIn"
   },
   {
+    "name": "linkedin",
+    "provider": "lever"
+  },
+  {
     "name": "lithic",
     "provider": "greenhouse",
     "label": "Lithic"
@@ -803,6 +1224,16 @@
     "name": "make",
     "provider": "greenhouse",
     "label": "Make"
+  },
+  {
+    "name": "mako",
+    "provider": "greenhouse",
+    "label": "Mako Trading"
+  },
+  {
+    "name": "manifoldbio",
+    "provider": "greenhouse",
+    "label": "Manifold Bio"
   },
   {
     "name": "marqeta",
@@ -832,13 +1263,25 @@
     "label": "Medtronic"
   },
   {
+    "name": "mercor",
+    "provider": "ashby"
+  },
+  {
     "name": "mercury",
     "provider": "greenhouse",
     "label": "Mercury"
   },
   {
+    "name": "mercury",
+    "provider": "ashby"
+  },
+  {
     "name": "merge",
     "provider": "ashby"
+  },
+  {
+    "name": "metaview",
+    "provider": "lever"
   },
   {
     "name": "micron",
@@ -902,6 +1345,14 @@
     "label": "Motorola Solutions"
   },
   {
+    "name": "mozilla",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "multiverse",
+    "provider": "ashby"
+  },
+  {
     "name": "mux",
     "provider": "ashby",
     "label": "Mux"
@@ -931,6 +1382,11 @@
     "label": "Neo4j"
   },
   {
+    "name": "neofinancial",
+    "provider": "ashby",
+    "label": "Neo Financial"
+  },
+  {
     "name": "neon",
     "provider": "ashby",
     "label": "Neon"
@@ -939,6 +1395,10 @@
     "name": "netbird",
     "provider": "ashby",
     "label": "NetBird"
+  },
+  {
+    "name": "netgear",
+    "provider": "ashby"
   },
   {
     "name": "netlify",
@@ -957,6 +1417,16 @@
   {
     "name": "nextdoor",
     "provider": "greenhouse"
+  },
+  {
+    "name": "normalcomputing",
+    "provider": "ashby",
+    "label": "Normal Computing"
+  },
+  {
+    "name": "northwoodspace",
+    "provider": "ashby",
+    "label": "Northwood Space"
   },
   {
     "name": "notion",
@@ -991,6 +1461,10 @@
     "label": "Octopus Deploy"
   },
   {
+    "name": "ogilvy",
+    "provider": "greenhouse"
+  },
+  {
     "name": "okta",
     "provider": "greenhouse",
     "label": "Okta"
@@ -1004,6 +1478,10 @@
     "name": "openai",
     "provider": "ashby",
     "label": "OpenAI"
+  },
+  {
+    "name": "optiver",
+    "provider": "greenhouse"
   },
   {
     "name": "orb",
@@ -1023,6 +1501,10 @@
     "provider": "greenhouse"
   },
   {
+    "name": "overflow",
+    "provider": "ashby"
+  },
+  {
     "name": "oyster",
     "provider": "ashby",
     "label": "Oyster"
@@ -1033,9 +1515,21 @@
     "label": "PagerDuty"
   },
   {
+    "name": "palantir",
+    "provider": "lever"
+  },
+  {
     "name": "parallel",
     "provider": "ashby",
     "label": "Parallel Web Systems"
+  },
+  {
+    "name": "payabli",
+    "provider": "ashby"
+  },
+  {
+    "name": "peloton",
+    "provider": "greenhouse"
   },
   {
     "name": "perplexity",
@@ -1043,8 +1537,13 @@
     "label": "Perplexity"
   },
   {
-    "name": "photoroom",
+    "name": "persona",
     "provider": "ashby"
+  },
+  {
+    "name": "photoroom",
+    "provider": "ashby",
+    "label": "PhotoRoom"
   },
   {
     "name": "pika",
@@ -1065,6 +1564,10 @@
     "name": "pingidentity",
     "provider": "greenhouse",
     "label": "Ping Identity"
+  },
+  {
+    "name": "pingwind",
+    "provider": "lever"
   },
   {
     "name": "pinterest",
@@ -1096,6 +1599,18 @@
     "provider": "workable"
   },
   {
+    "name": "pleo",
+    "provider": "ashby"
+  },
+  {
+    "name": "polymarket",
+    "provider": "ashby"
+  },
+  {
+    "name": "poolside",
+    "provider": "ashby"
+  },
+  {
     "name": "poshmark",
     "provider": "greenhouse"
   },
@@ -1115,6 +1630,14 @@
     "label": "Prefect"
   },
   {
+    "name": "profound",
+    "provider": "ashby"
+  },
+  {
+    "name": "project44",
+    "provider": "greenhouse"
+  },
+  {
     "name": "proton",
     "provider": "greenhouse",
     "label": "Proton"
@@ -1128,6 +1651,24 @@
     "name": "qualtrics",
     "provider": "greenhouse",
     "label": "Qualtrics"
+  },
+  {
+    "name": "quintoandar",
+    "provider": "greenhouse",
+    "label": "QuintoAndar"
+  },
+  {
+    "name": "qventus",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "rackspace",
+    "provider": "lever"
+  },
+  {
+    "name": "radiant",
+    "provider": "ashby",
+    "label": "Radiant Industries"
   },
   {
     "name": "railway",
@@ -1159,9 +1700,18 @@
     "label": "Reddit"
   },
   {
+    "name": "reddit",
+    "provider": "ashby"
+  },
+  {
     "name": "redis",
     "provider": "ashby",
     "label": "Redis"
+  },
+  {
+    "name": "redventures",
+    "provider": "greenhouse",
+    "label": "Red Ventures"
   },
   {
     "name": "relativity",
@@ -1175,6 +1725,14 @@
     "label": "RELX"
   },
   {
+    "name": "rembrand",
+    "provider": "lever"
+  },
+  {
+    "name": "remote",
+    "provider": "greenhouse"
+  },
+  {
     "name": "remotecom",
     "provider": "greenhouse",
     "label": "Remote"
@@ -1183,6 +1741,10 @@
     "name": "render",
     "provider": "ashby",
     "label": "Render"
+  },
+  {
+    "name": "renuity",
+    "provider": "ashby"
   },
   {
     "name": "replit",
@@ -1204,11 +1766,22 @@
   },
   {
     "name": "ringcentral",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "Ring Central"
   },
   {
     "name": "riotgames",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "Riot Games"
+  },
+  {
+    "name": "rivr",
+    "provider": "lever"
+  },
+  {
+    "name": "ro",
+    "provider": "lever",
+    "label": "Ro"
   },
   {
     "name": "robinhood",
@@ -1223,12 +1796,26 @@
   {
     "name": "rocketchat",
     "provider": "greenhouse",
-    "label": "Rocket.Chat"
+    "label": "Rocket Chat"
   },
   {
     "name": "roku",
     "provider": "greenhouse",
     "label": "Roku"
+  },
+  {
+    "name": "rothys",
+    "provider": "ashby",
+    "label": "Rothy's"
+  },
+  {
+    "name": "rover",
+    "provider": "lever",
+    "label": "Rover"
+  },
+  {
+    "name": "rubrik",
+    "provider": "greenhouse"
   },
   {
     "name": "runpod",
@@ -1248,11 +1835,22 @@
   },
   {
     "name": "salesloft",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "Salesloft"
+  },
+  {
+    "name": "sambanovasystems",
+    "provider": "greenhouse",
+    "label": "SambaNova Systems"
   },
   {
     "name": "samsara",
     "provider": "greenhouse"
+  },
+  {
+    "name": "sbenergy",
+    "provider": "greenhouse",
+    "label": "SB Energy"
   },
   {
     "name": "scalar",
@@ -1267,6 +1865,11 @@
   {
     "name": "scopely",
     "provider": "greenhouse"
+  },
+  {
+    "name": "seaporttherapeutics",
+    "provider": "greenhouse",
+    "label": "Seaport Therapeutics"
   },
   {
     "name": "sec",
@@ -1289,6 +1892,10 @@
     "label": "Sentry"
   },
   {
+    "name": "sequoia",
+    "provider": "ashby"
+  },
+  {
     "name": "shieldai",
     "provider": "ashby",
     "label": "Shield AI"
@@ -1306,6 +1913,14 @@
     "name": "singlestore",
     "provider": "greenhouse",
     "label": "SingleStore"
+  },
+  {
+    "name": "sisense",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "skydio",
+    "provider": "ashby"
   },
   {
     "name": "slack",
@@ -1332,9 +1947,22 @@
     "label": "Socket"
   },
   {
+    "name": "socure",
+    "provider": "ashby"
+  },
+  {
     "name": "sofi",
     "provider": "greenhouse",
     "label": "SoFi"
+  },
+  {
+    "name": "solarisbank",
+    "provider": "greenhouse",
+    "label": "Solarisbank"
+  },
+  {
+    "name": "solera",
+    "provider": "greenhouse"
   },
   {
     "name": "spacex",
@@ -1351,13 +1979,30 @@
     "label": "Speakeasy"
   },
   {
+    "name": "speechmatics",
+    "provider": "greenhouse"
+  },
+  {
     "name": "spotify",
     "provider": "lever",
     "label": "Spotify"
   },
   {
+    "name": "spoton",
+    "provider": "ashby"
+  },
+  {
+    "name": "spreetail",
+    "provider": "lever"
+  },
+  {
     "name": "squarespace",
     "provider": "greenhouse"
+  },
+  {
+    "name": "ssi",
+    "provider": "ashby",
+    "label": "Safe Superintelligence"
   },
   {
     "name": "stabilityai",
@@ -1376,11 +2021,13 @@
   },
   {
     "name": "starlingbank",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "Starling Bank"
   },
   {
     "name": "stitchfix",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "Stitch Fix"
   },
   {
     "name": "stockx",
@@ -1403,8 +2050,14 @@
     "label": "Stytch"
   },
   {
+    "name": "sumologic",
+    "provider": "greenhouse",
+    "label": "Sumo Logic"
+  },
+  {
     "name": "sumup",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "Sum Up"
   },
   {
     "name": "suno",
@@ -1417,14 +2070,38 @@
     "label": "Supabase"
   },
   {
+    "name": "superset",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "superset",
+    "provider": "workable"
+  },
+  {
+    "name": "synthesia",
+    "provider": "ashby"
+  },
+  {
     "name": "tailscale",
     "provider": "greenhouse",
     "label": "Tailscale"
   },
   {
+    "name": "tajir",
+    "provider": "ashby"
+  },
+  {
+    "name": "taktile",
+    "provider": "ashby"
+  },
+  {
     "name": "tavily",
     "provider": "ashby",
     "label": "Tavily"
+  },
+  {
+    "name": "teleo",
+    "provider": "lever"
   },
   {
     "name": "temporal",
@@ -1435,6 +2112,28 @@
     "name": "tenstorrent",
     "provider": "greenhouse",
     "label": "Tenstorrent"
+  },
+  {
+    "name": "terac",
+    "provider": "ashby"
+  },
+  {
+    "name": "thebotcompany",
+    "provider": "ashby",
+    "label": "The Bot Company"
+  },
+  {
+    "name": "thinkingmachines",
+    "provider": "ashby",
+    "label": "Thinking Machines Lab"
+  },
+  {
+    "name": "thoughtworks",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "thunes",
+    "provider": "greenhouse"
   },
   {
     "name": "tigerdata",
@@ -1461,13 +2160,18 @@
     "label": "Together AI"
   },
   {
+    "name": "toptal",
+    "provider": "lever",
+    "label": "Toptal"
+  },
+  {
     "name": "trello",
     "provider": "workable"
   },
   {
     "name": "triggerdev",
     "provider": "ashby",
-    "label": "Trigger.dev"
+    "label": "Trigger"
   },
   {
     "name": "trimble",
@@ -1481,12 +2185,21 @@
     "label": "Tripadvisor"
   },
   {
+    "name": "truecaller",
+    "provider": "greenhouse"
+  },
+  {
     "name": "truelayer",
-    "provider": "workable"
+    "provider": "workable",
+    "label": "True Layer"
   },
   {
     "name": "trustly",
     "provider": "workable"
+  },
+  {
+    "name": "trustpilot",
+    "provider": "greenhouse"
   },
   {
     "name": "trychroma",
@@ -1534,7 +2247,15 @@
     "label": "Upbound"
   },
   {
+    "name": "upchurch",
+    "provider": "ashby"
+  },
+  {
     "name": "upstart",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "upwork",
     "provider": "greenhouse"
   },
   {
@@ -1544,11 +2265,36 @@
   {
     "name": "vastai",
     "provider": "ashby",
-    "label": "Vast.ai"
+    "label": "Vast"
+  },
+  {
+    "name": "vela",
+    "provider": "ashby"
+  },
+  {
+    "name": "vela",
+    "provider": "workable"
+  },
+  {
+    "name": "velaura",
+    "provider": "lever",
+    "label": "Velaura AI"
+  },
+  {
+    "name": "ventura",
+    "provider": "workable"
+  },
+  {
+    "name": "veracode",
+    "provider": "greenhouse"
   },
   {
     "name": "vercel",
     "provider": "ashby"
+  },
+  {
+    "name": "vercel",
+    "provider": "greenhouse"
   },
   {
     "name": "verizon",
@@ -1557,9 +2303,26 @@
     "label": "Verizon"
   },
   {
+    "name": "verkada",
+    "provider": "greenhouse"
+  },
+  {
+    "name": "virvell",
+    "provider": "lever"
+  },
+  {
+    "name": "vivrelle",
+    "provider": "lever"
+  },
+  {
     "name": "vonage",
     "provider": "greenhouse",
     "label": "Vonage"
+  },
+  {
+    "name": "vtex",
+    "provider": "greenhouse",
+    "label": "VTEX"
   },
   {
     "name": "warp",
@@ -1574,6 +2337,10 @@
     "name": "waymo",
     "provider": "greenhouse",
     "label": "Waymo"
+  },
+  {
+    "name": "wayve",
+    "provider": "greenhouse"
   },
   {
     "name": "weaviate",
@@ -1600,7 +2367,8 @@
   },
   {
     "name": "wizinc",
-    "provider": "greenhouse"
+    "provider": "greenhouse",
+    "label": "Wiz"
   },
   {
     "name": "wolt",
@@ -1623,14 +2391,23 @@
     "label": "WorkOS"
   },
   {
+    "name": "worldlabs",
+    "provider": "greenhouse",
+    "label": "World Labs"
+  },
+  {
     "name": "xai",
     "provider": "greenhouse",
     "label": "xAI"
   },
   {
+    "name": "xero",
+    "provider": "ashby"
+  },
+  {
     "name": "youcom",
     "provider": "greenhouse",
-    "label": "You.com"
+    "label": "You"
   },
   {
     "name": "yugabyte",
@@ -1643,7 +2420,15 @@
     "label": "Zapier"
   },
   {
+    "name": "zip",
+    "provider": "ashby"
+  },
+  {
     "name": "zoom",
     "provider": "workable"
+  },
+  {
+    "name": "zoox",
+    "provider": "lever"
   }
 ]

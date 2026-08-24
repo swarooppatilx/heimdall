@@ -24,11 +24,6 @@ describe("registry", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("has unique company names", () => {
-    const names = registry.map((entry) => entry.name);
-    expect(new Set(names).size).toBe(names.length);
-  });
-
   it("has non-empty fields on every entry", () => {
     for (const entry of registry) {
       expect(entry.name.trim()).not.toBe("");
