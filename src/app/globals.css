@@ -88,6 +88,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  button:not(:disabled) {
+    @apply cursor-pointer;
+  }
   html {
     @apply font-sans;
   }

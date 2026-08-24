@@ -25,7 +25,7 @@ export function JobCard({ job, openings }: JobCardProps) {
         <span className="sr-only">Apply</span>
       </a>
 
-      <div className="relative flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <h2 className="min-w-0 flex-1 text-sm font-semibold text-foreground sm:text-base">
           <span className="break-words">{job.title}</span>
           {openings > 1 && (
@@ -42,10 +42,10 @@ export function JobCard({ job, openings }: JobCardProps) {
         />
       </div>
 
-      <p className="relative mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
+      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
         <Link
           href={`/company/${encodeURIComponent(job.company)}`}
-          className="font-medium text-foreground/90 hover:text-foreground hover:underline"
+          className="relative z-[1] font-medium text-foreground/90 hover:text-foreground hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
           {job.company}
@@ -56,7 +56,7 @@ export function JobCard({ job, openings }: JobCardProps) {
         <span className="truncate text-muted-foreground">{job.location}</span>
       </p>
 
-      <div className="relative mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
         {job.experienceLevel && job.experienceLevel !== "mid" && <span>{job.experienceLevel}</span>}
         {Boolean(job.employmentType) && <span>{job.employmentType}</span>}
         {Boolean(job.salary) && (
