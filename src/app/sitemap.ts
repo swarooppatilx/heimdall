@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { toCompanySlug } from "@/lib/company-slug";
 import { getCompanyNames } from "@/lib/db";
 import { SITE_URL } from "@/lib/site";
 
@@ -13,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     ...companies.map((company) => ({
-      url: `${SITE_URL}/company/${encodeURIComponent(company)}`,
+      url: `${SITE_URL}/company/${toCompanySlug(company)}`,
       changeFrequency: "daily" as const,
       priority: 0.7,
     })),

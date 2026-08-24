@@ -3,6 +3,7 @@
 import { ArrowUpRightIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
+import { toCompanySlug } from "@/lib/company-slug";
 import type { Job } from "@/lib/job";
 import { timeAgo } from "@/lib/time-ago";
 
@@ -44,7 +45,7 @@ export function JobCard({ job, openings }: JobCardProps) {
 
       <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
         <Link
-          href={`/company/${encodeURIComponent(job.company)}`}
+          href={`/company/${toCompanySlug(job.company)}`}
           className="relative z-[1] font-medium text-foreground/90 hover:text-foreground hover:underline"
           onClick={(e) => e.stopPropagation()}
         >

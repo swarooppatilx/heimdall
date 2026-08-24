@@ -4,15 +4,13 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
+import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
 import { countJobsByCompany, getJobsByCompany } from "@/lib/db";
 import { dedupeJobs } from "@/lib/job";
 
 function decodeCompany(raw: string): string | null {
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return null;
-  }
+  const company = fromCompanySlug(raw);
+  return company ? company : null;
 }
 
 export async function generateMetadata({
@@ -27,7 +25,7 @@ export async function generateMetadata({
   return {
     title: `${company} — ${total} open position${total === 1 ? "" : "s"}`,
     alternates: {
-      canonical: `/company/${company}`,
+      canonical: `/company/${toCompanySlug(company)}`,
     },
     description: `browse ${total} fresh tech job openings at ${company}. direct from the company career page.`,
     openGraph: {
