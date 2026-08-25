@@ -8,6 +8,7 @@ import {
   getLatestCrawls,
   getRecentCrawlSamples,
 } from "@/lib/db";
+import { constantTimeEqual } from "@/lib/utils";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -29,16 +30,6 @@ function toPublic({
   createdAt,
 }: CrawlRecord): CrawlStatusEntry {
   return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  const encoder = new TextEncoder();
-  const left = encoder.encode(a);
-  const right = encoder.encode(b);
-  if (left.length !== right.length) return false;
-  let diff = 0;
-  for (let i = 0; i < left.length; i += 1) diff |= left[i] === right[i] ? 0 : 1;
-  return diff === 0;
 }
 
 async function authorized(request: Request): Promise<boolean> {

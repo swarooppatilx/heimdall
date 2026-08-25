@@ -1,0 +1,12 @@
+# Copy this file to .dev.vars for local development.
+# .dev.vars is gitignored and is only read by local tooling,
+# never by a production deployment.
+
+# Secret that authorizes the local-only POST /api/crawl/trigger endpoint.
+# Pick any value for local use. If this is absent, the trigger returns 401.
+CRAWL_TRIGGER_TOKEN=change-me
+
+# Optional. Lock down GET /api/crawl/status with this token.
+# Leave unset to keep the endpoint open — the homepage footer reads it
+# without authentication, so setting this breaks that readout.
+# CRAWL_STATUS_TOKEN=

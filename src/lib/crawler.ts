@@ -75,6 +75,16 @@ export async function crawlAll(
   };
 }
 
+export async function crawlSlices(count: number): Promise<CrawlRun[]> {
+  const registry = getRegistry();
+  const now = Date.now();
+  const runs: CrawlRun[] = [];
+  for (let i = 0; i < count; i += 1) {
+    runs.push(await crawlAll(sweepSlice(registry, now + i * TICK_MS)));
+  }
+  return runs;
+}
+
 function recordSafe(
   entry: RegistryEntry,
   status: "ok" | "error",

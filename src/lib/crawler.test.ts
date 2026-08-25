@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { crawlAll, shouldRunTick, sweepSlice } from "@/lib/crawler";
+import { crawlAll, crawlSlices, shouldRunTick, sweepSlice } from "@/lib/crawler";
 import { createCrawlBudget } from "@/lib/http";
 import type { Job } from "@/lib/job";
 
@@ -19,6 +19,13 @@ vi.mock("./db", () => ({
   insertJobs: vi.fn(async () => {}),
   recordCrawl: vi.fn(async () => {}),
   updateJobs: vi.fn(async () => {}),
+}));
+
+vi.mock("@/lib/registry", () => ({
+  getRegistry: () => [
+    { name: "c0", provider: "greenhouse" },
+    { name: "c1", provider: "greenhouse" },
+  ],
 }));
 
 function makeJob(id: string): Job {
@@ -159,5 +166,19 @@ describe("crawlAll", () => {
 
     expect(run.results[0]?.status).toBe("ok");
     expect(deleteJobsByIdsMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("crawlSlices", () => {
+  it("returns one run per slice", async () => {
+    const runs = await crawlSlices(2);
+    expect(runs).toHaveLength(2);
+  });
+
+  it("covers the registry exactly once across a full sweep", async () => {
+    const runs = await crawlSlices(16);
+    const seen = runs.flatMap((run) => run.results.map((r) => r.company));
+    expect(seen).toHaveLength(2);
+    expect(new Set(seen).size).toBe(2);
   });
 });
