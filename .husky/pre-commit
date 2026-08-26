@@ -1,3 +1,4 @@
+npm run cf-typegen
 npx lint-staged
 npx knip
 npx tsc --noEmit

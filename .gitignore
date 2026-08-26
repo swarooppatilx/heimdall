@@ -8,6 +8,7 @@ dist
 .wrangler
 .vercel
 *.tsbuildinfo
+cloudflare-env.d.ts
 *.db
 *.db-shm
 *.db-wal

@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "npm run cf-typegen",
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
