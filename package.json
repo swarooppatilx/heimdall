@@ -1,6 +1,11 @@
 {
   "name": "heimdall",
   "private": true,
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swarooppatilx/heimdall.git"
+  },
   "scripts": {
     "dev": "next dev",
     "predev": "npm run cf-typegen",
