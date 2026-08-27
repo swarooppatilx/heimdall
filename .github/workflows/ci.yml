@@ -21,5 +21,3 @@ jobs:
       - run: npx knip
       - run: npm test
       - run: npm run build
-        env:
-          NEXT_PUBLIC_SITE_URL: https://heimdall.daenerys.workers.dev

@@ -4,7 +4,7 @@ import Script from "next/script";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
-import { SITE_URL } from "@/lib/site";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -14,46 +14,50 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "heimdall — fresh tech jobs",
-    template: "%s | heimdall",
-  },
-  description:
-    "fresh, verified tech job opportunities from official company career pages. no stale listings, no ghost jobs.",
-  openGraph: {
-    title: "heimdall — fresh tech jobs",
-    description: "fresh, verified tech job opportunities from official company career pages.",
-    type: "website",
-    siteName: "heimdall",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "heimdall — fresh tech jobs",
-    description: "fresh, verified tech job opportunities from official company career pages.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata(): Promise<Metadata> {
+  const url = await siteUrl();
+  return {
+    metadataBase: new URL(url),
+    title: {
+      default: "heimdall — fresh tech jobs",
+      template: "%s | heimdall",
+    },
+    description:
+      "fresh, verified tech job opportunities from official company career pages. no stale listings, no ghost jobs.",
+    openGraph: {
+      title: "heimdall — fresh tech jobs",
+      description: "fresh, verified tech job opportunities from official company career pages.",
+      type: "website",
+      siteName: "heimdall",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "heimdall — fresh tech jobs",
+      description: "fresh, verified tech job opportunities from official company career pages.",
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-snippet": -1,
+      },
     },
-  },
-};
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const url = await siteUrl();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "heimdall",
-    url: SITE_URL,
+    url,
     description: "fresh, verified tech job opportunities from official company career pages.",
     potentialAction: {
       "@type": "SearchAction",
-      target: `${SITE_URL}/?q={search_term_string}`,
+      target: `${url}/?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
