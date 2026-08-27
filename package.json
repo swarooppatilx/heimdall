@@ -13,8 +13,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:worker": "opennextjs-cloudflare build",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "preview": "npm run build:worker && opennextjs-cloudflare preview",
-    "deploy": "npm run build:worker && cp public/_headers .open-next/assets/_headers && opennextjs-cloudflare deploy",
+    "deploy": "npm run cf-typegen && npm run db:migrate:remote && npm run build:worker && cp public/_headers .open-next/assets/_headers && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "knip": "knip",
     "prepare": "husky"
