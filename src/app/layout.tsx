@@ -11,13 +11,25 @@ import { cn } from "@/lib/utils";
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
 };
 
 export async function generateMetadata(): Promise<Metadata> {
   const url = await siteUrl();
   return {
     metadataBase: new URL(url),
+    applicationName: "heimdall",
+    appleWebApp: {
+      title: "heimdall",
+      capable: true,
+      statusBarStyle: "black-translucent",
+    },
+    alternates: {
+      canonical: "/",
+    },
     title: {
       default: "heimdall — fresh tech jobs",
       template: "%s | heimdall",
@@ -32,6 +44,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
+      site: "@swarooppatilx",
+      creator: "@swarooppatilx",
       title: "heimdall — fresh tech jobs",
       description: "fresh, verified tech job opportunities from official company career pages.",
     },
