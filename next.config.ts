@@ -24,6 +24,14 @@ const nextConfig: NextConfig = {
   headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  rewrites() {
+    return [
+      {
+        source: "/.well-known/security.txt",
+        destination: "/security.txt",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
