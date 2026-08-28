@@ -1,0 +1,27 @@
+# heimdall
+
+> A developer focused search engine for fresh, verified tech job opportunities collected directly from official company career pages and ATS providers. Not an aggregator.
+
+## About
+
+heimdall highlights recently posted engineering roles that are still live on the official source. Listings expire when the source removes them, so there are no ghost jobs.
+
+## Where to look
+
+- Search the live index: https://heimdall.daenerys.workers.dev
+- Machine readable job list (JSON): https://heimdall.daenerys.workers.dev/api/jobs
+- Latest fresh jobs (Markdown): https://heimdall.daenerys.workers.dev/llms-full.txt
+
+## Data sources
+
+- Official company career pages
+- ATS providers: Greenhouse, Lever, Ashby, SmartRecruiters, Workable
+
+## Freshness
+
+- Default window hides roles posted more than 15 days ago
+
+## Contributors
+
+- Built by @swarooppatilx
+- Source: https://github.com/swarooppatilx/heimdall
