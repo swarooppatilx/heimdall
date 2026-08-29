@@ -35,7 +35,6 @@ export const GET = withRateLimit(
       ["experience", "experience"],
       ["posted", "posted"],
       ["department", "department"],
-      ["employment_type", "employmentType"],
       ["early_career", "earlyCareer"],
       ["sort", "sort"],
     ] as const;

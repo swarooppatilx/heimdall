@@ -13,10 +13,6 @@ const mockFacets = {
     },
     { value: "germany", count: 5, cities: [{ value: "berlin", count: 5 }] },
   ],
-  employmentTypes: [
-    { value: "full time", count: 90 },
-    { value: "intern", count: 4 },
-  ],
   departments: [{ value: "engineering", count: 120 }],
   sources: [
     { value: "greenhouse", count: 150 },
@@ -50,6 +46,5 @@ describe("GET /api/filters", () => {
     expect(data.remoteCount).toBe(42);
     expect(data.countries[0]).toMatchObject({ value: "india", count: 30 });
     expect(data.countries[0]?.cities[0]).toEqual({ value: "bengaluru", count: 22 });
-    expect(data.employmentTypes[0]).toEqual({ value: "full time", count: 90 });
   });
 });

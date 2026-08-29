@@ -7,7 +7,6 @@ const board = {
     {
       title: "Senior Backend Engineer",
       shortcode: "A1B2C3D4",
-      employment_type: "Full-time",
       telecommuting: false,
       department: "Engineering",
       url: "https://apply.workable.com/j/A1B2C3D4",
@@ -43,7 +42,6 @@ describe("fetchWorkableJobs", () => {
       company: "deliveroo",
       location: "london, united kingdom",
       source: "workable",
-      employmentType: "full-time",
     });
     expect(new Date(jobs[0]?.postedAt ?? 0).toISOString()).toBe("2026-08-10T00:00:00.000Z");
   });

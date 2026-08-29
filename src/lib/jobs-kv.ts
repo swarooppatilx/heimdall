@@ -1,6 +1,5 @@
 import { trackKvCache } from "@/lib/analytics";
 import { cacheKv } from "@/lib/cache-kv";
-import { resolveEmploymentType } from "@/lib/employment";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 import { logEvent } from "@/lib/logger";
@@ -29,7 +28,6 @@ export interface JobFilters {
   experience?: string;
   posted?: string;
   department?: string;
-  employmentType?: string;
   earlyCareer?: string;
   sort?: string;
 }
@@ -96,11 +94,6 @@ function matchesLocation(job: Job, location: string): boolean {
   return job.location.toLowerCase().includes(location.toLowerCase());
 }
 
-function matchesEmploymentType(job: Job, employmentType: string): boolean {
-  const resolved = resolveEmploymentType(sanitizeFilterValue(employmentType));
-  return job.employmentType === (resolved ?? sanitizeFilterValue(employmentType));
-}
-
 function matchesPosted(postedAt: Date, posted: string): boolean {
   const windowMs = POSTED_WINDOWS_MS[posted];
   if (!windowMs) return true;
@@ -119,7 +112,6 @@ function matchesFilters(job: Job, filters: JobFilters): boolean {
     return false;
   if (filters.department && job.department !== sanitizeFilterValue(filters.department))
     return false;
-  if (filters.employmentType && !matchesEmploymentType(job, filters.employmentType)) return false;
   if (filters.earlyCareer === "true" && !job.isEarlyCareer) return false;
   if (filters.posted && !matchesPosted(job.postedAt, filters.posted)) return false;
   return true;

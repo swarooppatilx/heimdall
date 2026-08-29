@@ -12,8 +12,6 @@ interface MoreFiltersPopoverProps {
   onExperienceChange: (value: string) => void;
   source: string;
   onSourceChange: (value: string) => void;
-  employmentType: string;
-  onEmploymentTypeChange: (value: string) => void;
 }
 
 export function MoreFiltersPopover({
@@ -23,12 +21,9 @@ export function MoreFiltersPopover({
   onExperienceChange,
   source,
   onSourceChange,
-  employmentType,
-  onEmploymentTypeChange,
 }: MoreFiltersPopoverProps) {
   const experienceId = useId();
   const sourceId = useId();
-  const typeId = useId();
 
   return (
     <Popover>
@@ -77,22 +72,6 @@ export function MoreFiltersPopover({
               options={(filterOptions?.sources ?? []).map((o) => o.value)}
               placeholder="any source"
               aria-label="Filter by source"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor={typeId}
-              className="mb-1.5 block text-xs font-medium text-muted-foreground"
-            >
-              type
-            </label>
-            <FilterSelect
-              id={typeId}
-              value={employmentType}
-              onChange={onEmploymentTypeChange}
-              options={(filterOptions?.employmentTypes ?? []).map((o) => o.value)}
-              placeholder="any type"
-              aria-label="Filter by employment type"
             />
           </div>
         </div>

@@ -1,9 +1,6 @@
 import { sql } from "drizzle-orm";
 import { jobs } from "@/db/schema";
 import { getDb } from "@/lib/db-connection";
-import { EMPLOYMENT_TYPES } from "@/lib/employment";
-
-const canonicalTypes = EMPLOYMENT_TYPES.map((type) => `'${type}'`).join(", ");
 
 export async function getJobQuality(): Promise<{
   total: number;
@@ -11,7 +8,6 @@ export async function getJobQuality(): Promise<{
   unknownLocationShare: number;
   generalDepartmentShare: number;
   unresolvedLocationShare: number;
-  staleEmploymentTypes: number;
 }> {
   const db = await getDb();
   const [row] = await db
@@ -21,7 +17,6 @@ export async function getJobQuality(): Promise<{
       unknownLocationShare: sql<number>`avg(case when ${jobs.location} = 'unknown' then 1.0 else 0 end)`,
       generalDepartmentShare: sql<number>`avg(case when ${jobs.department} = 'general' then 1.0 else 0 end)`,
       unresolvedLocationShare: sql<number>`avg(case when ${jobs.city} is null and ${jobs.country} is null and ${jobs.isRemote} = 0 then 1.0 else 0 end)`,
-      staleEmploymentTypes: sql<number>`count(case when ${jobs.employmentType} != '' and ${jobs.employmentType} not in (${sql.raw(canonicalTypes)}) then 1 end)`,
     })
     .from(jobs);
   return {
@@ -30,6 +25,5 @@ export async function getJobQuality(): Promise<{
     unknownLocationShare: Number(row?.unknownLocationShare ?? 0),
     generalDepartmentShare: Number(row?.generalDepartmentShare ?? 0),
     unresolvedLocationShare: Number(row?.unresolvedLocationShare ?? 0),
-    staleEmploymentTypes: Number(row?.staleEmploymentTypes ?? 0),
   };
 }

@@ -103,7 +103,6 @@ function JobsPage() {
   const [posted, setPosted] = useQueryParam("posted", "");
   const [source, setSource] = useQueryParam("source", "");
   const [department, setDepartment] = useQueryParam("department", "");
-  const [employmentType, setEmploymentType] = useQueryParam("employment_type", "");
   const [sort, setSort] = useQueryParam("sort", "");
   const deferredQuery = useDeferredValue(query);
   const debouncedQuery = useDebouncedValue(deferredQuery, SEARCH_DEBOUNCE_MS);
@@ -120,7 +119,6 @@ function JobsPage() {
     posted,
     source,
     department,
-    employmentType,
     sort,
   };
 
@@ -180,7 +178,6 @@ function JobsPage() {
     setPosted("");
     setSource("");
     setDepartment("");
-    setEmploymentType("");
     commitQuery("");
     router.replace("?", { scroll: false });
   }, [
@@ -193,10 +190,9 @@ function JobsPage() {
     setPosted,
     setSource,
     setDepartment,
-    setEmploymentType,
   ]);
 
-  const advancedCount = [experience, source, employmentType].filter(Boolean).length;
+  const advancedCount = [experience, source].filter(Boolean).length;
 
   const locationOptions = useMemo(() => {
     if (!filterOptions) return ["remote"];
@@ -207,9 +203,7 @@ function JobsPage() {
     return ["remote", ...countries.map((c) => c.value), ...cities.map((t) => t.value)];
   }, [filterOptions]);
 
-  const hasFilters = Boolean(
-    company || location || source || department || experience || posted || employmentType,
-  );
+  const hasFilters = Boolean(company || location || source || department || experience || posted);
 
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
   const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
@@ -298,8 +292,6 @@ function JobsPage() {
           onExperienceChange={setExperience}
           source={source}
           onSourceChange={setSource}
-          employmentType={employmentType}
-          onEmploymentTypeChange={setEmploymentType}
           onClearAll={clearAllFilters}
           sort={sort}
           onSortChange={setSort}

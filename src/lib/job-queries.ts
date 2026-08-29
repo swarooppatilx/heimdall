@@ -2,7 +2,6 @@ import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { jobLocations, jobs } from "@/db/schema";
 import { getDb } from "@/lib/db-connection";
-import { resolveEmploymentType } from "@/lib/employment";
 import { DAY_MS, freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
@@ -26,7 +25,6 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     url: row.url ?? "",
     postedAt: new Date(row.postedAt),
     source: row.source ?? "",
-    employmentType: row.employmentType,
     salary: row.salary,
     locations: parseLocations(row.locations, row.location),
     region: row.region,
@@ -48,7 +46,6 @@ export interface JobFilters {
   experience?: string;
   posted?: string;
   department?: string;
-  employmentType?: string;
   earlyCareer?: string;
   sort?: string;
 }
@@ -117,12 +114,6 @@ function columnCondition(column: AnyColumn, value: string | undefined) {
   return eqColumnLower(column, sanitizeFilterValue(value));
 }
 
-function employmentTypeCondition(value: string | undefined) {
-  if (!value) return undefined;
-  const resolved = resolveEmploymentType(sanitizeFilterValue(value));
-  return eqColumnLower(jobs.employmentType, resolved ?? sanitizeFilterValue(value));
-}
-
 function postedCondition(value: string | undefined) {
   if (!value) return undefined;
   const windowMs = POSTED_WINDOWS_MS[value];
@@ -139,7 +130,6 @@ function jobConditions(filters: JobFilters) {
     columnCondition(jobs.source, filters.source),
     columnCondition(jobs.experienceLevel, filters.experience),
     columnCondition(jobs.department, filters.department),
-    employmentTypeCondition(filters.employmentType),
     filters.earlyCareer === "true" ? eq(jobs.isEarlyCareer, 1) : undefined,
     postedCondition(filters.posted),
   ];

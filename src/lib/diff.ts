@@ -28,7 +28,6 @@ function samePosting(a: Job, b: Job): boolean {
     a.department === b.department &&
     a.url === b.url &&
     Math.abs(a.postedAt.getTime() - b.postedAt.getTime()) < DRIFT_MS &&
-    (a.employmentType ?? "") === (b.employmentType ?? "") &&
     (a.salary ?? "") === (b.salary ?? "") &&
     JSON.stringify(a.locations ?? []) === JSON.stringify(b.locations ?? []) &&
     (a.region ?? "") === (b.region ?? "") &&

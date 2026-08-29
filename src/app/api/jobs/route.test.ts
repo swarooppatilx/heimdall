@@ -72,7 +72,6 @@ describe("GET /api/jobs", () => {
         experience: undefined,
         posted: undefined,
         department: undefined,
-        employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
       },
@@ -97,7 +96,6 @@ describe("GET /api/jobs", () => {
         experience: undefined,
         posted: undefined,
         department: undefined,
-        employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
       },
@@ -119,7 +117,6 @@ describe("GET /api/jobs", () => {
         experience: "senior",
         posted: "week",
         department: undefined,
-        employmentType: undefined,
         earlyCareer: undefined,
         sort: undefined,
       },
@@ -141,7 +138,6 @@ describe("GET /api/jobs", () => {
     await GET(
       makeRequest({
         department: "engineering",
-        employment_type: "full time",
         early_career: "true",
         sort: "company",
       }),
@@ -149,7 +145,6 @@ describe("GET /api/jobs", () => {
     expect(mockSearchJobsWithCount).toHaveBeenCalledWith(
       expect.objectContaining({
         department: "engineering",
-        employmentType: "full time",
         earlyCareer: "true",
         sort: "company",
       }),

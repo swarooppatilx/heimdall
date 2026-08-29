@@ -52,7 +52,6 @@ function mapJob(raw: GreenhouseJob, board: string): Job {
   const department = (
     metaValue(raw, /department|categor|^area\b|team/i).value || inferDepartment(raw.title)
   ).toLowerCase();
-  const employmentType = metaValue(raw, /^(time|employment) ?type$/i).value.toLowerCase();
   const pay = metaValue(raw, /pay|salary|compensation/i, /currency|range/);
   const region = metaValue(raw, /geography|region|country/i).value.toLowerCase();
   const earlyCareerMeta = raw.metadata?.some(
@@ -69,7 +68,6 @@ function mapJob(raw: GreenhouseJob, board: string): Job {
     url: raw.absolute_url,
     postedAt: new Date(raw.first_published ?? raw.updated_at),
     source: "greenhouse",
-    employmentType,
     salary: pay.salary,
     region,
     isEarlyCareer: Boolean(earlyCareerMeta),

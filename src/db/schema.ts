@@ -12,7 +12,6 @@ export const jobs = sqliteTable(
     url: text("url").notNull(),
     postedAt: text("posted_at").notNull(),
     source: text("source").notNull(),
-    employmentType: text("employment_type").notNull().default(""),
     salary: text("salary").notNull().default(""),
     locations: text("locations").notNull().default("[]"),
     region: text("region").notNull().default(""),
@@ -30,7 +29,6 @@ export const jobs = sqliteTable(
     index("idx_jobs_source").on(table.source),
     index("idx_jobs_department").on(table.department),
     index("idx_jobs_experience_level").on(table.experienceLevel),
-    index("idx_jobs_employment_type").on(table.employmentType),
     index("idx_jobs_is_remote").on(table.isRemote),
   ],
 );

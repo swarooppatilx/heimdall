@@ -8,7 +8,6 @@ import { mapPostings } from "@/lib/postings";
 interface WorkableJob {
   title: string;
   shortcode: string;
-  employment_type?: string;
   telecommuting?: boolean;
   department?: string;
   url?: string;
@@ -53,7 +52,6 @@ function mapJob(raw: WorkableJob, account: string): Job {
     url: raw.url ?? raw.shortlink ?? "",
     postedAt: new Date(raw.published_on ?? raw.created_at ?? ""),
     source: "workable",
-    employmentType: (raw.employment_type ?? "").toLowerCase(),
   };
 }
 

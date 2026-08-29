@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { resolveEmploymentType } from "@/lib/employment";
 import { resolvePlace } from "@/lib/gazetteer";
 import { escapeLike } from "@/lib/job-queries";
 import { sanitizeFilterValue } from "@/lib/sanitize";
@@ -60,17 +59,6 @@ describe("companyCondition", () => {
   });
 });
 
-describe("employmentTypeCondition", () => {
-  it("returns undefined for empty value", () => {
-    expect(employmentBranch(undefined)).toBeUndefined();
-    expect(employmentBranch("")).toBeUndefined();
-  });
-
-  it("resolves employment type aliases", () => {
-    expect(employmentBranch("fulltime")).toEqual({ type: "eq", value: "full time" });
-  });
-});
-
 function locationBranch(value: string | undefined) {
   if (!value) return undefined;
   const place = resolvePlace(value);
@@ -83,10 +71,4 @@ function locationBranch(value: string | undefined) {
 function companyBranch(value: string | undefined) {
   if (!value) return undefined;
   return { type: "eq" as const, value: sanitizeFilterValue(value) };
-}
-
-function employmentBranch(value: string | undefined) {
-  if (!value) return undefined;
-  const sanitized = sanitizeFilterValue(value);
-  return { type: "eq" as const, value: resolveEmploymentType(sanitized) ?? sanitized };
 }
