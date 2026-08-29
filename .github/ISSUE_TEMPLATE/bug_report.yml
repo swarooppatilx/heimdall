@@ -1,0 +1,52 @@
+name: Bug report
+description: Report something that is broken on heimdall
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for taking the time to report this. Fill in what you can; the more context the faster it gets fixed."
+  - type: dropdown
+    id: area
+    attributes:
+      label: What broke?
+      options:
+        - Search results or filters
+        - Job detail or company page
+        - Crawler or provider parser
+        - API route
+        - Deployment or build
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A search query and URL is usually enough. Include the worker deployment and date if relevant.
+      placeholder: |
+        1. Go to https://heimdall.daenerys.workers.dev and search for X
+        2. Filter by Y
+        3. Observe Z
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Browser, mobile vs desktop, time of day, anything unusual
