@@ -20,7 +20,6 @@ interface SmartRecruitersPosting {
   };
   department: { label?: string } | Record<string, never>;
   function: { label?: string } | Record<string, never>;
-  typeOfEmployment?: { label?: string };
   experienceLevel?: { label?: string };
 }
 
@@ -50,7 +49,6 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
     url: `https://careers.smartrecruiters.com/${company}/${raw.uuid}`,
     postedAt: new Date(raw.releasedDate),
     source: "smartrecruiters",
-    employmentType: (raw.typeOfEmployment?.label ?? "").toLowerCase(),
     region: (raw.location?.country ?? "").toLowerCase(),
     isEarlyCareer: /intern|graduate|entry|junior/i.test(
       `${raw.experienceLevel?.label ?? ""} ${raw.name}`,

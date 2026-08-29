@@ -7,7 +7,6 @@ export interface Job {
   url: string;
   postedAt: Date;
   source: string;
-  employmentType?: string;
   salary?: string;
   locations?: string[];
   region?: string;

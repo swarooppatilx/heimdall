@@ -92,6 +92,13 @@
       "when": 1787357732000,
       "tag": "0012_add_dedupe_index",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1788005541308,
+      "tag": "0013_drop_employment_type",
+      "breakpoints": true
     }
   ]
 }

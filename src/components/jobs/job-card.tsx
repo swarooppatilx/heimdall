@@ -59,7 +59,6 @@ export function JobCard({ job, openings }: JobCardProps) {
 
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
         {job.experienceLevel && job.experienceLevel !== "mid" && <span>{job.experienceLevel}</span>}
-        {Boolean(job.employmentType) && <span>{job.employmentType}</span>}
         {Boolean(job.salary) && (
           <span className="font-medium text-foreground/80">{job.salary}</span>
         )}

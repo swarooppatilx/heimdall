@@ -13,7 +13,6 @@ export interface JobFiltersInput {
   posted: string;
   source: string;
   department: string;
-  employmentType: string;
   sort: string;
 }
 
@@ -34,7 +33,6 @@ export function useJobFilters(filters: JobFiltersInput) {
       if (filters.posted) params.set("posted", filters.posted);
       if (filters.source) params.set("source", filters.source);
       if (filters.department) params.set("department", filters.department);
-      if (filters.employmentType) params.set("employment_type", filters.employmentType);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
       params.set("limit", String(PAGE_SIZE));

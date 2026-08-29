@@ -12,7 +12,6 @@ const mockResponse = {
       absolute_url: "https://boards.greenhouse.io/gitlab/jobs/123",
       metadata: [
         { name: "Department", value: "Engineering", value_type: "single_select" },
-        { name: "Time Type", value: "Full time", value_type: "single_select" },
         {
           name: "Pay Transparency Range",
           value: { min: 120000, max: 160000, currency: "USD" },
@@ -58,7 +57,6 @@ describe("fetchGreenhouseJobs", () => {
       url: "https://boards.greenhouse.io/gitlab/jobs/123",
       postedAt: new Date("2026-08-12T09:00:00.000Z"),
       source: "greenhouse",
-      employmentType: "full time",
       salary: "$120,000 – $160,000",
       region: "amer",
       isEarlyCareer: false,

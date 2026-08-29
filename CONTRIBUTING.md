@@ -111,7 +111,7 @@ How a crawl works: the cron (`*/30 * * * *`) computes the current sweep tick out
 
 The quickest way to add a provider is to copy the shape of an existing one; `src/lib/providers/lever.ts` and `ashby.ts` are the smallest.
 
-1. Create `src/lib/providers/<name>.ts`: a parse function (or async fetcher) that maps the ATS's raw listing into the `Job` shape from `src/lib/job.ts`. `id`, `title`, `company`, `location`, and `url` are required. Normalize `employmentType` with `resolveEmploymentType` (`src/lib/employment.ts`), let `detectExperienceLevel` infer a level from the title (`src/lib/experience.ts`) when the ATS provides none, and detect remote via the gazetteer (`resolvePlace` in `src/lib/gazetteer.ts`) instead of string matching in the provider.
+1. Create `src/lib/providers/<name>.ts`: a parse function (or async fetcher) that maps the ATS's raw listing into the `Job` shape from `src/lib/job.ts`. `id`, `title`, `company`, `location`, and `url` are required. Let `detectExperienceLevel` infer a level from the title (`src/lib/experience.ts`) when the ATS provides none, and detect remote via the gazetteer (`resolvePlace` in `src/lib/gazetteer.ts`) instead of string matching in the provider.
 2. Add `src/lib/providers/<name>.test.ts` with fixtures mirroring the raw ATS payload, asserting the mapped `Job` fields.
 3. Add one entry per company board to `src/lib/registry.json`, with `provider: "<name>"` and `apiUrl` when the ATS exposes one.
 4. Run the [Checks](#checks).
@@ -165,7 +165,7 @@ Rate limiting runs per-IP through the `CACHE` KV namespace as a sliding window u
 | `GET /api/crawl/status` | 30/min | Crawl diagnostics |
 | `POST /api/crawl/trigger` | 30/min | Manual crawl, `x-crawl-trigger-token` header. 401 unless configured. |
 
-`GET /api/jobs` accepts `q`, `company`, `location`, `city`, `country`, `department`, `source`, `employment_type`, `early_career`, `experience`, `posted` (`today` or `week`), and `sort`. Responses are a JSON array of jobs; the total count is in the `X-Total-Count` header.
+`GET /api/jobs` accepts `q`, `company`, `location`, `city`, `country`, `department`, `source`, `early_career`, `experience`, `posted` (`today` or `week`), and `sort`. Responses are a JSON array of jobs; the total count is in the `X-Total-Count` header.
 
 ```bash
 curl "https://heimdall.daenerys.workers.dev/api/jobs?q=rust&posted=week&limit=10"

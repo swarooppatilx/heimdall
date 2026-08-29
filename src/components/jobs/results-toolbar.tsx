@@ -18,8 +18,6 @@ interface ResultsToolbarProps {
   onExperienceChange: (value: string) => void;
   source: string;
   onSourceChange: (value: string) => void;
-  employmentType: string;
-  onEmploymentTypeChange: (value: string) => void;
   onClearAll: () => void;
   sort: string;
   onSortChange: (sort: string) => void;
@@ -36,8 +34,6 @@ export function ResultsToolbar({
   onExperienceChange,
   source,
   onSourceChange,
-  employmentType,
-  onEmploymentTypeChange,
   onClearAll,
   sort,
   onSortChange,
@@ -82,8 +78,6 @@ export function ResultsToolbar({
           onExperienceChange={onExperienceChange}
           source={source}
           onSourceChange={onSourceChange}
-          employmentType={employmentType}
-          onEmploymentTypeChange={onEmploymentTypeChange}
         />
         <SortMenu sort={sort} onSortChange={onSortChange} />
       </div>

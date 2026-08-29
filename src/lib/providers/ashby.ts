@@ -12,7 +12,6 @@ interface AshbyJob {
   location: string;
   publishedAt: string;
   jobUrl: string;
-  employmentType?: string;
   isRemote?: boolean;
 }
 
@@ -33,7 +32,6 @@ function mapJob(raw: AshbyJob, company: string): Job {
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),
     source: "ashby",
-    employmentType: (raw.employmentType ?? "").toLowerCase(),
   };
 }
 
