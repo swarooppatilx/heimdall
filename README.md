@@ -2,6 +2,7 @@
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![CI](https://github.com/swarooppatilx/heimdall/actions/workflows/ci.yml/badge.svg)](https://github.com/swarooppatilx/heimdall/actions/workflows/ci.yml)
+[![Deploy](https://github.com/swarooppatilx/heimdall/actions/workflows/deploy.yml/badge.svg)](https://github.com/swarooppatilx/heimdall/actions/workflows/deploy.yml)
 
 A search engine for fresh, verified tech jobs. Every listing is pulled straight from an official company career page or its ATS provider, never re-posted from a job board.
 
