@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an improvement to heimdall
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: "Describe the problem you are trying to solve before the solution. For a provider or company request use the dedicated template instead."
+  - type: dropdown
+    id: scope
+    attributes:
+      label: What area does this touch?
+      options:
+        - Search and filters
+        - UI or UX
+        - API
+        - Crawler
+        - Self-hosting or deployment
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What task are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else have you tried?

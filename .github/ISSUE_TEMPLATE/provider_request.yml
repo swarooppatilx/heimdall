@@ -1,0 +1,45 @@
+name: Add a company or provider
+description: Request a company board or ATS provider for the crawl registry
+title: "[Provider]: "
+labels:
+  - provider-request
+body:
+  - type: markdown
+    attributes:
+      value: "Heimdall only reads official company career pages and their ATS providers, never job boards. Check CONTRIBUTING.md for how a provider lands."
+  - type: input
+    id: company
+    attributes:
+      label: Company name
+      placeholder: Example Corp
+    validations:
+      required: true
+  - type: input
+    id: careers-url
+    attributes:
+      label: Careers page URL
+      placeholder: https://company.com/careers
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: What the careers page appears to use
+      options:
+        - Company careers page
+        - Greenhouse
+        - Lever
+        - Ashby
+        - Workable
+        - SmartRecruiters
+        - Workday
+        - Oracle
+        - SAP SuccessFactors
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Region, approximate listing volume, remote presence, anything useful for the crawl budget
