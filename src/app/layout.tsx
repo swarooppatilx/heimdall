@@ -31,6 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/",
     },
+    verification: { google: "14BZsteU4ODEu9UN369_5SiOAC8qo6S3Ce1bg8UtG3c" },
     title: {
       default: "heimdall — fresh tech jobs",
       template: "%s | heimdall",
