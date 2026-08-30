@@ -22,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(url),
     applicationName: "heimdall",
+    manifest: "/manifest.webmanifest",
     appleWebApp: {
       title: "heimdall",
       capable: true,
@@ -41,6 +42,8 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "fresh, verified tech job opportunities from official company career pages.",
       type: "website",
       siteName: "heimdall",
+      url: `${url}/`,
+      locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
