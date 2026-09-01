@@ -7,7 +7,7 @@ import { sanitizeFilterValue } from "@/lib/sanitize";
 
 const ALL_JOBS_KEY = "all-jobs";
 const EDGE_TTL_SECONDS = 300;
-const KV_TTL_SECONDS = 300;
+const KV_TTL_SECONDS = 2100;
 const MS_PER_DAY = 86_400_000;
 const DAYS_PER_WEEK = 7;
 const DEFAULT_LIMIT = 50;
