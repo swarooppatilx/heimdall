@@ -1,13 +1,13 @@
 import { bindDb } from "@/db";
 import { setAnalyticsBinding, trackCrawlTick } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
-import { warmCrawlStatusCache } from "@/lib/crawl-status-cache";
-import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/lib/crawl-store";
-import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/lib/crawler";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
+import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
+import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
+import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
 import { writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getJobQuality } from "@/modules/jobs/quality";
 import { getAllFreshJobs } from "@/modules/jobs/queries";

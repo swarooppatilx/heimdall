@@ -1,16 +1,16 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
-import type { CrawlStatusEntry } from "@/lib/crawl-status";
-import { getCrawlStatusCached } from "@/lib/crawl-status-cache";
+import { constantTimeEqual } from "@/lib/security";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import type { CrawlStatusEntry } from "@/modules/crawl/status";
+import { getCrawlStatusCached } from "@/modules/crawl/status-cache";
 import {
   type CrawlRecord,
   getCrawlHistory,
   getLatestCrawls,
   getRecentCrawlSamples,
-} from "@/lib/crawl-store";
-import { constantTimeEqual } from "@/lib/security";
-import { withRateLimit } from "@/lib/with-rate-limit";
+} from "@/modules/crawl/store";
 
 export const dynamic = "force-dynamic";
 
