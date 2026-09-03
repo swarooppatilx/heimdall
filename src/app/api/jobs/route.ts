@@ -15,6 +15,9 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 export const dynamic = "force-dynamic";
 
 const MAX_OFFSET = 10_000;
+const SEARCH_CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+};
 
 function parseIntParam(searchParams: URLSearchParams, key: string): number | undefined {
   const value = Number.parseInt(searchParams.get(key) ?? "", 10);
@@ -64,7 +67,7 @@ export const GET = withRateLimit(
     if (allJobs) {
       const result = searchJobsFromKV(allJobs, filters, page);
       return NextResponse.json(result.jobs, {
-        headers: { "X-Total-Count": String(result.total) },
+        headers: { "X-Total-Count": String(result.total), ...SEARCH_CACHE_HEADERS },
       });
     }
 
@@ -82,6 +85,8 @@ export const GET = withRateLimit(
         }),
     );
 
-    return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
+    return NextResponse.json(jobs, {
+      headers: { "X-Total-Count": String(total), ...SEARCH_CACHE_HEADERS },
+    });
   },
 );
