@@ -1,9 +1,9 @@
-import { recordCrawl } from "@/lib/crawl-store";
 import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
-import { fetchJobs } from "@/lib/fetch-jobs";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry, type RegistryEntry } from "@/lib/registry";
+import { fetchJobs } from "@/modules/crawl/fetch-jobs";
+import { recordCrawl } from "@/modules/crawl/store";
 import { getJobsByBoard } from "@/modules/jobs/queries";
 import { deleteJobsByIds, insertJobs, updateJobs } from "@/modules/jobs/writes";
 

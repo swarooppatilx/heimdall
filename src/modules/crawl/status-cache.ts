@@ -1,13 +1,13 @@
 import { trackKvCache } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { cacheKv } from "@/lib/cache-kv";
-import type { CrawlStatusEntry } from "@/lib/crawl-status";
+import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import {
   type CrawlRecord,
   getCrawlHistory,
   getLatestCrawls,
   getRecentCrawlSamples,
-} from "@/lib/crawl-store";
+} from "@/modules/crawl/store";
 
 const CACHE_KEY = "crawl-status";
 const EDGE_TTL_SECONDS = 60;

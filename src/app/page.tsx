@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
-import type { CrawlStatusEntry } from "@/lib/crawl-status";
 import { dedupeJobs } from "@/lib/job";
+import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import type { FacetOptions } from "@/modules/jobs/facets";
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
