@@ -23,7 +23,9 @@ import {
 
 function parseLocations(raw: string, fallback: string): string[] {
   try {
-    return JSON.parse(raw) as string[];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [fallback];
+    return parsed.filter((item): item is string => typeof item === "string");
   } catch {
     return [fallback];
   }
