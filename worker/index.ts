@@ -4,14 +4,12 @@ import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
+import { warmAllCaches } from "@/modules/cache-warmer";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
 import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
-import { warmFacetCache } from "@/modules/jobs/facet-cache";
-import { writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getJobQuality } from "@/modules/jobs/quality";
-import { getAllFreshJobs } from "@/modules/jobs/queries";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
 import handler from "./open-next-handler.mjs";
 
@@ -57,9 +55,7 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
   const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
 
-  const allJobs = await getAllFreshJobs();
-  await writeAllJobsToKV(allJobs, env);
-  await warmFacetCache(env);
+  await warmAllCaches(env);
   await warmCrawlStatusCache(env);
 
   const failed = run.results.filter((r) => r.status === "error").length;
