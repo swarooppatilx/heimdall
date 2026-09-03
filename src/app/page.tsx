@@ -2,58 +2,26 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import {
-  Suspense,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { FilterSelect } from "@/components/filter-select";
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
+import { JobFilters } from "@/components/jobs/job-filters";
 import { ResultsToolbar } from "@/components/jobs/results-toolbar";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useJobAnnouncement } from "@/hooks/use-job-announcement";
 import { useJobFilters } from "@/hooks/use-job-filters";
+import { useLocationOptions } from "@/hooks/use-location-options";
 import { useQueryParam } from "@/hooks/use-query-param";
+import { useSearchShortcut } from "@/hooks/use-search-shortcut";
+import { useSyncStatus } from "@/hooks/use-sync-status";
 import { dedupeJobs } from "@/lib/job";
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import type { FacetOptions } from "@/modules/jobs/facets";
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const HOURS_PER_DAY = 24;
-const MS_PER_HOUR = 3_600_000;
-const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 const SEARCH_DEBOUNCE_MS = 300;
-const ANNOUNCEMENT_DEBOUNCE_MS = 600;
-
-function useSearchShortcut(
-  searchRef: React.RefObject<HTMLInputElement | null>,
-  setQuery: (value: string) => void,
-) {
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) {
-        return;
-      }
-      if (e.key === "/" && document.activeElement !== searchRef.current) {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-      if (e.key === "Escape") {
-        setQuery("");
-        searchRef.current?.blur();
-      }
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [searchRef, setQuery]);
-}
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
@@ -127,19 +95,7 @@ function JobsPage() {
   const jobs = useMemo(() => data?.pages.flatMap((p) => p.jobs) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!(el && hasNextPage) || isFetchingNextPage) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) fetchNextPage();
-      },
-      { rootMargin: "400px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const sentinelRef = useInfiniteScroll(fetchNextPage, hasNextPage, isFetchingNextPage);
 
   const jobCards = useMemo(
     () => dedupeJobs(jobs, (job) => `${job.company}|${job.title.toLowerCase()}`),
@@ -150,21 +106,8 @@ function JobsPage() {
     queryKey: ["filters"],
     queryFn: async () => {
       const res = await fetch("/api/filters");
-      if (!res.ok) {
-        throw new Error(`filters request failed: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`filters request failed: ${res.status}`);
       return res.json() as Promise<FacetOptions>;
-    },
-  });
-
-  const { data: crawlStatus } = useQuery<{ latest: CrawlStatusEntry[] }>({
-    queryKey: ["crawlStatus"],
-    queryFn: async () => {
-      const res = await fetch("/api/crawl/status");
-      if (!res.ok) {
-        throw new Error(`crawl status request failed: ${res.status}`);
-      }
-      return res.json() as Promise<{ latest: CrawlStatusEntry[] }>;
     },
   });
 
@@ -193,30 +136,11 @@ function JobsPage() {
   ]);
 
   const advancedCount = [experience, source].filter(Boolean).length;
-
-  const locationOptions = useMemo(() => {
-    if (!filterOptions) return ["remote"];
-    const countries = [...filterOptions.countries].sort((a, b) => b.count - a.count);
-    const cities = countries
-      .flatMap((c) => c.cities.map((t) => ({ value: `${t.value}, ${c.value}`, count: t.count })))
-      .sort((a, b) => b.count - a.count);
-    return ["remote", ...countries.map((c) => c.value), ...cities.map((t) => t.value)];
-  }, [filterOptions]);
-
+  const locationOptions = useLocationOptions(filterOptions);
   const hasFilters = Boolean(company || location || source || department || experience || posted);
-
-  const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
-  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
-
+  const { syncedAt, syncStale } = useSyncStatus();
   const countLabel = resolveCountLabel(isLoading, isError, total, jobs.length, jobCards.length);
-
-  const [announcement, setAnnouncement] = useState("");
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnnouncement(isLoading ? "" : isError ? "fetching failed" : countLabel);
-    }, ANNOUNCEMENT_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [countLabel, isLoading, isError]);
+  const announcement = useJobAnnouncement(isLoading, isError, countLabel);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -229,57 +153,21 @@ function JobsPage() {
       <Header />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
-        <section aria-label="Search and filters" className="mb-6">
-          <div className="relative mb-3">
-            <input
-              ref={searchRef}
-              type="text"
-              placeholder="search jobs, companies, skills..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground sm:pr-16 sm:text-base"
-              aria-label="Search jobs"
-            />
-            <kbd className="pointer-events-none absolute top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground md:right-3 md:block">
-              /
-            </kbd>
-          </div>
-
-          <div className="grid grid-cols-2 items-center gap-2 sm:flex">
-            <FilterSelect
-              value={company}
-              onChange={setCompany}
-              options={(filterOptions?.companies ?? []).map((o) => o.value)}
-              placeholder="company"
-              aria-label="Filter by company"
-              className="sm:flex-1"
-            />
-            <FilterSelect
-              value={department}
-              onChange={setDepartment}
-              options={(filterOptions?.departments ?? []).map((o) => o.value)}
-              placeholder="role"
-              aria-label="Filter by role"
-              className="sm:flex-1"
-            />
-            <FilterSelect
-              value={location}
-              onChange={setLocation}
-              options={locationOptions}
-              placeholder="location"
-              aria-label="Filter by location"
-              className="sm:flex-1"
-            />
-            <FilterSelect
-              value={posted === "week" ? "this week" : posted}
-              onChange={(v) => setPosted(v === "this week" ? "week" : v)}
-              options={["today", "this week"]}
-              placeholder="posted"
-              aria-label="Filter by posting date"
-              className="sm:flex-1"
-            />
-          </div>
-        </section>
+        <JobFilters
+          query={query}
+          setQuery={setQuery}
+          searchRef={searchRef}
+          company={company}
+          setCompany={setCompany}
+          department={department}
+          setDepartment={setDepartment}
+          location={location}
+          setLocation={setLocation}
+          locationOptions={locationOptions}
+          posted={posted}
+          setPosted={setPosted}
+          filterOptions={filterOptions}
+        />
 
         <ResultsToolbar
           countLabel={announcement}
