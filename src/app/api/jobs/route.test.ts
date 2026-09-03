@@ -17,9 +17,14 @@ const { kvGet, kvPut } = vi.hoisted(() => ({
   kvPut: vi.fn(),
 }));
 
+const { waitUntil } = vi.hoisted(() => ({
+  waitUntil: vi.fn(),
+}));
+
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({
     env: { CACHE: { get: kvGet, put: kvPut } },
+    ctx: { waitUntil },
   }),
 }));
 
@@ -171,6 +176,7 @@ describe("GET /api/jobs KV cache", () => {
     mockSearchJobsWithCount.mockResolvedValue({ jobs, total: jobs.length });
     kvGet.mockReset();
     kvPut.mockReset();
+    waitUntil.mockReset();
   });
 
   it("serves from KV without touching the database", async () => {
@@ -178,12 +184,19 @@ describe("GET /api/jobs KV cache", () => {
     const res = await GET(makeRequest({ company: "discord" }));
     expect(res.headers.get("X-Total-Count")).toBe("1");
     expect(mockSearchJobsWithCount).not.toHaveBeenCalled();
+    expect(waitUntil).not.toHaveBeenCalled();
   });
 
   it("falls back to database when KV is empty", async () => {
     kvGet.mockResolvedValue(undefined);
     await GET(makeRequest({ company: "discord" }));
     expect(mockSearchJobsWithCount).toHaveBeenCalledTimes(1);
+  });
+
+  it("restocks the KV cache in the background after a database fallback", async () => {
+    kvGet.mockResolvedValue(undefined);
+    await GET(makeRequest({ company: "discord" }));
+    expect(waitUntil).toHaveBeenCalledTimes(1);
   });
 
   it("ignores cache errors and queries the database", async () => {

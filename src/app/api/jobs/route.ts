@@ -2,17 +2,22 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { searchJobsWithCount } from "@/lib/db";
-import { POSTED_WINDOWS } from "@/lib/job-queries";
+import { getAllFreshJobs, POSTED_WINDOWS } from "@/lib/job-queries";
 import {
   type JobFilters as KvJobFilters,
   readAllJobsFromKV,
   searchJobsFromKV,
+  writeAllJobsToKV,
 } from "@/lib/jobs-kv";
+import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
 
 const MAX_OFFSET = 10_000;
+const SEARCH_CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+};
 
 function parseIntParam(searchParams: URLSearchParams, key: string): number | undefined {
   const value = Number.parseInt(searchParams.get(key) ?? "", 10);
@@ -57,12 +62,12 @@ export const GET = withRateLimit(
       return NextResponse.json({ error: "offset too large" }, { status: 400 });
     }
 
-    const { env } = getCloudflareContext();
+    const { ctx, env } = getCloudflareContext();
     const allJobs = await readAllJobsFromKV(env);
     if (allJobs) {
       const result = searchJobsFromKV(allJobs, filters, page);
       return NextResponse.json(result.jobs, {
-        headers: { "X-Total-Count": String(result.total) },
+        headers: { "X-Total-Count": String(result.total), ...SEARCH_CACHE_HEADERS },
       });
     }
 
@@ -72,6 +77,16 @@ export const GET = withRateLimit(
     }
     const { jobs, total } = await searchJobsWithCount(dbFilters, page);
 
-    return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
+    ctx.waitUntil(
+      getAllFreshJobs()
+        .then((fresh) => writeAllJobsToKV(fresh, env))
+        .catch((err) => {
+          logEvent("kv_rewarm_failed", { error: formatError(err) });
+        }),
+    );
+
+    return NextResponse.json(jobs, {
+      headers: { "X-Total-Count": String(total), ...SEARCH_CACHE_HEADERS },
+    });
   },
 );
