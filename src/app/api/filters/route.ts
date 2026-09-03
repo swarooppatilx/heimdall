@@ -1,7 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { getFacetOptionsCached } from "@/lib/facet-cache";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { getFacetOptionsCached } from "@/modules/jobs/facet-cache";
 
 export const dynamic = "force-dynamic";
 

@@ -1,6 +1,5 @@
 import { bindDb } from "@/db";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
-import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
@@ -9,6 +8,7 @@ import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
 import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
+import { warmFacetCache } from "@/modules/jobs/facet-cache";
 import { writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getJobQuality } from "@/modules/jobs/quality";
 import { getAllFreshJobs } from "@/modules/jobs/queries";

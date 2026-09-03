@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getFacetOptionsCached } from "@/lib/facet-cache";
+import { getFacetOptionsCached } from "@/modules/jobs/facet-cache";
 
 const kvStore = new Map<string, string>();
 // biome-ignore lint/suspicious/useAwait: mock implementation returns promise by design
