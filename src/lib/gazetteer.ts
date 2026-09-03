@@ -544,7 +544,7 @@ export function formatPlace(place: Place): string {
   return "unknown";
 }
 
-export interface LocationCatalog {
+interface LocationCatalog {
   countries: string[];
   cities: { value: string; country: string }[];
 }

@@ -11,13 +11,13 @@ const KV_PREFIX = "rl:";
 
 export type RateLimitBinding = "JOBS_RATE_LIMITER" | "FILTERS_RATE_LIMITER" | "STATUS_RATE_LIMITER";
 
-export interface RateLimitOptions {
+interface RateLimitOptions {
   binding?: RateLimitBinding;
   windowMs: number;
   max: number;
 }
 
-export interface RateLimitResult {
+interface RateLimitResult {
   allowed: boolean;
   resetMs: number;
 }

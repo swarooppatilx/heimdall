@@ -19,7 +19,7 @@ export interface Job {
   isRemote?: boolean;
 }
 
-export interface DedupedJob {
+interface DedupedJob {
   key: string;
   job: Job;
   openings: number;

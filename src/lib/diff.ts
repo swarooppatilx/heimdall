@@ -1,7 +1,7 @@
 import { detectExperienceLevel, type ExperienceLevel } from "@/lib/experience";
 import type { Job } from "@/lib/job";
 
-export interface JobDiff {
+interface JobDiff {
   inserts: Job[];
   updates: Job[];
   deletedIds: string[];

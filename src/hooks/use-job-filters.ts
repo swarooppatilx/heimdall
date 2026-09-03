@@ -5,7 +5,7 @@ import type { Job } from "@/lib/job";
 
 const PAGE_SIZE = 50;
 
-export interface JobFiltersInput {
+interface JobFiltersInput {
   q: string;
   company: string;
   location: string;
@@ -16,7 +16,7 @@ export interface JobFiltersInput {
   sort: string;
 }
 
-export interface JobPage {
+interface JobPage {
   jobs: Job[];
   total: number;
 }
