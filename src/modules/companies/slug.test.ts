@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
+import { fromCompanySlug, toCompanySlug } from "@/modules/companies/slug";
 
 describe("company slug roundtrip", () => {
   it("percent-encodes spaces", () => {
