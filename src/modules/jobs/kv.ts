@@ -1,7 +1,7 @@
 import { cacheKv } from "@/lib/cache-kv";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
-import { logEvent } from "@/lib/logger";
+import { formatError, logEvent } from "@/lib/logger";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 import { trackKvCache } from "@/modules/analytics/analytics";
 import {
@@ -29,7 +29,8 @@ export async function readAllJobsFromKV(
     });
     trackKvCache({ operation: "read", key: ALL_JOBS_KEY, hit: Boolean(jobs) });
     return jobs ?? undefined;
-  } catch {
+  } catch (err) {
+    logEvent("kv_read_failed", { key: ALL_JOBS_KEY, error: formatError(err) });
     trackKvCache({ operation: "read", key: ALL_JOBS_KEY, hit: false });
     return undefined;
   }
@@ -47,7 +48,7 @@ export async function writeAllJobsToKV(
     });
     trackKvCache({ operation: "write", key: ALL_JOBS_KEY, hit: false });
   } catch (err) {
-    logEvent("kv_write_failed", { error: String(err) });
+    logEvent("kv_write_failed", { key: ALL_JOBS_KEY, error: formatError(err) });
   }
 }
 
