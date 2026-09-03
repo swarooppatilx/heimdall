@@ -3,7 +3,7 @@ import { toCompanySlug } from "@/lib/company-slug";
 import { getCompanyNames } from "@/lib/db";
 import { siteUrl } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = await siteUrl();

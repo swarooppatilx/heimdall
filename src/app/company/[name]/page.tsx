@@ -8,6 +8,8 @@ import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
 import { countJobsByCompany, getJobsByCompany } from "@/lib/db";
 import { dedupeJobs } from "@/lib/job";
 
+export const revalidate = 600;
+
 function decodeCompany(raw: string): string | null {
   const company = fromCompanySlug(raw);
   return company ? company : null;
