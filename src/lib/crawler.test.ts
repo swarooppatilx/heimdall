@@ -17,11 +17,11 @@ vi.mock("./crawl-store", () => ({
   recordCrawl: vi.fn(async () => {}),
 }));
 
-vi.mock("@/lib/job-queries", () => ({
+vi.mock("@/modules/jobs/queries", () => ({
   getJobsByBoard: (...args: unknown[]) => getJobsByBoardMock(...args),
 }));
 
-vi.mock("@/lib/job-writes", () => ({
+vi.mock("@/modules/jobs/writes", () => ({
   deleteJobsByIds: (...args: unknown[]) => deleteJobsByIdsMock(...args),
   insertJobs: vi.fn(async () => {}),
   updateJobs: vi.fn(async () => {}),

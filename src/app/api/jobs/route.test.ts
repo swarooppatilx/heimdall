@@ -8,7 +8,7 @@ function readJobs(res: Response): Promise<Job[]> {
 
 const mockSearchJobsWithCount = vi.fn();
 
-vi.mock("@/lib/job-queries", () => ({
+vi.mock("@/modules/jobs/queries", () => ({
   searchJobsWithCount: (...args: unknown[]) => mockSearchJobsWithCount(...args),
   getAllFreshJobs: vi.fn(async () => []),
   POSTED_WINDOWS: ["today", "week", "month"],

@@ -28,11 +28,11 @@ const { mockGetRecentJobs } = vi.hoisted(() => ({
   mockGetRecentJobs: vi.fn(),
 }));
 
-vi.mock("@/lib/job-queries", () => ({
+vi.mock("@/modules/jobs/queries", () => ({
   getRecentJobs: (limit: number) => mockGetRecentJobs(limit),
 }));
 
-vi.mock("@/lib/jobs-kv", () => ({
+vi.mock("@/modules/jobs/kv", () => ({
   getRecentJobsFromKV: async () => undefined,
 }));
 

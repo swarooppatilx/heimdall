@@ -1,15 +1,15 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import type { JobFilters, PageOptions } from "@/lib/job-queries";
-import { getAllFreshJobs, POSTED_WINDOWS, searchJobsWithCount } from "@/lib/job-queries";
+import { formatError, logEvent } from "@/lib/logger";
+import { withRateLimit } from "@/lib/with-rate-limit";
 import {
   type JobFilters as KvJobFilters,
   readAllJobsFromKV,
   searchJobsFromKV,
   writeAllJobsToKV,
-} from "@/lib/jobs-kv";
-import { formatError, logEvent } from "@/lib/logger";
-import { withRateLimit } from "@/lib/with-rate-limit";
+} from "@/modules/jobs/kv";
+import type { JobFilters, PageOptions } from "@/modules/jobs/queries";
+import { getAllFreshJobs, POSTED_WINDOWS, searchJobsWithCount } from "@/modules/jobs/queries";
 
 export const dynamic = "force-dynamic";
 

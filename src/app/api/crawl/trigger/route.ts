@@ -4,10 +4,10 @@ import { bindDb } from "@/db";
 import { crawlSlices } from "@/lib/crawler";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
-import { getAllFreshJobs } from "@/lib/job-queries";
-import { writeAllJobsToKV } from "@/lib/jobs-kv";
 import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { writeAllJobsToKV } from "@/modules/jobs/kv";
+import { getAllFreshJobs } from "@/modules/jobs/queries";
 
 export const dynamic = "force-dynamic";
 

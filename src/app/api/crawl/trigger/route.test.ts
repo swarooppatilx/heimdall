@@ -25,11 +25,11 @@ vi.mock("@/db", () => ({
   bindDb: vi.fn(),
 }));
 
-vi.mock("@/lib/job-queries", () => ({
+vi.mock("@/modules/jobs/queries", () => ({
   getAllFreshJobs: (...args: unknown[]) => state.getAllFreshJobsMock(...args),
 }));
 
-vi.mock("@/lib/jobs-kv", () => ({
+vi.mock("@/modules/jobs/kv", () => ({
   writeAllJobsToKV: (...args: unknown[]) => state.writeAllJobsToKVMock(...args),
 }));
 
