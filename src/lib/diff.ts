@@ -1,4 +1,4 @@
-import { detectExperienceLevel } from "@/lib/experience";
+import { detectExperienceLevel, type ExperienceLevel } from "@/lib/experience";
 import type { Job } from "@/lib/job";
 
 export interface JobDiff {
@@ -16,7 +16,7 @@ export function isSuspiciousDeletion(existingCount: number, deletedCount: number
   return deletedCount > existingCount * GUARD_MAX_DELETE_SHARE;
 }
 
-function effectiveLevel(job: Job): string {
+function effectiveLevel(job: Job): ExperienceLevel {
   return job.experienceLevel ?? detectExperienceLevel(job.title);
 }
 

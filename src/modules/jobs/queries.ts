@@ -2,6 +2,7 @@ import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
+import type { ExperienceLevel } from "@/lib/experience";
 import { freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
@@ -37,7 +38,7 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     locations: parseLocations(row.locations, row.location),
     region: row.region,
     isEarlyCareer: row.isEarlyCareer === 1,
-    experienceLevel: row.experienceLevel,
+    experienceLevel: (row.experienceLevel ?? "mid") as ExperienceLevel,
     ...(row.city === null ? {} : { city: row.city }),
     ...(row.country === null ? {} : { country: row.country }),
     isRemote: row.isRemote === 1,

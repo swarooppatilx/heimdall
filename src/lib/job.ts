@@ -1,3 +1,5 @@
+import type { ExperienceLevel } from "@/lib/experience";
+
 export interface Job {
   id: string;
   title: string;
@@ -11,7 +13,7 @@ export interface Job {
   locations?: string[];
   region?: string;
   isEarlyCareer?: boolean;
-  experienceLevel?: string;
+  experienceLevel?: ExperienceLevel;
   city?: string;
   country?: string;
   isRemote?: boolean;
