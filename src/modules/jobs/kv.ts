@@ -95,12 +95,10 @@ function matchesFilters(job: Job, filters: JobFilters): boolean {
 function sortJobs(jobs: Job[], sort: string | undefined): Job[] {
   if (sort === "company") {
     return [...jobs].sort(
-      (a, b) =>
-        a.company.localeCompare(b.company) ||
-        new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(),
+      (a, b) => a.company.localeCompare(b.company) || b.postedAt.getTime() - a.postedAt.getTime(),
     );
   }
-  return [...jobs].sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+  return [...jobs].sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime());
 }
 
 export async function getCompanyJobsFromKV(
@@ -127,9 +125,7 @@ export async function getRecentJobsFromKV(
 ): Promise<Job[] | undefined> {
   const allJobs = await readAllJobsFromKV(env);
   if (!allJobs) return undefined;
-  return [...allJobs]
-    .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime())
-    .slice(0, limit);
+  return [...allJobs].sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime()).slice(0, limit);
 }
 
 export function searchJobsFromKV(
