@@ -33,7 +33,7 @@ export function JobFilters({
   filterOptions,
 }: JobFiltersProps) {
   return (
-    <section aria-label="Search and filters" className="mb-6">
+    <nav aria-label="Search and filters" className="mb-6">
       <div className="relative mb-3">
         <input
           ref={searchRef}
@@ -83,6 +83,6 @@ export function JobFilters({
           className="sm:flex-1"
         />
       </div>
-    </section>
+    </nav>
   );
 }
