@@ -5,12 +5,8 @@ import registry from "@/lib/registry.json";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 
 export const FILTER_SOURCES = [
-  "greenhouse",
-  "lever",
-  "ashby",
-  "smartrecruiters",
-  "workable",
-] as const;
+  ...new Set(registry.map((entry) => entry.provider)),
+].sort() as string[];
 
 export const FILTER_COMPANIES: readonly string[] = [
   ...new Set(registry.map((entry) => sanitizeFilterValue(entry.label ?? entry.name))),
