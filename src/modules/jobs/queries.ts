@@ -64,7 +64,7 @@ function eqJobCompany(value: string) {
   return sql`${jobs.company} = ${value}`;
 }
 
-function eqColumnLower(column: AnyColumn, value: string) {
+function eqColumn(column: AnyColumn, value: string) {
   return sql`${column} = ${value}`;
 }
 
@@ -90,7 +90,7 @@ function cityCountryCondition(city: string | undefined, country: string | undefi
 
 function columnCondition(column: AnyColumn, value: string | undefined) {
   if (!value) return undefined;
-  return eqColumnLower(column, sanitizeFilterValue(value));
+  return eqColumn(column, sanitizeFilterValue(value));
 }
 
 function postedCondition(value: string | undefined) {
