@@ -1,4 +1,4 @@
-const MS_PER_MINUTE = 60_000;
+import { MS_PER_MINUTE } from "@/lib/time";
 
 export function timeAgo(date: Date | string): string {
   const ms = Math.max(Date.now() - new Date(date).getTime(), 0);
