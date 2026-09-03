@@ -1,7 +1,7 @@
 import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
+import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import { getDb } from "@/lib/db-connection";
 import { DAY_MS, freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";

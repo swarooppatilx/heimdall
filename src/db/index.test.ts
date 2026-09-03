@@ -8,7 +8,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
 
 async function freshModule() {
   vi.resetModules();
-  return await import("./db-connection");
+  return await import("./index");
 }
 
 beforeEach(() => {

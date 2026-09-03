@@ -1,8 +1,8 @@
 import { eq, inArray, lt, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
+import type { Db } from "@/db";
+import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import type { Db } from "@/lib/db-connection";
-import { getDb } from "@/lib/db-connection";
 import { freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
