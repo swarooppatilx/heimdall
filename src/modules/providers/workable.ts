@@ -1,8 +1,7 @@
 import { inferDepartment } from "@/lib/department";
-import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { normalizeLocation } from "@/lib/normalize";
+import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
 interface WorkableJob {
@@ -37,7 +36,7 @@ function structuredLocations(raw: WorkableJob): string[] {
   const listed = (raw.locations ?? [])
     .map((loc) => [loc.city, loc.country].filter(Boolean).join(", "))
     .filter(Boolean);
-  const primary = splitLocations(primaryLocation(raw)).map((part) => normalizeLocation(part));
+  const primary = normalizeLocations(primaryLocation(raw));
   return [...listed.map((entry) => normalizeLocation(entry)), ...primary];
 }
 

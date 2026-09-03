@@ -1,8 +1,7 @@
 import { inferDepartment } from "@/lib/department";
-import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { normalizeLocation } from "@/lib/normalize";
+import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
 interface AshbyJob {
@@ -27,7 +26,7 @@ function mapJob(raw: AshbyJob, company: string): Job {
     title: raw.title,
     company,
     location: normalizeLocation(baseLocation),
-    locations: splitLocations(baseLocation).map((part) => normalizeLocation(part)),
+    locations: normalizeLocations(baseLocation),
     department: (raw.department || inferDepartment(raw.title)).toLowerCase(),
     url: raw.jobUrl,
     postedAt: new Date(raw.publishedAt),

@@ -2,7 +2,7 @@ import { inferDepartment } from "@/lib/department";
 import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { normalizeLocation } from "@/lib/normalize";
+import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
 interface GreenhouseJob {
@@ -63,7 +63,7 @@ function mapJob(raw: GreenhouseJob, board: string): Job {
     title: raw.title,
     company: board,
     location: primary,
-    locations: locationParts.map((part) => normalizeLocation(part)),
+    locations: normalizeLocations(raw.location.name),
     department,
     url: raw.absolute_url,
     postedAt: new Date(raw.first_published ?? raw.updated_at),

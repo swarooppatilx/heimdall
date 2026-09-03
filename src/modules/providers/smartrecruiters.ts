@@ -1,8 +1,7 @@
 import { inferDepartment } from "@/lib/department";
-import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { normalizeLocation } from "@/lib/normalize";
+import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
 interface SmartRecruitersPosting {
@@ -40,7 +39,7 @@ function mapJob(raw: SmartRecruitersPosting, company: string): Job {
     title: raw.name,
     company,
     location: normalizeLocation(locationStr),
-    locations: splitLocations(locationStr).map((part) => normalizeLocation(part)),
+    locations: normalizeLocations(locationStr),
     department: (
       ("label" in raw.department && raw.department.label) ||
       ("label" in raw.function && raw.function.label) ||
