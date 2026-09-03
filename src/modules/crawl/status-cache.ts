@@ -1,6 +1,7 @@
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { cacheKv } from "@/lib/cache-kv";
 import { trackKvCache } from "@/modules/analytics/analytics";
+import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import {
   type CrawlRecord,
@@ -53,9 +54,6 @@ export async function getCrawlStatusCached(
   }
   return payload;
 }
-
-const DRIFT_WINDOW_HOURS = 48;
-const DRIFT_MIN_EMPTY = 6;
 
 function toIsoUtc(dbTimestamp: string): string {
   return new Date(`${dbTimestamp.replace(" ", "T")}Z`).toISOString();

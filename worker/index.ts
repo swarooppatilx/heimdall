@@ -5,6 +5,7 @@ import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
+import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
 import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
@@ -26,8 +27,6 @@ interface ExecutionContext {
 
 // biome-ignore lint/style/noMagicNumbers: self-explanatory compound
 const STALE_ALERT_MS = 30 * 60 * 1000;
-const DRIFT_WINDOW_HOURS = 48;
-const DRIFT_MIN_EMPTY = 6;
 const CRAWL_RETENTION_DAYS = 45;
 
 export default {

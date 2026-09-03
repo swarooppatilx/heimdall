@@ -1,4 +1,6 @@
-export const DAY_MS = 24 * 60 * 60 * 1000;
+import { MS_PER_DAY } from "@/lib/time";
+
+export const DAY_MS = MS_PER_DAY;
 
 export const DEFAULT_FRESHNESS_DAYS = 15;
 const MIN_FRESHNESS_DAYS = 1;
