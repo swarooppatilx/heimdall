@@ -40,7 +40,7 @@ const jobs: Job[] = [
     url: "https://example.com/2",
     postedAt: new Date("2026-08-19"),
     source: "greenhouse",
-    experienceLevel: "junior",
+    experienceLevel: "entry",
   },
 ];
 
