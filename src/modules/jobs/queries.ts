@@ -2,10 +2,18 @@ import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import { DAY_MS, freshnessCutoff } from "@/lib/freshness";
+import { freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import {
+  DEFAULT_LIMIT,
+  type JobFilters,
+  MAX_LIMIT,
+  type PageOptions,
+  POSTED_WINDOWS_MS,
+  type SearchResult,
+} from "@/modules/jobs/types";
 
 function parseLocations(raw: string, fallback: string): string[] {
   try {
@@ -35,36 +43,6 @@ function toJob(row: typeof jobs.$inferSelect): Job {
     isRemote: row.isRemote === 1,
   };
 }
-
-export interface JobFilters {
-  q?: string;
-  company?: string;
-  location?: string;
-  city?: string;
-  country?: string;
-  source?: string;
-  experience?: string;
-  posted?: string;
-  department?: string;
-  earlyCareer?: string;
-  sort?: string;
-}
-
-const DAYS_PER_WEEK = 7;
-const POSTED_WINDOWS_MS: Record<string, number> = {
-  today: DAY_MS,
-  week: DAYS_PER_WEEK * DAY_MS,
-};
-
-export const POSTED_WINDOWS = Object.keys(POSTED_WINDOWS_MS);
-
-export interface PageOptions {
-  limit?: number;
-  offset?: number;
-}
-
-const DEFAULT_LIMIT = 50;
-const MAX_LIMIT = 500;
 
 export function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
@@ -140,11 +118,6 @@ function jobConditions(filters: JobFilters) {
   }
 
   return conditions.filter((c): c is NonNullable<typeof c> => c != null);
-}
-
-export interface SearchResult {
-  jobs: Job[];
-  total: number;
 }
 
 export async function searchJobsWithCount(

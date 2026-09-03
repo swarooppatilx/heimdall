@@ -2,14 +2,9 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import {
-  type JobFilters as KvJobFilters,
-  readAllJobsFromKV,
-  searchJobsFromKV,
-  writeAllJobsToKV,
-} from "@/modules/jobs/kv";
-import type { JobFilters, PageOptions } from "@/modules/jobs/queries";
-import { getAllFreshJobs, POSTED_WINDOWS, searchJobsWithCount } from "@/modules/jobs/queries";
+import { readAllJobsFromKV, searchJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
+import { getAllFreshJobs, searchJobsWithCount } from "@/modules/jobs/queries";
+import { type JobFilters, type PageOptions, POSTED_WINDOWS } from "@/modules/jobs/types";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +23,7 @@ export const GET = withRateLimit(
   async (request) => {
     const { searchParams } = new URL(request.url);
 
-    const filters: KvJobFilters = {};
+    const filters: JobFilters = {};
     const filterParams = [
       ["q", "q"],
       ["company", "company"],
