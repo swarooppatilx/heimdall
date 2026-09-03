@@ -23,18 +23,23 @@ interface CompanyJobs {
 }
 
 async function loadCompanyJobs(company: string): Promise<CompanyJobs> {
-  const { ctx, env } = await getCloudflareContext();
-  const cached = await getCompanyJobsFromKV(env, company);
-  if (cached) return cached;
-  const jobs = await getJobsByCompany(company);
-  ctx.waitUntil(
-    getAllFreshJobs()
-      .then((fresh) => writeAllJobsToKV(fresh, env))
-      .catch((err) => {
-        logEvent("kv_rewarm_failed", { error: formatError(err) });
-      }),
-  );
-  return { jobs, total: jobs.length };
+  try {
+    const { ctx, env } = await getCloudflareContext();
+    const cached = await getCompanyJobsFromKV(env, company);
+    if (cached) return cached;
+    const jobs = await getJobsByCompany(company);
+    ctx.waitUntil(
+      getAllFreshJobs()
+        .then((fresh) => writeAllJobsToKV(fresh, env))
+        .catch((err) => {
+          logEvent("kv_rewarm_failed", { error: formatError(err) });
+        }),
+    );
+    return { jobs, total: jobs.length };
+  } catch (err) {
+    logEvent("company_page_load_failed", { company, error: formatError(err) });
+    return { jobs: [], total: 0 };
+  }
 }
 
 export async function generateMetadata({
@@ -86,7 +91,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: job.title,
-    datePosted: job.postedAt.toISOString(),
+    datePosted: typeof job.postedAt === "string" ? job.postedAt : job.postedAt.toISOString(),
     hiringOrganization: { "@type": "Organization", name: company },
     jobLocation: {
       "@type": "Place",
