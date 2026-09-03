@@ -2,8 +2,7 @@
 
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import type { Job } from "@/lib/job";
-
-const PAGE_SIZE = 50;
+import { DEFAULT_LIMIT } from "@/modules/jobs/types";
 
 interface JobFiltersInput {
   q: string;
@@ -35,7 +34,7 @@ export function useJobFilters(filters: JobFiltersInput) {
       if (filters.department) params.set("department", filters.department);
       if (filters.sort) params.set("sort", filters.sort);
       if (pageParam) params.set("offset", String(pageParam));
-      params.set("limit", String(PAGE_SIZE));
+      params.set("limit", String(DEFAULT_LIMIT));
       const res = await fetch(`/api/jobs?${params}`);
       if (!res.ok) {
         throw new Error(`jobs request failed: ${res.status}`);
@@ -46,6 +45,6 @@ export function useJobFilters(filters: JobFiltersInput) {
     placeholderData: keepPreviousData,
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
-      lastPage.jobs.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
+      lastPage.jobs.length < DEFAULT_LIMIT ? undefined : allPages.length * DEFAULT_LIMIT,
   });
 }

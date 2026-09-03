@@ -41,6 +41,7 @@ export async function writeAllJobsToKV(
     trackKvCache({ operation: "write", key: ALL_JOBS_KEY, hit: false });
   } catch (err) {
     logEvent("kv_write_failed", { key: ALL_JOBS_KEY, error: formatError(err) });
+    trackKvCache({ operation: "write", key: ALL_JOBS_KEY, hit: false });
   }
 }
 

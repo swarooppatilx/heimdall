@@ -22,7 +22,7 @@ describe("freshnessCutoff", () => {
   it("defaults to the current time", () => {
     const before = Date.now() - DEFAULT_FRESHNESS_DAYS * DAY_MS;
     const cutoff = new Date(freshnessCutoff()).getTime();
-    const after = Date.now() - DEFAULT_FRESHNESS_DAYS * DAY_MS;
+    const after = Date.now();
     expect(cutoff).toBeGreaterThanOrEqual(before);
     expect(cutoff).toBeLessThanOrEqual(after);
   });

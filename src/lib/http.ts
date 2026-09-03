@@ -1,3 +1,5 @@
+import { MS_PER_SECOND } from "@/lib/time";
+
 const TIMEOUT_MS = 10_000;
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_MS = 500;
@@ -7,7 +9,6 @@ const JITTER_MS = 250;
 const STATUS_SERVER_ERROR = 500;
 const STATUS_TOO_MANY_REQUESTS = 429;
 const MAX_BODY_SIZE = 20_971_520;
-const MS_PER_SECOND = 1_000;
 
 export interface CrawlBudget {
   used: number;

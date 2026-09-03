@@ -16,6 +16,11 @@ import {
   type SearchResult,
 } from "@/modules/jobs/types";
 
+// IMPORTANT: When adding a new filter to JobFilters, you must also update
+// `matchesFilters` in `@/modules/jobs/search.ts` to apply the same filter
+// in the in-memory search path. These two files implement the same filtering
+// logic for different execution contexts (database query vs in-memory KV cache).
+
 function parseLocations(raw: string, fallback: string): string[] {
   try {
     return JSON.parse(raw) as string[];

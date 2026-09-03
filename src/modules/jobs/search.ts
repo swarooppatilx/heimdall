@@ -10,6 +10,11 @@ import {
   type SearchResult,
 } from "@/modules/jobs/types";
 
+// IMPORTANT: When adding a new filter to JobFilters, you must also update
+// `jobConditions` in `@/modules/jobs/queries.ts` to apply the same filter
+// in the SQL path. These two files implement the same filtering logic for
+// different execution contexts (in-memory KV cache vs database query).
+
 function matchesQuery(job: Job, query: string): boolean {
   const lower = query.toLowerCase();
   return (
