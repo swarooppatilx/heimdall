@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import { getCrawlStatusCached } from "@/modules/crawl/status-cache";
 import {
@@ -13,9 +14,6 @@ import {
 } from "@/modules/crawl/store";
 
 export const dynamic = "force-dynamic";
-
-const DRIFT_WINDOW_HOURS = 48;
-const DRIFT_MIN_EMPTY = 6;
 
 // D1 datetime('now') is UTC but carries no zone suffix; without the marker
 // browsers parse it as local time and "synced" ages inflate by the UTC offset.
