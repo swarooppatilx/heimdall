@@ -3,12 +3,9 @@ import { NextResponse } from "next/server";
 import { requireToken } from "@/app/api/_lib/auth";
 import { bindDb } from "@/db";
 import { configureFreshness } from "@/lib/freshness";
-import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { warmAllCaches } from "@/modules/cache-warmer";
 import { crawlSlices } from "@/modules/crawl/scheduler";
-import { warmFacetCache } from "@/modules/jobs/facet-cache";
-import { writeAllJobsToKV } from "@/modules/jobs/kv";
-import { getAllFreshJobs } from "@/modules/jobs/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -41,13 +38,7 @@ export const POST = withRateLimit(
     const slices = parseSlices(new URL(request.url));
     const runs = await crawlSlices(slices);
 
-    const allJobs = await getAllFreshJobs();
-    try {
-      await writeAllJobsToKV(allJobs, env);
-      await warmFacetCache(env);
-    } catch (err) {
-      logEvent("kv_warm_failed", { error: formatError(err) });
-    }
+    const jobCount = await warmAllCaches(env);
 
     const ok = runs.reduce(
       (sum, run) => sum + run.results.filter((r) => r.status === "ok").length,
@@ -65,7 +56,7 @@ export const POST = withRateLimit(
       discovered,
       durationMs: Date.now() - start,
       slices,
-      jobs: allJobs.length,
+      jobs: jobCount,
     });
   },
 );
