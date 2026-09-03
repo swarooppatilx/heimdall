@@ -2,8 +2,9 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { readAllJobsFromKV, searchJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
+import { readAllJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getAllFreshJobs, searchJobsWithCount } from "@/modules/jobs/queries";
+import { searchJobs } from "@/modules/jobs/search";
 import { type JobFilters, type PageOptions, POSTED_WINDOWS } from "@/modules/jobs/types";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,7 @@ export const GET = withRateLimit(
     const { ctx, env } = await getCloudflareContext();
     const allJobs = await readAllJobsFromKV(env);
     if (allJobs) {
-      const result = searchJobsFromKV(allJobs, filters, page);
+      const result = searchJobs(allJobs, filters, page);
       return NextResponse.json(result.jobs, {
         headers: { "X-Total-Count": String(result.total), ...SEARCH_CACHE_HEADERS },
       });
