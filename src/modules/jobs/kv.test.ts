@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job } from "@/lib/job";
-import { getCompanyJobsFromKV } from "@/lib/jobs-kv";
+import { getCompanyJobsFromKV } from "@/modules/jobs/kv";
 
 const kvGet = vi.hoisted(() => vi.fn());
 

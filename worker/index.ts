@@ -6,12 +6,12 @@ import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/li
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/lib/crawler";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
-import { getJobQuality } from "@/lib/job-quality";
-import { getAllFreshJobs } from "@/lib/job-queries";
-import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/lib/job-writes";
-import { writeAllJobsToKV } from "@/lib/jobs-kv";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
+import { writeAllJobsToKV } from "@/modules/jobs/kv";
+import { getJobQuality } from "@/modules/jobs/quality";
+import { getAllFreshJobs } from "@/modules/jobs/queries";
+import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
 import handler from "./open-next-handler.mjs";
 
 interface ScheduledController {

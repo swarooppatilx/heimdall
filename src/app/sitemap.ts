@@ -1,9 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MetadataRoute } from "next";
 import { toCompanySlug } from "@/lib/company-slug";
-import { getCompanyNames } from "@/lib/job-queries";
-import { getCompanyNamesFromKV } from "@/lib/jobs-kv";
 import { siteUrl } from "@/lib/site";
+import { getCompanyNamesFromKV } from "@/modules/jobs/kv";
+import { getCompanyNames } from "@/modules/jobs/queries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = await siteUrl();

@@ -21,8 +21,8 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { CrawlStatusEntry } from "@/lib/crawl-status";
-import type { FacetOptions } from "@/lib/facets";
 import { dedupeJobs } from "@/lib/job";
+import type { FacetOptions } from "@/modules/jobs/facets";
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const HOURS_PER_DAY = 24;

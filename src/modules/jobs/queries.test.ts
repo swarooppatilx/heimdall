@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resolvePlace } from "@/lib/gazetteer";
-import { escapeLike } from "@/lib/job-queries";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { escapeLike } from "@/modules/jobs/queries";
 
 describe("escapeLike", () => {
   it("escapes percent sign", () => {

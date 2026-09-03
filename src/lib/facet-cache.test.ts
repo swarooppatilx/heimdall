@@ -18,7 +18,7 @@ const cacheEnv = { CACHE: { get: kvGet, put: kvPut } } as unknown as Pick<Cloudf
 const dbFacets = { remoteCount: 7, countries: [] };
 const dbGet = vi.fn(async () => dbFacets);
 
-vi.mock("./facets", () => ({
+vi.mock("@/modules/jobs/facets", () => ({
   getFacetOptions: () => dbGet(),
 }));
 

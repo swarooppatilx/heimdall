@@ -1,6 +1,6 @@
 import { trackKvCache } from "@/lib/analytics";
 import { cacheKv } from "@/lib/cache-kv";
-import { type FacetOptions, getFacetOptions } from "@/lib/facets";
+import { type FacetOptions, getFacetOptions } from "@/modules/jobs/facets";
 
 const CACHE_KEY = "facet-options";
 const EDGE_TTL_SECONDS = 300;

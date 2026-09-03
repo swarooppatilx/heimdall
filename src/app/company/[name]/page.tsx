@@ -8,9 +8,9 @@ import { JsonLd } from "@/components/json-ld";
 import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
 import type { Job } from "@/lib/job";
 import { dedupeJobs } from "@/lib/job";
-import { getAllFreshJobs, getJobsByCompany } from "@/lib/job-queries";
-import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/lib/jobs-kv";
 import { formatError, logEvent } from "@/lib/logger";
+import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
+import { getAllFreshJobs, getJobsByCompany } from "@/modules/jobs/queries";
 
 function decodeCompany(raw: string): string | null {
   const company = fromCompanySlug(raw);
