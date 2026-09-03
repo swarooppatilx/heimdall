@@ -3,9 +3,9 @@ import type { BatchItem } from "drizzle-orm/batch";
 import type { Db } from "@/db";
 import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import { freshnessCutoff } from "@/lib/freshness";
-import { resolvePlace } from "@/lib/gazetteer";
-import type { Job } from "@/lib/job";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
+import { freshnessCutoff } from "@/modules/jobs/freshness";
+import type { Job } from "@/modules/jobs/job";
 
 const BATCH_LIMIT = 100;
 

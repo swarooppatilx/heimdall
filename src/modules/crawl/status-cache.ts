@@ -1,5 +1,6 @@
-import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { kvCacheAside, warmKvCache } from "@/lib/kv-cache";
+import { trackKvCache } from "@/modules/analytics/analytics";
+import { assessBoards, driftedBoards } from "@/modules/crawl/board-health";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import { toPublic } from "@/modules/crawl/helpers";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
@@ -40,6 +41,7 @@ export function getCrawlStatusCached(
     edgeTtlSeconds: EDGE_TTL_SECONDS,
     kvTtlSeconds: KV_TTL_SECONDS,
     loader: loadCrawlStatus,
+    onTrack: trackKvCache,
   });
 }
 

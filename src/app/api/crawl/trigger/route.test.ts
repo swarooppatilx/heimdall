@@ -37,7 +37,7 @@ vi.mock("@/modules/jobs/facet-cache", () => ({
   warmFacetCache: (...args: unknown[]) => state.warmFacetCacheMock(...args),
 }));
 
-vi.mock("@/lib/freshness", () => ({
+vi.mock("@/modules/jobs/freshness", () => ({
   DAY_MS: 86_400_000,
   configureFreshness: vi.fn(),
 }));

@@ -1,4 +1,4 @@
-import { splitLocations } from "@/lib/gazetteer";
+import { splitLocations } from "@/modules/crawl/gazetteer";
 
 export function normalizeLocation(raw: string): string {
   const trimmed = raw.trim();

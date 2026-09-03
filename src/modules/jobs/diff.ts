@@ -1,5 +1,5 @@
-import { detectExperienceLevel, type ExperienceLevel } from "@/lib/experience";
-import type { Job } from "@/lib/job";
+import { detectExperienceLevel, type ExperienceLevel } from "@/modules/jobs/experience";
+import type { Job } from "@/modules/jobs/job";
 
 interface JobDiff {
   inserts: Job[];

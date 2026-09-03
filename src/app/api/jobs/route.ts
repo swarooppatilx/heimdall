@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { trackApiRequest } from "@/modules/analytics/analytics";
 import { readAllJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getAllFreshJobs, searchJobsWithCount } from "@/modules/jobs/queries";
 import { searchJobs } from "@/modules/jobs/search";
@@ -20,7 +21,7 @@ function parseIntParam(searchParams: URLSearchParams, key: string): number | und
 }
 
 export const GET = withRateLimit(
-  { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 100 },
+  { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 100, onRequest: trackApiRequest },
   async (request) => {
     const { searchParams } = new URL(request.url);
 

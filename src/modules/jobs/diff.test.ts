@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
-import type { Job } from "@/lib/job";
+import { diffJobs, isSuspiciousDeletion } from "@/modules/jobs/diff";
+import type { Job } from "@/modules/jobs/job";
 
 function job(id: string, overrides: Partial<Job> = {}): Job {
   return {

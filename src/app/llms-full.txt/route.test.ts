@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Job } from "@/lib/job";
+import type { Job } from "@/modules/jobs/job";
 
 const jobs: Job[] = [
   {
@@ -40,7 +40,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: async () => ({ env: { CACHE: null } }),
 }));
 
-vi.mock("@/lib/site", () => ({
+vi.mock("@/modules/jobs/site", () => ({
   siteUrl: async () => "https://example.com",
 }));
 

@@ -2,10 +2,11 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { requireToken } from "@/app/api/_lib/auth";
 import { bindDb } from "@/db";
-import { configureFreshness } from "@/lib/freshness";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { trackApiRequest } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
 import { crawlSlices } from "@/modules/crawl/scheduler";
+import { configureFreshness } from "@/modules/jobs/freshness";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ function parseSlices(url: URL): number {
 }
 
 export const POST = withRateLimit(
-  { binding: "STATUS_RATE_LIMITER", windowMs: 60_000, max: 30 },
+  { binding: "STATUS_RATE_LIMITER", windowMs: 60_000, max: 30, onRequest: trackApiRequest },
   async (request) => {
     const { env } = await getCloudflareContext();
     if (

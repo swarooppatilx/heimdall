@@ -1,8 +1,8 @@
 import { desc, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { crawls } from "@/db/schema";
-import type { CrawlSample } from "@/lib/board-health";
 import { MS_PER_SECOND } from "@/lib/time";
+import type { CrawlSample } from "@/modules/crawl/board-health";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
 
 const STATUS_SAMPLE_LIMIT = 100;

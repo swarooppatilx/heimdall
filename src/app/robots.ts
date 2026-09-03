@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/site";
+import { siteUrl } from "@/modules/jobs/site";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const url = await siteUrl();

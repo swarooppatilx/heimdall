@@ -1,14 +1,14 @@
 import { bindDb } from "@/db";
-import { assessBoards, driftedBoards } from "@/lib/board-health";
-import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
-import { getRegistry } from "@/lib/registry";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
+import { assessBoards, driftedBoards } from "@/modules/crawl/board-health";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
+import { getRegistry } from "@/modules/crawl/registry";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
 import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
+import { configureFreshness } from "@/modules/jobs/freshness";
 import { getJobQuality } from "@/modules/jobs/quality";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
 import handler from "./open-next-handler.mjs";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatPlace, resolvePlace } from "@/lib/gazetteer";
-import { normalizeLocation } from "@/lib/normalize";
+import { formatPlace, resolvePlace } from "@/modules/crawl/gazetteer";
+import { normalizeLocation } from "@/modules/crawl/normalize";
 
 function pipeline(raw: string): string {
   const normalized = normalizeLocation(raw);

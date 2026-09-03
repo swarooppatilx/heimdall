@@ -17,8 +17,8 @@ import { useLocationOptions } from "@/hooks/use-location-options";
 import { useQueryParam } from "@/hooks/use-query-param";
 import { useSearchShortcut } from "@/hooks/use-search-shortcut";
 import { useSyncStatus } from "@/hooks/use-sync-status";
-import { dedupeJobs } from "@/lib/job";
 import type { FacetOptions } from "@/modules/jobs/facets";
+import { dedupeJobs } from "@/modules/jobs/job";
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const SEARCH_DEBOUNCE_MS = 300;

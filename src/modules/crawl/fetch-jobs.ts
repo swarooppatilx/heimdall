@@ -1,12 +1,12 @@
-import { normalizeDepartment } from "@/lib/department";
-import { detectExperienceLevel } from "@/lib/experience";
-import { freshnessCutoff } from "@/lib/freshness";
-import { formatPlace, resolvePlace } from "@/lib/gazetteer";
 import type { CrawlBudget } from "@/lib/http";
-import type { Job } from "@/lib/job";
 import { logEvent } from "@/lib/logger";
-import type { RegistryEntry } from "@/lib/registry";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { formatPlace, resolvePlace } from "@/modules/crawl/gazetteer";
+import type { RegistryEntry } from "@/modules/crawl/registry";
+import { normalizeDepartment } from "@/modules/jobs/department";
+import { detectExperienceLevel } from "@/modules/jobs/experience";
+import { freshnessCutoff } from "@/modules/jobs/freshness";
+import type { Job } from "@/modules/jobs/job";
 import { fetchAshbyJobs } from "@/modules/providers/ashby";
 import { fetchGreenhouseJobs } from "@/modules/providers/greenhouse";
 import { fetchLeverJobs } from "@/modules/providers/lever";

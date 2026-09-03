@@ -5,10 +5,10 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
-import type { Job } from "@/lib/job";
-import { dedupeJobs } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
 import { fromCompanySlug, toCompanySlug } from "@/modules/companies/slug";
+import type { Job } from "@/modules/jobs/job";
+import { dedupeJobs } from "@/modules/jobs/job";
 import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getAllFreshJobs, getJobsByCompany } from "@/modules/jobs/queries";
 

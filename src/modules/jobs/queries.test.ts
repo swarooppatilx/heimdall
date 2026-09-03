@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlace } from "@/lib/gazetteer";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
 import { escapeLike } from "@/modules/jobs/queries";
 
 describe("escapeLike", () => {
