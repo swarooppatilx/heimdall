@@ -23,7 +23,7 @@ interface CompanyJobs {
 }
 
 async function loadCompanyJobs(company: string): Promise<CompanyJobs> {
-  const { ctx, env } = getCloudflareContext();
+  const { ctx, env } = await getCloudflareContext();
   const cached = await getCompanyJobsFromKV(env, company);
   if (cached) return cached;
   const jobs = await getJobsByCompany(company);
