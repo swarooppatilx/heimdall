@@ -2,12 +2,14 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import type { JobFilters, PageOptions } from "@/lib/db";
 import { searchJobsWithCount } from "@/lib/db";
-import { POSTED_WINDOWS } from "@/lib/job-queries";
+import { getAllFreshJobs, POSTED_WINDOWS } from "@/lib/job-queries";
 import {
   type JobFilters as KvJobFilters,
   readAllJobsFromKV,
   searchJobsFromKV,
+  writeAllJobsToKV,
 } from "@/lib/jobs-kv";
+import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +59,7 @@ export const GET = withRateLimit(
       return NextResponse.json({ error: "offset too large" }, { status: 400 });
     }
 
-    const { env } = getCloudflareContext();
+    const { ctx, env } = getCloudflareContext();
     const allJobs = await readAllJobsFromKV(env);
     if (allJobs) {
       const result = searchJobsFromKV(allJobs, filters, page);
@@ -71,6 +73,14 @@ export const GET = withRateLimit(
       if (value) dbFilters[key as keyof JobFilters] = value;
     }
     const { jobs, total } = await searchJobsWithCount(dbFilters, page);
+
+    ctx.waitUntil(
+      getAllFreshJobs()
+        .then((fresh) => writeAllJobsToKV(fresh, env))
+        .catch((err) => {
+          logEvent("kv_rewarm_failed", { error: formatError(err) });
+        }),
+    );
 
     return NextResponse.json(jobs, { headers: { "X-Total-Count": String(total) } });
   },
