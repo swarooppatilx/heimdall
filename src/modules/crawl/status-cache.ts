@@ -1,6 +1,6 @@
-import { trackKvCache } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { cacheKv } from "@/lib/cache-kv";
+import { trackKvCache } from "@/modules/analytics/analytics";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
 import {
   type CrawlRecord,

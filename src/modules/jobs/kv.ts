@@ -1,9 +1,9 @@
-import { trackKvCache } from "@/lib/analytics";
 import { cacheKv } from "@/lib/cache-kv";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 import { logEvent } from "@/lib/logger";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { trackKvCache } from "@/modules/analytics/analytics";
 
 const ALL_JOBS_KEY = "all-jobs";
 const EDGE_TTL_SECONDS = 300;
