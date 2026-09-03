@@ -1,5 +1,6 @@
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { cacheKv } from "@/lib/cache-kv";
+import { formatError, logEvent } from "@/lib/logger";
 import { trackKvCache } from "@/modules/analytics/analytics";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
 import { toPublic } from "@/modules/crawl/helpers";
@@ -31,8 +32,8 @@ export async function getCrawlStatusCached(
         trackKvCache({ operation: "read", key: CACHE_KEY, hit: true });
         return hit;
       }
-    } catch {
-      // fall through to fresh data on cache errors
+    } catch (err) {
+      logEvent("kv_read_failed", { key: CACHE_KEY, error: formatError(err) });
     }
   }
 
@@ -44,8 +45,8 @@ export async function getCrawlStatusCached(
       await cache.put(CACHE_KEY, JSON.stringify(payload), {
         expirationTtl: KV_TTL_SECONDS,
       });
-    } catch {
-      // serving fresh data matters more than caching it
+    } catch (err) {
+      logEvent("kv_write_failed", { key: CACHE_KEY, error: formatError(err) });
     }
   }
   return payload;
@@ -71,7 +72,7 @@ export async function warmCrawlStatusCache(env: Pick<CloudflareEnv, "CACHE">): P
     await cache.put(CACHE_KEY, JSON.stringify(payload), {
       expirationTtl: KV_TTL_SECONDS,
     });
-  } catch {
-    // best effort — stale cache is acceptable
+  } catch (err) {
+    logEvent("kv_warm_failed", { key: CACHE_KEY, error: formatError(err) });
   }
 }

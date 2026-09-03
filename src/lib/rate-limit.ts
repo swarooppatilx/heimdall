@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { formatError, logEvent } from "@/lib/logger";
 import { MS_PER_SECOND } from "@/lib/time";
 
 interface RateLimitEntry {
@@ -52,7 +53,7 @@ async function checkEdgeLimit(
     const result = await limiter.limit({ key });
     return { allowed: result.success, resetMs: opts.windowMs };
   } catch (err) {
-    console.log("checkEdgeLimit: failed to access rate limiter", err);
+    logEvent("rate_limit_edge_error", { error: formatError(err) });
     return null;
   }
 }
@@ -81,7 +82,7 @@ async function checkKvLimit(key: string, opts: RateLimitOptions): Promise<RateLi
     await cache.put(cacheKey, JSON.stringify(recent), { expirationTtl: ttlSeconds });
     return { allowed: true, resetMs: opts.windowMs };
   } catch (err) {
-    console.log("checkKvLimit: failed to access kv rate limiter", err);
+    logEvent("rate_limit_kv_error", { error: formatError(err) });
     return null;
   }
 }

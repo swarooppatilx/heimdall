@@ -1,4 +1,5 @@
 import { cacheKv } from "@/lib/cache-kv";
+import { formatError, logEvent } from "@/lib/logger";
 import { trackKvCache } from "@/modules/analytics/analytics";
 import { type FacetOptions, getFacetOptions } from "@/modules/jobs/facets";
 
@@ -20,8 +21,8 @@ export async function getFacetOptionsCached(
         trackKvCache({ operation: "read", key: CACHE_KEY, hit: true });
         return hit;
       }
-    } catch {
-      // fall through to the database on cache errors
+    } catch (err) {
+      logEvent("kv_read_failed", { key: CACHE_KEY, error: formatError(err) });
     }
   }
 
@@ -33,8 +34,8 @@ export async function getFacetOptionsCached(
       await cache.put(CACHE_KEY, JSON.stringify(options), {
         expirationTtl: KV_TTL_SECONDS,
       });
-    } catch {
-      // serving fresh options matters more than caching them
+    } catch (err) {
+      logEvent("kv_write_failed", { key: CACHE_KEY, error: formatError(err) });
     }
   }
   return options;
@@ -48,7 +49,7 @@ export async function warmFacetCache(env: Pick<CloudflareEnv, "CACHE">): Promise
     await cache.put(CACHE_KEY, JSON.stringify(options), {
       expirationTtl: KV_TTL_SECONDS,
     });
-  } catch {
-    // best effort — stale cache is acceptable
+  } catch (err) {
+    logEvent("kv_warm_failed", { key: CACHE_KEY, error: formatError(err) });
   }
 }
