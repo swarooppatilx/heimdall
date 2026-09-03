@@ -1,3 +1,4 @@
+import type { ZodSchema } from "zod";
 import { MS_PER_SECOND } from "@/lib/time";
 
 const TIMEOUT_MS = 10_000;
@@ -43,7 +44,7 @@ function retryAfterMs(res: Response): number | undefined {
   return Number.isNaN(seconds) ? undefined : seconds * MS_PER_SECOND;
 }
 
-async function parseJson<T>(res: Response, source: string): Promise<T> {
+async function parseJson<T>(res: Response, source: string, schema?: ZodSchema<T>): Promise<T> {
   const contentType = res.headers.get("content-type") ?? "";
   if (!contentType.includes("json")) {
     throw new Error(`Unexpected content-type from ${source}: ${contentType || "none"}`);
@@ -57,16 +58,32 @@ async function parseJson<T>(res: Response, source: string): Promise<T> {
   if (text.length > MAX_BODY_SIZE) {
     throw new Error(`Response body from ${source} too large: ${text.length} bytes`);
   }
-  return JSON.parse(text) as T;
+  const parsed: unknown = JSON.parse(text);
+  if (schema) {
+    const result = schema.safeParse(parsed);
+    if (!result.success) {
+      throw new Error(
+        `Invalid response from ${source}: ${result.error.issues.map((i) => i.message).join(", ")}`,
+      );
+    }
+    return result.data;
+  }
+  return parsed as T;
+}
+
+export interface FetchJsonOptions<T = unknown> {
+  init?: RequestInit;
+  timeoutMs?: number;
+  budget?: CrawlBudget;
+  schema?: ZodSchema<T>;
 }
 
 export async function fetchJson<T>(
   url: string,
   source: string,
-  init?: RequestInit,
-  timeoutMs = TIMEOUT_MS,
-  budget?: CrawlBudget,
+  options?: FetchJsonOptions<T>,
 ): Promise<T> {
+  const { init, timeoutMs = TIMEOUT_MS, budget, schema } = options ?? {};
   let lastError: unknown;
   let prevRetryAfter: number | undefined;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
@@ -74,7 +91,7 @@ export async function fetchJson<T>(
     try {
       if (budget && attempt === 1) budget.used += 1;
       const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
-      if (res.ok) return await parseJson<T>(res, source);
+      if (res.ok) return await parseJson<T>(res, source, schema);
       lastError = new Error(`Failed to fetch jobs from ${source}: ${res.status}`);
       prevRetryAfter = retryAfterMs(res);
       res.body?.cancel();

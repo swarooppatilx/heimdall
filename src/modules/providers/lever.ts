@@ -1,21 +1,24 @@
+import { z } from "zod";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
 import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 
-interface LeverPosting {
-  id: string;
-  text: string;
-  categories: {
-    department: string;
-    location: string;
-  };
-  createdAt: number;
-  hostedUrl: string;
-}
+const leverPostingSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  categories: z.object({
+    department: z.string(),
+    location: z.string(),
+  }),
+  createdAt: z.number(),
+  hostedUrl: z.string(),
+});
 
-function mapJob(raw: LeverPosting, company: string): Job {
+const leverResponseSchema = z.array(leverPostingSchema);
+
+function mapJob(raw: z.infer<typeof leverPostingSchema>, company: string): Job {
   return {
     id: `lv-${company}-${raw.id}`,
     title: raw.text,
@@ -31,6 +34,9 @@ function mapJob(raw: LeverPosting, company: string): Job {
 
 export async function fetchLeverJobs(company: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://api.lever.co/v0/postings/${company}`;
-  const data = await fetchJson<LeverPosting[]>(url, company, undefined, undefined, budget);
+  const data = await fetchJson(url, company, {
+    schema: leverResponseSchema,
+    ...(budget ? { budget } : {}),
+  });
   return mapPostings(data, company, (p) => mapJob(p, company));
 }

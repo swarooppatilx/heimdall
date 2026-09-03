@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import { splitLocations } from "@/modules/crawl/gazetteer";
 import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
@@ -5,22 +6,32 @@ import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 
-interface GreenhouseJob {
-  id: number;
-  title: string;
-  location: { name: string };
-  updated_at: string;
-  first_published?: string;
-  absolute_url: string;
-  metadata?: { name: string; value: unknown; value_type: string }[];
-}
+const greenhouseJobSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  location: z.object({ name: z.string() }),
+  updated_at: z.string(),
+  first_published: z.string().optional(),
+  absolute_url: z.string(),
+  metadata: z
+    .array(z.object({ name: z.string(), value: z.unknown(), value_type: z.string() }))
+    .optional(),
+});
+
+const greenhouseResponseSchema = z.object({
+  jobs: z.array(greenhouseJobSchema),
+});
 
 interface MetaMatch {
   value: string;
   salary: string;
 }
 
-function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp): MetaMatch {
+function metaValue(
+  job: z.infer<typeof greenhouseJobSchema>,
+  keyPattern: RegExp,
+  typePattern?: RegExp,
+): MetaMatch {
   const entry = job.metadata?.find(
     (m) => keyPattern.test(m.name) && (!typePattern || typePattern.test(m.value_type)),
   );
@@ -46,11 +57,14 @@ function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp)
 
 export async function fetchGreenhouseJobs(board: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
-  const data = await fetchJson<{ jobs: GreenhouseJob[] }>(url, board, undefined, undefined, budget);
+  const data = await fetchJson(url, board, {
+    schema: greenhouseResponseSchema,
+    ...(budget ? { budget } : {}),
+  });
   return mapPostings(data.jobs, board, (j) => mapJob(j, board));
 }
 
-function mapJob(raw: GreenhouseJob, board: string): Job {
+function mapJob(raw: z.infer<typeof greenhouseJobSchema>, board: string): Job {
   const locationParts = splitLocations(raw.location.name);
   const primary = normalizeLocation(locationParts[0] ?? "");
   const department = (

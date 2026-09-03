@@ -1,20 +1,25 @@
+import { z } from "zod";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
 import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 
-interface AshbyJob {
-  id: string;
-  title: string;
-  department: string;
-  location: string;
-  publishedAt: string;
-  jobUrl: string;
-  isRemote?: boolean;
-}
+const ashbyJobSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  department: z.string(),
+  location: z.string(),
+  publishedAt: z.string(),
+  jobUrl: z.string(),
+  isRemote: z.boolean().optional(),
+});
 
-function mapJob(raw: AshbyJob, company: string): Job {
+const ashbyResponseSchema = z.object({
+  jobs: z.array(ashbyJobSchema),
+});
+
+function mapJob(raw: z.infer<typeof ashbyJobSchema>, company: string): Job {
   const baseLocation = raw.isRemote
     ? raw.location.toLowerCase().startsWith("remote")
       ? raw.location
@@ -36,6 +41,9 @@ function mapJob(raw: AshbyJob, company: string): Job {
 
 export async function fetchAshbyJobs(company: string, budget?: CrawlBudget): Promise<Job[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${company}`;
-  const data = await fetchJson<{ jobs: AshbyJob[] }>(url, company, undefined, undefined, budget);
+  const data = await fetchJson(url, company, {
+    schema: ashbyResponseSchema,
+    ...(budget ? { budget } : {}),
+  });
   return mapPostings(data.jobs, company, (j) => mapJob(j, company));
 }
