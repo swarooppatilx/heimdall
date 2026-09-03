@@ -1,17 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job } from "@/lib/job";
 
 const jobs: Job[] = [
-  {
-    id: "a1",
-    title: "Senior Frontend Engineer",
-    company: "acme",
-    location: "Remote",
-    department: "engineering",
-    url: "https://boards.acme.dev/senior-frontend",
-    postedAt: new Date("2026-08-28"),
-    source: "greenhouse",
-  },
   {
     id: "b2",
     title: "Platform Engineer",
@@ -22,10 +12,24 @@ const jobs: Job[] = [
     postedAt: new Date("2026-08-29"),
     source: "lever",
   },
+  {
+    id: "a1",
+    title: "Senior Frontend Engineer",
+    company: "acme",
+    location: "Remote",
+    department: "engineering",
+    url: "https://boards.acme.dev/senior-frontend",
+    postedAt: new Date("2026-08-28"),
+    source: "greenhouse",
+  },
 ];
 
 vi.mock("@/lib/job-queries", () => ({
-  getAllFreshJobs: async () => jobs,
+  getRecentJobs: (limit: number) => mockGetRecentJobs(limit),
+}));
+
+const { mockGetRecentJobs } = vi.hoisted(() => ({
+  mockGetRecentJobs: vi.fn(),
 }));
 
 vi.mock("@/lib/site", () => ({
@@ -33,11 +37,17 @@ vi.mock("@/lib/site", () => ({
 }));
 
 describe("GET /llms-full.txt", () => {
+  beforeEach(() => {
+    mockGetRecentJobs.mockReset();
+    mockGetRecentJobs.mockResolvedValue(jobs);
+  });
+
   it("lists fresh jobs as markdown starting with newest", async () => {
     const { GET } = await import("./route");
     const res = await GET(new Request("http://example.com/llms-full.txt"));
     const body = await res.text();
 
+    expect(mockGetRecentJobs).toHaveBeenCalledWith(200);
     expect(res.headers.get("content-type")).toContain("text/plain");
     expect(res.headers.get("cache-control")).toContain("s-maxage=1800");
     expect(body).toContain("# heimdall fresh jobs");

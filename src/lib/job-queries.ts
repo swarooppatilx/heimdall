@@ -226,3 +226,14 @@ export async function getAllFreshJobs(): Promise<Job[]> {
   const rows = await db.select().from(jobs).where(gte(jobs.postedAt, freshnessCutoff()));
   return rows.map(toJob);
 }
+
+export async function getRecentJobs(limit: number): Promise<Job[]> {
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(jobs)
+    .where(gte(jobs.postedAt, freshnessCutoff()))
+    .orderBy(desc(jobs.postedAt))
+    .limit(limit);
+  return rows.map(toJob);
+}
