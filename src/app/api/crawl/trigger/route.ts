@@ -1,10 +1,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
+import { requireToken } from "@/app/api/_lib/auth";
 import { bindDb } from "@/db";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
-import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { crawlSlices } from "@/modules/crawl/scheduler";
 import { writeAllJobsToKV } from "@/modules/jobs/kv";
@@ -15,15 +15,6 @@ export const dynamic = "force-dynamic";
 const MAX_SLICES = 16;
 const DEFAULT_SLICES = 1;
 
-async function authorized(request: Request): Promise<boolean> {
-  const { env } = await getCloudflareContext();
-  const expected = (env as unknown as Record<string, string>).CRAWL_TRIGGER_TOKEN;
-  if (!expected) return false;
-  const provided = request.headers.get("x-crawl-trigger-token");
-  if (!provided) return false;
-  return constantTimeEqual(expected, provided);
-}
-
 function parseSlices(url: URL): number {
   const raw = Number(url.searchParams.get("slices") ?? DEFAULT_SLICES);
   if (!Number.isInteger(raw) || raw < 1) return DEFAULT_SLICES;
@@ -33,11 +24,16 @@ function parseSlices(url: URL): number {
 export const POST = withRateLimit(
   { binding: "STATUS_RATE_LIMITER", windowMs: 60_000, max: 30 },
   async (request) => {
-    if (!(await authorized(request))) {
+    const { env } = await getCloudflareContext();
+    if (
+      !requireToken(
+        { env, envKey: "CRAWL_TRIGGER_TOKEN", headerKey: "x-crawl-trigger-token" },
+        request,
+      )
+    ) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    const { env } = await getCloudflareContext();
     bindDb(env.DB);
     configureFreshness((env as unknown as Record<string, string>).FRESHNESS_DAYS);
 
