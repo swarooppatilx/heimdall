@@ -1,6 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle } from "drizzle-orm/d1";
-import { configureFreshness } from "@/lib/freshness";
 
 export type Db = ReturnType<typeof drizzle>;
 
@@ -10,7 +9,6 @@ export function getDb(): Promise<Db> {
   if (!_db) {
     _db = (async () => {
       const { env } = await getCloudflareContext();
-      configureFreshness((env as { FRESHNESS_DAYS?: string }).FRESHNESS_DAYS);
       return drizzle(env.DB);
     })().catch((err: unknown) => {
       _db = null;
