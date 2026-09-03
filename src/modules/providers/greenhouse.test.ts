@@ -41,7 +41,7 @@ describe("fetchGreenhouseJobs", () => {
     vi.restoreAllMocks();
   });
 
-  it("fetches and maps jobs correctly", async () => {
+  it("maps Greenhouse board API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchGreenhouseJobs("gitlab");

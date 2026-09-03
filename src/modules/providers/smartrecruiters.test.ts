@@ -48,7 +48,7 @@ describe("fetchSmartRecruitersJobs", () => {
     vi.restoreAllMocks();
   });
 
-  it("fetches and maps jobs correctly", async () => {
+  it("maps SmartRecruiters postings API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchSmartRecruitersJobs("testco");

@@ -26,6 +26,7 @@ interface DedupedJob {
   openings: number;
 }
 
+/** Deduplicates jobs by a key function, returning the first job for each key with an opening count. */
 export function dedupeJobs(jobs: Job[], keyFn: (job: Job) => string): DedupedJob[] {
   const primary = new Map<string, Job>();
   const counts = new Map<string, number>();

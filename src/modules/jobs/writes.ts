@@ -9,10 +9,10 @@ import type { Job } from "@/modules/jobs/job";
 
 const BATCH_LIMIT = 100;
 
-function chunkStatements<T>(items: T[]): T[][] {
+function chunkStatements<T>(jobs: T[]): T[][] {
   const pages: T[][] = [];
-  for (let i = 0; i < items.length; i += BATCH_LIMIT) {
-    pages.push(items.slice(i, i + BATCH_LIMIT));
+  for (let i = 0; i < jobs.length; i += BATCH_LIMIT) {
+    pages.push(jobs.slice(i, i + BATCH_LIMIT));
   }
   return pages;
 }
@@ -96,23 +96,26 @@ function jobStatements(db: Db, job: Job, mode: "insert" | "update"): BatchItem<"
   return [jobStatement, ...facetStatements(db, job)];
 }
 
-async function writeJobs(items: Job[], mode: "insert" | "update"): Promise<void> {
-  if (items.length === 0) return;
+async function writeJobs(jobs: Job[], mode: "insert" | "update"): Promise<void> {
+  if (jobs.length === 0) return;
   const db = await getDb();
-  const allStatements = items.flatMap((job) => jobStatements(db, job, mode));
+  const allStatements = jobs.flatMap((job) => jobStatements(db, job, mode));
   for (const page of chunkStatements(allStatements)) {
     await db.batch(page as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
   }
 }
 
-export async function insertJobs(items: Job[]): Promise<void> {
-  await writeJobs(items, "insert");
+/** Inserts new jobs into D1, skipping conflicts on existing IDs. */
+export async function insertJobs(jobs: Job[]): Promise<void> {
+  await writeJobs(jobs, "insert");
 }
 
-export async function updateJobs(items: Job[]): Promise<void> {
-  await writeJobs(items, "update");
+/** Updates existing jobs in D1 by ID. */
+export async function updateJobs(jobs: Job[]): Promise<void> {
+  await writeJobs(jobs, "update");
 }
 
+/** Deletes jobs and their location facets by ID. */
 export async function deleteJobsByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const db = await getDb();
@@ -124,6 +127,7 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
   }
 }
 
+/** Deletes jobs older than the freshness cutoff. Returns the count of deleted jobs. */
 export async function deleteStaleJobs(): Promise<number> {
   const db = await getDb();
   const stale = await db.all<{ id: string }>(
@@ -135,6 +139,7 @@ export async function deleteStaleJobs(): Promise<number> {
   return ids.length;
 }
 
+/** Removes duplicate jobs that appear across multiple sources, keeping the earliest. */
 export async function dedupeCrossSourceJobs(): Promise<number> {
   const db = await getDb();
   const cutoff = freshnessCutoff();
