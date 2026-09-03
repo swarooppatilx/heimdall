@@ -1,4 +1,4 @@
-import { eq, inArray, lt, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import type { Db } from "@/db";
 import { getDb } from "@/db";
@@ -7,12 +7,12 @@ import { freshnessCutoff } from "@/lib/freshness";
 import { resolvePlace } from "@/lib/gazetteer";
 import type { Job } from "@/lib/job";
 
-const CHUNK_SIZE = 100;
+const BATCH_LIMIT = 100;
 
-function chunk<T>(items: T[]): T[][] {
+function chunkStatements<T>(items: T[]): T[][] {
   const pages: T[][] = [];
-  for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-    pages.push(items.slice(i, i + CHUNK_SIZE));
+  for (let i = 0; i < items.length; i += BATCH_LIMIT) {
+    pages.push(items.slice(i, i + BATCH_LIMIT));
   }
   return pages;
 }
@@ -99,9 +99,9 @@ function jobStatements(db: Db, job: Job, mode: "insert" | "update"): BatchItem<"
 async function writeJobs(items: Job[], mode: "insert" | "update"): Promise<void> {
   if (items.length === 0) return;
   const db = await getDb();
-  for (const page of chunk(items)) {
-    const statements = page.flatMap((job) => jobStatements(db, job, mode));
-    await db.batch(statements as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
+  const allStatements = items.flatMap((job) => jobStatements(db, job, mode));
+  for (const page of chunkStatements(allStatements)) {
+    await db.batch(page as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
   }
 }
 
@@ -116,7 +116,7 @@ export async function updateJobs(items: Job[]): Promise<void> {
 export async function deleteJobsByIds(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const db = await getDb();
-  for (const page of chunk(ids)) {
+  for (const page of chunkStatements(ids)) {
     await db.batch([
       db.delete(jobs).where(inArray(jobs.id, page)),
       db.delete(jobLocations).where(inArray(jobLocations.jobId, page)),
@@ -126,8 +126,13 @@ export async function deleteJobsByIds(ids: string[]): Promise<void> {
 
 export async function deleteStaleJobs(): Promise<number> {
   const db = await getDb();
-  const result = await db.delete(jobs).where(lt(jobs.postedAt, freshnessCutoff()));
-  return result.meta.changes ?? 0;
+  const stale = await db.all<{ id: string }>(
+    sql`SELECT id FROM jobs WHERE posted_at < ${freshnessCutoff()}`,
+  );
+  if (stale.length === 0) return 0;
+  const ids = stale.map((row) => row.id);
+  await deleteJobsByIds(ids);
+  return ids.length;
 }
 
 export async function dedupeCrossSourceJobs(): Promise<number> {

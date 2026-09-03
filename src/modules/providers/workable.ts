@@ -41,6 +41,8 @@ function structuredLocations(raw: WorkableJob): string[] {
 }
 
 function mapJob(raw: WorkableJob, account: string): Job {
+  const dateStr = raw.published_on ?? raw.created_at;
+  if (!dateStr) throw new Error(`Workable job ${raw.shortcode} missing posting date`);
   return {
     id: `wb-${account}-${raw.shortcode}`,
     title: raw.title,
@@ -49,7 +51,7 @@ function mapJob(raw: WorkableJob, account: string): Job {
     locations: structuredLocations(raw),
     department: (raw.department || inferDepartment(raw.title)).toLowerCase(),
     url: raw.url ?? raw.shortlink ?? "",
-    postedAt: new Date(raw.published_on ?? raw.created_at ?? ""),
+    postedAt: new Date(dateStr),
     source: "workable",
   };
 }

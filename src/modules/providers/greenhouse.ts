@@ -26,7 +26,11 @@ function metaValue(job: GreenhouseJob, keyPattern: RegExp, typePattern?: RegExp)
   );
   if (entry?.value == null || entry.value === "") return { value: "", salary: "" };
 
-  if (entry.value_type === "currency_range" && typeof entry.value === "object") {
+  if (
+    entry.value_type === "currency_range" &&
+    typeof entry.value === "object" &&
+    entry.value != null
+  ) {
     const range = entry.value as { min?: number; max?: number; currency?: string };
     const currency = range.currency ?? "";
     const unit = currency === "USD" ? "$" : `${currency} `;

@@ -74,9 +74,10 @@ export async function fetchSmartRecruitersJobs(
       undefined,
       budget,
     );
-    postings.push(...(data.content ?? []));
+    const content = data.content ?? [];
+    postings.push(...content);
 
-    if (offset + PAGE_SIZE >= data.totalFound || data.content.length === 0) break;
+    if (offset + PAGE_SIZE >= (data.totalFound ?? 0) || content.length === 0) break;
   }
 
   return mapPostings(postings, company, (j) => mapJob(j, company));
