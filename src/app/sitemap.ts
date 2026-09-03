@@ -1,7 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MetadataRoute } from "next";
 import { toCompanySlug } from "@/lib/company-slug";
-import { getCompanyNames } from "@/lib/db";
+import { getCompanyNames } from "@/lib/job-queries";
 import { getCompanyNamesFromKV } from "@/lib/jobs-kv";
 import { siteUrl } from "@/lib/site";
 

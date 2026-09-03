@@ -1,9 +1,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
+import { bindDb } from "@/db";
 import { crawlSlices } from "@/lib/crawler";
-import { bindDb, getAllFreshJobs } from "@/lib/db";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
+import { getAllFreshJobs } from "@/lib/job-queries";
 import { writeAllJobsToKV } from "@/lib/jobs-kv";
 import { constantTimeEqual } from "@/lib/utils";
 import { withRateLimit } from "@/lib/with-rate-limit";

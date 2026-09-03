@@ -21,7 +21,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useJobFilters } from "@/hooks/use-job-filters";
 import { useQueryParam } from "@/hooks/use-query-param";
 import type { CrawlStatusEntry } from "@/lib/crawl-status";
-import type { FacetOptions } from "@/lib/db";
+import type { FacetOptions } from "@/lib/facets";
 import { dedupeJobs } from "@/lib/job";
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];

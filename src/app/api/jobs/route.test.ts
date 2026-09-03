@@ -8,8 +8,10 @@ function readJobs(res: Response): Promise<Job[]> {
 
 const mockSearchJobsWithCount = vi.fn();
 
-vi.mock("@/lib/db", () => ({
+vi.mock("@/lib/job-queries", () => ({
   searchJobsWithCount: (...args: unknown[]) => mockSearchJobsWithCount(...args),
+  getAllFreshJobs: vi.fn(async () => []),
+  POSTED_WINDOWS: ["today", "week", "month"],
 }));
 
 const { kvGet, kvPut } = vi.hoisted(() => ({
