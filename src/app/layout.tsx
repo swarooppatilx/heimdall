@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
+import { siteConfig } from "@/lib/site-config";
 import { siteUrl } from "@/modules/jobs/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/",
     },
-    verification: { google: "14BZsteU4ODEu9UN369_5SiOAC8qo6S3Ce1bg8UtG3c" },
+    verification: { google: siteConfig.verification.google },
     title: {
       default: "heimdall — fresh tech jobs",
       template: "%s | heimdall",
@@ -49,8 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      site: "@swarooppatilx",
-      creator: "@swarooppatilx",
+      site: siteConfig.author.twitter.replace("https://x.com/", "@"),
+      creator: siteConfig.author.twitter.replace("https://x.com/", "@"),
       title: "heimdall — fresh tech jobs",
       description: "fresh, verified tech job opportunities from official company career pages.",
       images: ["/twitter-image.png"],
