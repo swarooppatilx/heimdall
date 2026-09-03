@@ -1,5 +1,6 @@
 import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
+import type { Job } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry, type RegistryEntry } from "@/lib/registry";
 import { MS_PER_MINUTE } from "@/lib/time";
@@ -44,6 +45,30 @@ interface CrawlRun {
   discovered: number;
   durationMs: number;
   skipped: number;
+}
+
+async function applyDiff(
+  entry: RegistryEntry,
+  existing: Job[],
+  fetched: Job[],
+): Promise<{ inserts: number; updates: number; deleted: number }> {
+  const diff = diffJobs(existing, fetched);
+  await insertJobs(diff.inserts);
+  await updateJobs(diff.updates);
+  if (isSuspiciousDeletion(existing.length, diff.deletedIds.length)) {
+    logEvent("suspicious_diff", {
+      company: entry.name,
+      existing: existing.length,
+      deleted: diff.deletedIds.length,
+    });
+  } else {
+    await deleteJobsByIds(diff.deletedIds);
+  }
+  return {
+    inserts: diff.inserts.length,
+    updates: diff.updates.length,
+    deleted: diff.deletedIds.length,
+  };
 }
 
 export async function crawlAll(
@@ -103,18 +128,7 @@ async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<Cra
   try {
     const jobs = await fetchJobs(entry, budget);
     const existing = await getJobsByBoard(entry.provider, entry.name);
-    const diff = diffJobs(existing, jobs);
-    await insertJobs(diff.inserts);
-    await updateJobs(diff.updates);
-    if (isSuspiciousDeletion(existing.length, diff.deletedIds.length)) {
-      logEvent("suspicious_diff", {
-        company: entry.name,
-        existing: existing.length,
-        deleted: diff.deletedIds.length,
-      });
-    } else {
-      await deleteJobsByIds(diff.deletedIds);
-    }
+    await applyDiff(entry, existing, jobs);
     const durationMs = Date.now() - start;
     await recordSafe(entry, "ok", jobs.length, durationMs);
     return {
