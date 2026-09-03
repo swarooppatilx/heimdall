@@ -65,11 +65,7 @@ export const GET = withRateLimit(
       });
     }
 
-    const dbFilters: JobFilters = {};
-    for (const [key, value] of Object.entries(filters)) {
-      if (value) dbFilters[key as keyof JobFilters] = value;
-    }
-    const { jobs, total } = await searchJobsWithCount(dbFilters, page);
+    const { jobs, total } = await searchJobsWithCount(filters, page);
 
     ctx.waitUntil(
       getAllFreshJobs()
