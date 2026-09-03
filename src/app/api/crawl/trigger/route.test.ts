@@ -21,8 +21,11 @@ vi.mock("@/lib/crawler", () => ({
   crawlSlices: (...args: unknown[]) => state.crawlSlicesMock(...args),
 }));
 
-vi.mock("@/lib/db", () => ({
+vi.mock("@/db", () => ({
   bindDb: vi.fn(),
+}));
+
+vi.mock("@/lib/job-queries", () => ({
   getAllFreshJobs: (...args: unknown[]) => state.getAllFreshJobsMock(...args),
 }));
 
@@ -35,6 +38,7 @@ vi.mock("@/lib/facet-cache", () => ({
 }));
 
 vi.mock("@/lib/freshness", () => ({
+  DAY_MS: 86_400_000,
   configureFreshness: vi.fn(),
 }));
 

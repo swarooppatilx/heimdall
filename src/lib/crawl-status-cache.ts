@@ -7,7 +7,7 @@ import {
   getCrawlHistory,
   getLatestCrawls,
   getRecentCrawlSamples,
-} from "@/lib/db";
+} from "@/lib/crawl-store";
 
 const CACHE_KEY = "crawl-status";
 const EDGE_TTL_SECONDS = 60;

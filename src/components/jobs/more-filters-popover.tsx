@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { FilterSelect } from "@/components/filter-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { FacetOptions } from "@/lib/db";
+import type { FacetOptions } from "@/lib/facets";
 
 interface MoreFiltersPopoverProps {
   advancedCount: number;

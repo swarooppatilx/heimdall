@@ -6,9 +6,9 @@ import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
 import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
-import { getAllFreshJobs, getJobsByCompany } from "@/lib/db";
 import type { Job } from "@/lib/job";
 import { dedupeJobs } from "@/lib/job";
+import { getAllFreshJobs, getJobsByCompany } from "@/lib/job-queries";
 import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/lib/jobs-kv";
 import { formatError, logEvent } from "@/lib/logger";
 

@@ -8,7 +8,7 @@ import {
   getCrawlHistory,
   getLatestCrawls,
   getRecentCrawlSamples,
-} from "@/lib/db";
+} from "@/lib/crawl-store";
 import { constantTimeEqual } from "@/lib/utils";
 import { withRateLimit } from "@/lib/with-rate-limit";
 

@@ -1,8 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import type { JobFilters, PageOptions } from "@/lib/db";
-import { searchJobsWithCount } from "@/lib/db";
-import { getAllFreshJobs, POSTED_WINDOWS } from "@/lib/job-queries";
+import type { JobFilters, PageOptions } from "@/lib/job-queries";
+import { getAllFreshJobs, POSTED_WINDOWS, searchJobsWithCount } from "@/lib/job-queries";
 import {
   type JobFilters as KvJobFilters,
   readAllJobsFromKV,

@@ -13,11 +13,17 @@ vi.mock("./fetch-jobs", () => ({
   fetchJobs: (...args: unknown[]) => fetchJobsMock(...args),
 }));
 
-vi.mock("./db", () => ({
-  deleteJobsByIds: (...args: unknown[]) => deleteJobsByIdsMock(...args),
-  getJobsByBoard: (...args: unknown[]) => getJobsByBoardMock(...args),
-  insertJobs: vi.fn(async () => {}),
+vi.mock("./crawl-store", () => ({
   recordCrawl: vi.fn(async () => {}),
+}));
+
+vi.mock("@/lib/job-queries", () => ({
+  getJobsByBoard: (...args: unknown[]) => getJobsByBoardMock(...args),
+}));
+
+vi.mock("@/lib/job-writes", () => ({
+  deleteJobsByIds: (...args: unknown[]) => deleteJobsByIdsMock(...args),
+  insertJobs: vi.fn(async () => {}),
   updateJobs: vi.fn(async () => {}),
 }));
 
