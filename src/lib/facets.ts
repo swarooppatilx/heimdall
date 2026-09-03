@@ -1,6 +1,6 @@
 import { and, eq, gte, isNotNull, sql } from "drizzle-orm";
+import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import { getDb } from "@/lib/db-connection";
 import { freshnessCutoff } from "@/lib/freshness";
 import {
   FILTER_COMPANIES,

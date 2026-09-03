@@ -1,7 +1,7 @@
 import { desc, sql } from "drizzle-orm";
+import { getDb } from "@/db";
 import { crawls } from "@/db/schema";
 import type { CrawlSample } from "@/lib/board-health";
-import { getDb } from "@/lib/db-connection";
 
 const STATUS_SAMPLE_LIMIT = 100;
 const MS_PER_SECOND = 1_000;
