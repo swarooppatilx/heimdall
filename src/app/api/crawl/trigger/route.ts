@@ -2,11 +2,11 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { requireToken } from "@/app/api/_lib/auth";
 import { bindDb } from "@/db";
-import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { crawlSlices } from "@/modules/crawl/scheduler";
+import { warmFacetCache } from "@/modules/jobs/facet-cache";
 import { writeAllJobsToKV } from "@/modules/jobs/kv";
 import { getAllFreshJobs } from "@/modules/jobs/queries";
 

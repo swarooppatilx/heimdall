@@ -33,7 +33,7 @@ vi.mock("@/modules/jobs/kv", () => ({
   writeAllJobsToKV: (...args: unknown[]) => state.writeAllJobsToKVMock(...args),
 }));
 
-vi.mock("@/lib/facet-cache", () => ({
+vi.mock("@/modules/jobs/facet-cache", () => ({
   warmFacetCache: (...args: unknown[]) => state.warmFacetCacheMock(...args),
 }));
 
