@@ -1,4 +1,6 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getRecentJobs } from "@/lib/job-queries";
+import { getRecentJobsFromKV } from "@/lib/jobs-kv";
 import { siteUrl } from "@/lib/site";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
@@ -10,7 +12,9 @@ export const GET = withRateLimit(
   { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 60 },
   async () => {
     const url = await siteUrl();
-    const jobs = await getRecentJobs(MAX_JOBS);
+    const { env } = await getCloudflareContext();
+    const kvJobs = await getRecentJobsFromKV(env, MAX_JOBS);
+    const jobs = kvJobs ?? (await getRecentJobs(MAX_JOBS));
 
     const lines = [
       "# heimdall fresh jobs",

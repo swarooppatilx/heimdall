@@ -1,5 +1,6 @@
 import { setAnalyticsBinding, trackCrawlTick } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
+import { warmCrawlStatusCache } from "@/lib/crawl-status-cache";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/lib/crawler";
 import {
   bindDb,
@@ -65,6 +66,7 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const allJobs = await getAllFreshJobs();
   await writeAllJobsToKV(allJobs, env);
   await warmFacetCache(env);
+  await warmCrawlStatusCache(env);
 
   const failed = run.results.filter((r) => r.status === "error").length;
   logEvent("scheduled_crawl", {
