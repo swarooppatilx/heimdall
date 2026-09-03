@@ -3,5 +3,6 @@ export interface CrawlStatusEntry {
   status: string;
   jobsFound: number;
   durationMs: number;
+  error: string | null;
   createdAt: string;
 }
