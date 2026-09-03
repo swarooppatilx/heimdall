@@ -33,12 +33,10 @@ export async function getLatestCrawlUnix(): Promise<number | null> {
   return latest ? Number(latest) * MS_PER_SECOND : null;
 }
 
-export interface CrawlRecord extends CrawlStatusEntry {}
-
-function toCrawlRecord(row: typeof crawls.$inferSelect): CrawlRecord {
+function toCrawlStatusEntry(row: typeof crawls.$inferSelect): CrawlStatusEntry {
   return {
     company: row.company,
-    status: row.status,
+    status: row.status as "ok" | "error",
     jobsFound: row.jobsFound,
     durationMs: row.durationMs,
     error: row.error,
@@ -46,24 +44,24 @@ function toCrawlRecord(row: typeof crawls.$inferSelect): CrawlRecord {
   };
 }
 
-export async function getCrawlHistory(): Promise<CrawlRecord[]> {
+export async function getCrawlHistory(): Promise<CrawlStatusEntry[]> {
   const db = await getDb();
   const rows = await db
     .select()
     .from(crawls)
     .orderBy(desc(crawls.createdAt))
     .limit(STATUS_SAMPLE_LIMIT);
-  return rows.map(toCrawlRecord);
+  return rows.map(toCrawlStatusEntry);
 }
 
-export async function getLatestCrawls(): Promise<CrawlRecord[]> {
+export async function getLatestCrawls(): Promise<CrawlStatusEntry[]> {
   const db = await getDb();
   const rows = await db
     .select()
     .from(crawls)
     .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`)
     .orderBy(desc(crawls.createdAt));
-  return rows.map(toCrawlRecord);
+  return rows.map(toCrawlStatusEntry);
 }
 
 export async function getRecentCrawlSamples(hours: number): Promise<CrawlSample[]> {
@@ -85,5 +83,5 @@ export async function deleteOldCrawls(days: number): Promise<number> {
   const result = await db.run(
     sql`DELETE FROM crawls WHERE created_at < datetime('now', ${`-${days} days`})`,
   );
-  return result.meta.changes ?? 0;
+  return result.meta?.changes ?? 0;
 }

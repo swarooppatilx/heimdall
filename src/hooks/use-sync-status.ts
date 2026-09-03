@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { MS_PER_DAY } from "@/lib/time";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
-
-const HOURS_PER_DAY = 24;
-const MS_PER_HOUR = 3_600_000;
-const STALE_SYNC_MS = HOURS_PER_DAY * MS_PER_HOUR;
 
 export function useSyncStatus() {
   const { data: crawlStatus } = useQuery<{ latest: CrawlStatusEntry[] }>({
@@ -16,7 +13,7 @@ export function useSyncStatus() {
   });
 
   const syncedAt = crawlStatus?.latest?.[0]?.createdAt;
-  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > STALE_SYNC_MS : false;
+  const syncStale = syncedAt ? Date.now() - new Date(syncedAt).getTime() > MS_PER_DAY : false;
 
   return { syncedAt, syncStale };
 }

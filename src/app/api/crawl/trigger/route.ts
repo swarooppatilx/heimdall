@@ -32,7 +32,7 @@ export const POST = withRateLimit(
     }
 
     bindDb(env.DB);
-    configureFreshness((env as unknown as Record<string, string>).FRESHNESS_DAYS);
+    configureFreshness(env.FRESHNESS_DAYS);
 
     const start = Date.now();
     const slices = parseSlices(new URL(request.url));

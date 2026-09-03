@@ -1,6 +1,6 @@
 export interface CrawlStatusEntry {
   company: string;
-  status: string;
+  status: "ok" | "error";
   jobsFound: number;
   durationMs: number;
   error: string | null;

@@ -13,7 +13,7 @@ vi.mock("./fetch-jobs", () => ({
   fetchJobs: (...args: unknown[]) => fetchJobsMock(...args),
 }));
 
-vi.mock("./crawl-store", () => ({
+vi.mock("@/modules/crawl/store", () => ({
   recordCrawl: vi.fn(async () => {}),
 }));
 
