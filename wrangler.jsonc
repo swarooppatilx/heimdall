@@ -6,6 +6,9 @@
   "compatibility_date": "2026-06-15",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public", "enable_request_signal"],
   "upload_source_maps": true,
+  "cache": {
+    "enabled": true
+  },
   "vars": {
     "FRESHNESS_DAYS": "15",
     "NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "30c1eed54e67440c8dce414f993f30aa"
