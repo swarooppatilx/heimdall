@@ -7,7 +7,8 @@ export const POSTED_WINDOWS_MS: Record<string, number> = {
   week: DAYS_PER_WEEK * DAY_MS,
 };
 
-export const POSTED_WINDOWS = Object.keys(POSTED_WINDOWS_MS);
+export type PostedWindow = "today" | "week";
+export const POSTED_WINDOWS: PostedWindow[] = ["today", "week"];
 
 export const DEFAULT_LIMIT = 50;
 export const MAX_LIMIT = 500;
