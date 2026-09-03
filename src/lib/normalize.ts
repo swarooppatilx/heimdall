@@ -1,3 +1,5 @@
+import { splitLocations } from "@/lib/gazetteer";
+
 export function normalizeLocation(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "unknown";
@@ -20,4 +22,8 @@ export function normalizeLocation(raw: string): string {
   );
   if (deduped.length === 0) return "unknown";
   return deduped.join(", ").toLowerCase();
+}
+
+export function normalizeLocations(raw: string): string[] {
+  return splitLocations(raw).map((part) => normalizeLocation(part));
 }

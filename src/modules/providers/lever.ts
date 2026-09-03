@@ -1,8 +1,7 @@
 import { inferDepartment } from "@/lib/department";
-import { splitLocations } from "@/lib/gazetteer";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import type { Job } from "@/lib/job";
-import { normalizeLocation } from "@/lib/normalize";
+import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
 import { mapPostings } from "@/lib/postings";
 
 interface LeverPosting {
@@ -22,7 +21,7 @@ function mapJob(raw: LeverPosting, company: string): Job {
     title: raw.text,
     company,
     location: normalizeLocation(raw.categories.location ?? ""),
-    locations: splitLocations(raw.categories.location ?? "").map((part) => normalizeLocation(part)),
+    locations: normalizeLocations(raw.categories.location ?? ""),
     department: (raw.categories.department || inferDepartment(raw.text)).toLowerCase(),
     url: raw.hostedUrl,
     postedAt: new Date(raw.createdAt),
