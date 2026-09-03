@@ -49,7 +49,7 @@ export const GET = withRateLimit(
     if (pageLimit !== undefined) page.limit = pageLimit;
     if (pageOffset !== undefined) page.offset = pageOffset;
 
-    if (filters.posted && !POSTED_WINDOWS.includes(filters.posted)) {
+    if (filters.posted && !(POSTED_WINDOWS as string[]).includes(filters.posted)) {
       return NextResponse.json({ error: "invalid posted window" }, { status: 400 });
     }
 
