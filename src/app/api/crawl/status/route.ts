@@ -4,32 +4,11 @@ import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
+import { toPublic } from "@/modules/crawl/helpers";
 import { getCrawlStatusCached } from "@/modules/crawl/status-cache";
-import {
-  type CrawlRecord,
-  getCrawlHistory,
-  getLatestCrawls,
-  getRecentCrawlSamples,
-} from "@/modules/crawl/store";
+import { getCrawlHistory, getLatestCrawls, getRecentCrawlSamples } from "@/modules/crawl/store";
 
 export const dynamic = "force-dynamic";
-
-// D1 datetime('now') is UTC but carries no zone suffix; without the marker
-// browsers parse it as local time and "synced" ages inflate by the UTC offset.
-function toIsoUtc(dbTimestamp: string): string {
-  return new Date(`${dbTimestamp.replace(" ", "T")}Z`).toISOString();
-}
-
-function toPublic({
-  company,
-  status,
-  jobsFound,
-  durationMs,
-  createdAt,
-}: CrawlRecord): CrawlStatusEntry {
-  return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
-}
 
 async function authorized(request: Request): Promise<boolean> {
   const { env } = await getCloudflareContext();

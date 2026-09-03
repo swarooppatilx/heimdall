@@ -2,13 +2,9 @@ import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { cacheKv } from "@/lib/cache-kv";
 import { trackKvCache } from "@/modules/analytics/analytics";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
+import { toPublic } from "@/modules/crawl/helpers";
 import type { CrawlStatusEntry } from "@/modules/crawl/status";
-import {
-  type CrawlRecord,
-  getCrawlHistory,
-  getLatestCrawls,
-  getRecentCrawlSamples,
-} from "@/modules/crawl/store";
+import { getCrawlHistory, getLatestCrawls, getRecentCrawlSamples } from "@/modules/crawl/store";
 
 const CACHE_KEY = "crawl-status";
 const EDGE_TTL_SECONDS = 60;
@@ -53,20 +49,6 @@ export async function getCrawlStatusCached(
     }
   }
   return payload;
-}
-
-function toIsoUtc(dbTimestamp: string): string {
-  return new Date(`${dbTimestamp.replace(" ", "T")}Z`).toISOString();
-}
-
-function toPublic({
-  company,
-  status,
-  jobsFound,
-  durationMs,
-  createdAt,
-}: CrawlRecord): CrawlStatusEntry {
-  return { company, status, jobsFound, durationMs, createdAt: toIsoUtc(createdAt) };
 }
 
 export async function warmCrawlStatusCache(env: Pick<CloudflareEnv, "CACHE">): Promise<void> {
