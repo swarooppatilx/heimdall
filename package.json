@@ -46,7 +46,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.9",
+    "@biomejs/biome": "^2.5.10",
     "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.2.0",
