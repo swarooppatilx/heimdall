@@ -212,15 +212,6 @@ export async function getJobsByCompany(company: string): Promise<Job[]> {
   return rows.map(toJob);
 }
 
-export async function countJobsByCompany(company: string): Promise<number> {
-  const db = await getDb();
-  const [row] = await db
-    .select({ value: count() })
-    .from(jobs)
-    .where(and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff())));
-  return row?.value ?? 0;
-}
-
 export async function getAllFreshJobs(): Promise<Job[]> {
   const db = await getDb();
   const rows = await db.select().from(jobs).where(gte(jobs.postedAt, freshnessCutoff()));
