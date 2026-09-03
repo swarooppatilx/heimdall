@@ -18,6 +18,7 @@ const PATTERNS: { level: ExperienceLevel; regex: RegExp }[] = [
   },
 ];
 
+/** Detects experience level from a job title using keyword patterns. Defaults to "mid". */
 export function detectExperienceLevel(title: string): ExperienceLevel {
   for (const { level, regex } of PATTERNS) {
     if (regex.test(title)) return level;

@@ -33,7 +33,7 @@ describe("fetchAshbyJobs", () => {
     vi.restoreAllMocks();
   });
 
-  it("fetches and maps jobs correctly", async () => {
+  it("maps Ashby job board API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
     const jobs = await fetchAshbyJobs("testco");

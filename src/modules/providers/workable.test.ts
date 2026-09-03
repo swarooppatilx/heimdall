@@ -30,7 +30,7 @@ describe("fetchWorkableJobs", () => {
     vi.unstubAllGlobals();
   });
 
-  it("fetches and maps jobs correctly", async () => {
+  it("maps Workable job board API response to Job objects", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(board)));
 
     const jobs = await fetchWorkableJobs("deliveroo");

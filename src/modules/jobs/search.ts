@@ -65,6 +65,7 @@ function sortJobs(jobs: Job[], sort: string | undefined): Job[] {
   return [...jobs].sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime());
 }
 
+/** Filters and sorts jobs from an in-memory array, returning a paginated result. */
 export function searchJobs(allJobs: Job[], filters: JobFilters, page?: PageOptions): SearchResult {
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
