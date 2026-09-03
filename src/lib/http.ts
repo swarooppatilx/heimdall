@@ -72,7 +72,7 @@ export async function fetchJson<T>(
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     if (attempt > 1) await sleep(backoffDelay(attempt, prevRetryAfter));
     try {
-      if (budget) budget.used += 1;
+      if (budget && attempt === 1) budget.used += 1;
       const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
       if (res.ok) return await parseJson<T>(res, source);
       lastError = new Error(`Failed to fetch jobs from ${source}: ${res.status}`);

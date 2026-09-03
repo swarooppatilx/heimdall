@@ -16,7 +16,7 @@ describe("fetchJson", () => {
     await expect(fetchJson("/x", "test")).resolves.toEqual({ ok: 1 });
   });
 
-  it("charges every fetch attempt to the budget", async () => {
+  it("charges only the first attempt to the budget", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(new Response("down", { status: 503 }))
@@ -27,7 +27,7 @@ describe("fetchJson", () => {
     const pending = fetchJson("/x", "test", undefined, undefined, budget);
     await vi.runAllTimersAsync();
     await expect(pending).resolves.toEqual({ ok: 1 });
-    expect(budget.used).toBe(2);
+    expect(budget.used).toBe(1);
   });
 
   it("retries transient server errors and succeeds", async () => {
