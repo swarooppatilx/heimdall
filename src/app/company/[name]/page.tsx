@@ -75,16 +75,32 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
     notFound();
   }
 
-  const jsonLd = {
+  const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: company,
     url: jobs[0]?.url?.split("/jobs/")[0] || undefined,
   };
 
+  const jobJsonLd = jobs.slice(0, 10).map((job) => ({
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    datePosted: job.postedAt.toISOString(),
+    hiringOrganization: { "@type": "Organization", name: company },
+    jobLocation: {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressLocality: job.location },
+    },
+    url: job.url,
+  }));
+
   return (
     <div className="flex min-h-screen flex-col">
-      <JsonLd data={jsonLd} />
+      <JsonLd data={orgJsonLd} />
+      {jobJsonLd.map((job) => (
+        <JsonLd key={job.title} data={job} />
+      ))}
       <a
         href="#job-results"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-foreground"
@@ -108,7 +124,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
         </div>
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
-        <ul id="job-results" className="flex flex-col gap-2">
+        <ul id="job-results" tabIndex={-1} className="flex flex-col gap-2">
           {dedupeJobs(jobs, (job) => job.title.toLowerCase()).map(({ key, job, openings }) => (
             <JobCard key={key} job={job} openings={openings} />
           ))}
