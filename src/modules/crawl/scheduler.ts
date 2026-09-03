@@ -2,6 +2,7 @@ import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry, type RegistryEntry } from "@/lib/registry";
+import { MS_PER_MINUTE } from "@/lib/time";
 import { fetchJobs } from "@/modules/crawl/fetch-jobs";
 import { recordCrawl } from "@/modules/crawl/store";
 import { getJobsByBoard } from "@/modules/jobs/queries";
@@ -14,8 +15,6 @@ interface CrawlResult {
   durationMs: number;
   error?: string;
 }
-
-const MS_PER_MINUTE = 60_000;
 
 const TICK_MINUTES = 30;
 const TICK_MS = TICK_MINUTES * MS_PER_MINUTE;
