@@ -11,8 +11,12 @@ const mockSearchJobsWithCount = vi.fn();
 vi.mock("@/modules/jobs/queries", () => ({
   searchJobsWithCount: (...args: unknown[]) => mockSearchJobsWithCount(...args),
   getAllFreshJobs: vi.fn(async () => []),
-  POSTED_WINDOWS: ["today", "week", "month"],
 }));
+
+vi.mock("@/modules/jobs/types", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/modules/jobs/types")>();
+  return { ...original, POSTED_WINDOWS: ["today", "week"] };
+});
 
 const { kvGet, kvPut } = vi.hoisted(() => ({
   kvGet: vi.fn(),

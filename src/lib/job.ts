@@ -1,4 +1,5 @@
 import type { ExperienceLevel } from "@/lib/experience";
+import { logEvent } from "@/lib/logger";
 
 export interface Job {
   id: string;
@@ -29,7 +30,10 @@ export function dedupeJobs(jobs: Job[], keyFn: (job: Job) => string): DedupedJob
   const primary = new Map<string, Job>();
   const counts = new Map<string, number>();
   for (const job of jobs) {
-    if (!(job.title && job.company)) continue;
+    if (!(job.title && job.company)) {
+      logEvent("job_dropped_no_title_or_company", { id: job.id, source: job.source });
+      continue;
+    }
     const key = keyFn(job);
     if (!primary.has(key)) primary.set(key, job);
     counts.set(key, (counts.get(key) ?? 0) + 1);
