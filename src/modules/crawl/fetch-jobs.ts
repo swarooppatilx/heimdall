@@ -5,13 +5,13 @@ import { formatPlace, resolvePlace } from "@/lib/gazetteer";
 import type { CrawlBudget } from "@/lib/http";
 import type { Job } from "@/lib/job";
 import { logEvent } from "@/lib/logger";
-import { fetchAshbyJobs } from "@/lib/providers/ashby";
-import { fetchGreenhouseJobs } from "@/lib/providers/greenhouse";
-import { fetchLeverJobs } from "@/lib/providers/lever";
-import { fetchSmartRecruitersJobs } from "@/lib/providers/smartrecruiters";
-import { fetchWorkableJobs } from "@/lib/providers/workable";
 import type { RegistryEntry } from "@/lib/registry";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { fetchAshbyJobs } from "@/modules/providers/ashby";
+import { fetchGreenhouseJobs } from "@/modules/providers/greenhouse";
+import { fetchLeverJobs } from "@/modules/providers/lever";
+import { fetchSmartRecruitersJobs } from "@/modules/providers/smartrecruiters";
+import { fetchWorkableJobs } from "@/modules/providers/workable";
 
 type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
 

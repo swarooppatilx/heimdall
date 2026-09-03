@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchLeverJobs } from "@/lib/providers/lever";
+import { fetchLeverJobs } from "@/modules/providers/lever";
 
 const mockResponse = [
   {
