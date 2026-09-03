@@ -34,7 +34,8 @@ async function getCacheBinding(): Promise<KVNamespace | undefined> {
   try {
     const { env } = await getCloudflareContext();
     return (env as CloudflareEnv).CACHE;
-  } catch {
+  } catch (err) {
+    logEvent("rate_limit_context_error", { error: formatError(err) });
     return undefined;
   }
 }

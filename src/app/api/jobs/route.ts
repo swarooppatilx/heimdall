@@ -56,7 +56,7 @@ export const GET = withRateLimit(
       return NextResponse.json({ error: "offset too large" }, { status: 400 });
     }
 
-    const { ctx, env } = getCloudflareContext();
+    const { ctx, env } = await getCloudflareContext();
     const allJobs = await readAllJobsFromKV(env);
     if (allJobs) {
       const result = searchJobsFromKV(allJobs, filters, page);
