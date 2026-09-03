@@ -24,12 +24,20 @@ const jobs: Job[] = [
   },
 ];
 
+const { mockGetRecentJobs } = vi.hoisted(() => ({
+  mockGetRecentJobs: vi.fn(),
+}));
+
 vi.mock("@/lib/job-queries", () => ({
   getRecentJobs: (limit: number) => mockGetRecentJobs(limit),
 }));
 
-const { mockGetRecentJobs } = vi.hoisted(() => ({
-  mockGetRecentJobs: vi.fn(),
+vi.mock("@/lib/jobs-kv", () => ({
+  getRecentJobsFromKV: async () => undefined,
+}));
+
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: async () => ({ env: { CACHE: null } }),
 }));
 
 vi.mock("@/lib/site", () => ({

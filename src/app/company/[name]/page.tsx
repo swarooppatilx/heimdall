@@ -12,8 +12,6 @@ import { dedupeJobs } from "@/lib/job";
 import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/lib/jobs-kv";
 import { formatError, logEvent } from "@/lib/logger";
 
-export const revalidate = 600;
-
 function decodeCompany(raw: string): string | null {
   const company = fromCompanySlug(raw);
   return company ? company : null;

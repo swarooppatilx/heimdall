@@ -63,7 +63,7 @@ export interface PageOptions {
   offset?: number;
 }
 
-const DEFAULT_LIMIT = 200;
+const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 500;
 
 export function escapeLike(value: string): string {

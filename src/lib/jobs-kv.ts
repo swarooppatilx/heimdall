@@ -137,6 +137,26 @@ export async function getCompanyJobsFromKV(
   return searchJobsFromKV(allJobs, { company }, { limit: MAX_LIMIT });
 }
 
+export async function getCompanyNamesFromKV(
+  env: Pick<CloudflareEnv, "CACHE">,
+): Promise<string[] | undefined> {
+  const allJobs = await readAllJobsFromKV(env);
+  if (!allJobs) return undefined;
+  const names = [...new Set(allJobs.map((j) => j.company))].filter(Boolean).sort();
+  return names;
+}
+
+export async function getRecentJobsFromKV(
+  env: Pick<CloudflareEnv, "CACHE">,
+  limit: number,
+): Promise<Job[] | undefined> {
+  const allJobs = await readAllJobsFromKV(env);
+  if (!allJobs) return undefined;
+  return [...allJobs]
+    .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime())
+    .slice(0, limit);
+}
+
 export function searchJobsFromKV(
   allJobs: Job[],
   filters: JobFilters,

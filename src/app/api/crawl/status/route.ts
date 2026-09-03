@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import type { CrawlStatusEntry } from "@/lib/crawl-status";
+import { getCrawlStatusCached } from "@/lib/crawl-status-cache";
 import {
   type CrawlRecord,
   getCrawlHistory,
@@ -47,18 +48,22 @@ export const GET = withRateLimit(
     if (!(await authorized(request))) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
-    const [latest, history, samples] = await Promise.all([
-      getLatestCrawls(),
-      getCrawlHistory(),
-      getRecentCrawlSamples(DRIFT_WINDOW_HOURS),
-    ]);
-    const drifted = driftedBoards(assessBoards(samples), DRIFT_MIN_EMPTY).map(
-      ({ company, consecutiveEmpty }) => ({ company, consecutiveEmpty }),
-    );
-    return NextResponse.json({
-      latest: latest.map(toPublic),
-      history: history.map(toPublic),
-      drifted,
+    const { env } = await getCloudflareContext();
+    const payload = await getCrawlStatusCached(env, async () => {
+      const [latest, history, samples] = await Promise.all([
+        getLatestCrawls(),
+        getCrawlHistory(),
+        getRecentCrawlSamples(DRIFT_WINDOW_HOURS),
+      ]);
+      const drifted = driftedBoards(assessBoards(samples), DRIFT_MIN_EMPTY).map(
+        ({ company, consecutiveEmpty }) => ({ company, consecutiveEmpty }),
+      );
+      return {
+        latest: latest.map(toPublic),
+        history: history.map(toPublic),
+        drifted,
+      };
     });
+    return NextResponse.json(payload);
   },
 );

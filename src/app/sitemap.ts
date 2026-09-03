@@ -1,13 +1,15 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MetadataRoute } from "next";
 import { toCompanySlug } from "@/lib/company-slug";
 import { getCompanyNames } from "@/lib/db";
+import { getCompanyNamesFromKV } from "@/lib/jobs-kv";
 import { siteUrl } from "@/lib/site";
-
-export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = await siteUrl();
-  const companies = await getCompanyNames();
+  const { env } = await getCloudflareContext();
+  const kvNames = await getCompanyNamesFromKV(env);
+  const companies = kvNames ?? (await getCompanyNames());
   return [
     {
       url,
