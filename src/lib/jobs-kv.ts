@@ -128,6 +128,15 @@ function sortJobs(jobs: Job[], sort: string | undefined): Job[] {
   return [...jobs].sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
 }
 
+export async function getCompanyJobsFromKV(
+  env: Pick<CloudflareEnv, "CACHE">,
+  company: string,
+): Promise<SearchResult | undefined> {
+  const allJobs = await readAllJobsFromKV(env);
+  if (!allJobs) return undefined;
+  return searchJobsFromKV(allJobs, { company }, { limit: MAX_LIMIT });
+}
+
 export function searchJobsFromKV(
   allJobs: Job[],
   filters: JobFilters,
