@@ -1,5 +1,5 @@
 import type { Job } from "@/lib/job";
-import { logEvent } from "@/lib/logger";
+import { formatError, logEvent } from "@/lib/logger";
 
 export function mapPostings<T>(
   postings: readonly T[] | undefined,
@@ -11,7 +11,8 @@ export function mapPostings<T>(
   for (const posting of postings ?? []) {
     try {
       jobs.push(map(posting));
-    } catch {
+    } catch (err) {
+      logEvent("posting_map_error", { company, error: formatError(err) });
       skipped += 1;
     }
   }
