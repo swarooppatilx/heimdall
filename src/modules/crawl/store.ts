@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { crawls } from "@/db/schema";
 import type { CrawlSample } from "@/lib/board-health";
 import { MS_PER_SECOND } from "@/lib/time";
+import type { CrawlStatusEntry } from "@/modules/crawl/status";
 
 const STATUS_SAMPLE_LIMIT = 100;
 
@@ -32,14 +33,7 @@ export async function getLatestCrawlUnix(): Promise<number | null> {
   return latest ? Number(latest) * MS_PER_SECOND : null;
 }
 
-export interface CrawlRecord {
-  company: string;
-  status: string;
-  jobsFound: number;
-  durationMs: number;
-  error: string | null;
-  createdAt: string;
-}
+export interface CrawlRecord extends CrawlStatusEntry {}
 
 function toCrawlRecord(row: typeof crawls.$inferSelect): CrawlRecord {
   return {
