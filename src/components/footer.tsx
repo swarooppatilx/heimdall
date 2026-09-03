@@ -1,5 +1,3 @@
-"use client";
-
 export function Footer() {
   return (
     <footer className="border-t border-border/40 bg-background/5 backdrop-blur-3xl">

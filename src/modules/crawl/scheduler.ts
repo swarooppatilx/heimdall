@@ -40,7 +40,7 @@ export function sweepSlice(entries: RegistryEntry[], now = Date.now()): Registry
   return entries.slice(start, end);
 }
 
-export interface CrawlRun {
+interface CrawlRun {
   results: CrawlResult[];
   discovered: number;
   durationMs: number;

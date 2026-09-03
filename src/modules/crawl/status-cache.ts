@@ -11,7 +11,7 @@ const CACHE_KEY = "crawl-status";
 const EDGE_TTL_SECONDS = 60;
 const KV_TTL_SECONDS = 900;
 
-export interface CrawlStatusPayload {
+interface CrawlStatusPayload {
   latest: CrawlStatusEntry[];
   history: CrawlStatusEntry[];
   drifted: { company: string; consecutiveEmpty: number }[];

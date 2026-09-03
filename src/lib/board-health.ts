@@ -4,7 +4,7 @@ export interface CrawlSample {
   jobsFound: number;
 }
 
-export interface BoardHealth {
+interface BoardHealth {
   company: string;
   crawls: number;
   errors: number;

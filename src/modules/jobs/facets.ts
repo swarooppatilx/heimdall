@@ -10,12 +10,12 @@ import {
   FILTER_SOURCES,
 } from "@/lib/taxonomy";
 
-export interface FacetOption {
+interface FacetOption {
   value: string;
   count: number;
 }
 
-export interface CountryFacet {
+interface CountryFacet {
   value: string;
   count: number;
   cities: FacetOption[];
