@@ -1,5 +1,5 @@
-import type { Job } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
+import type { Job } from "@/modules/jobs/job";
 
 export function mapPostings<T>(
   postings: readonly T[] | undefined,

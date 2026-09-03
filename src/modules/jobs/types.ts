@@ -1,5 +1,5 @@
-import { DAY_MS } from "@/lib/freshness";
-import type { Job } from "@/lib/job";
+import { DAY_MS } from "@/modules/jobs/freshness";
+import type { Job } from "@/modules/jobs/job";
 
 export const DAYS_PER_WEEK = 7;
 export const POSTED_WINDOWS_MS: Record<string, number> = {

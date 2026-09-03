@@ -2,11 +2,11 @@ import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { jobLocations, jobs } from "@/db/schema";
-import type { ExperienceLevel } from "@/lib/experience";
-import { freshnessCutoff } from "@/lib/freshness";
-import { resolvePlace } from "@/lib/gazetteer";
-import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
+import type { ExperienceLevel } from "@/modules/jobs/experience";
+import { freshnessCutoff } from "@/modules/jobs/freshness";
+import type { Job } from "@/modules/jobs/job";
 import {
   DEFAULT_LIMIT,
   type JobFilters,

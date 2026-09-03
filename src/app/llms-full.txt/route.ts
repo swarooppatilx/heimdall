@@ -1,15 +1,16 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { siteUrl } from "@/lib/site";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { trackApiRequest } from "@/modules/analytics/analytics";
 import { getRecentJobsFromKV } from "@/modules/jobs/kv";
 import { getRecentJobs } from "@/modules/jobs/queries";
+import { siteUrl } from "@/modules/jobs/site";
 
 export const dynamic = "force-dynamic";
 
 const MAX_JOBS = 200;
 
 export const GET = withRateLimit(
-  { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 60 },
+  { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 60, onRequest: trackApiRequest },
   async () => {
     const url = await siteUrl();
     const { env } = await getCloudflareContext();

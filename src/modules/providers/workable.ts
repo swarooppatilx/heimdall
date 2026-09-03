@@ -1,8 +1,8 @@
-import { inferDepartment } from "@/lib/department";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
-import type { Job } from "@/lib/job";
-import { normalizeLocation, normalizeLocations } from "@/lib/normalize";
-import { mapPostings } from "@/lib/postings";
+import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
+import { inferDepartment } from "@/modules/jobs/department";
+import type { Job } from "@/modules/jobs/job";
+import { mapPostings } from "@/modules/providers/postings";
 
 interface WorkableJob {
   title: string;

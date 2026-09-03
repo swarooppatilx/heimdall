@@ -1,4 +1,4 @@
-import registryData from "@/lib/registry.json";
+import registryData from "@/modules/crawl/registry.json";
 
 export interface RegistryEntry {
   name: string;

@@ -4,7 +4,7 @@ import Script from "next/script";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
-import { siteUrl } from "@/lib/site";
+import { siteUrl } from "@/modules/jobs/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 

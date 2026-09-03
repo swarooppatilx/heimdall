@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectExperienceLevel } from "@/lib/experience";
+import { detectExperienceLevel } from "@/modules/jobs/experience";
 
 describe("detectExperienceLevel", () => {
   describe("intern", () => {

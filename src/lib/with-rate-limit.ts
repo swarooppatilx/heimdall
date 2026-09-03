@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
 import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "@/lib/rate-limit";
-import { trackApiRequest } from "@/modules/analytics/analytics";
+
+export interface ApiRequestTrackEvent {
+  path: string;
+  durationMs: number;
+  status: number;
+  kvHit: boolean;
+}
 
 interface RateLimitConfig {
   binding: RateLimitBinding;
   windowMs: number;
   max: number;
+  onRequest?: (event: ApiRequestTrackEvent) => void;
 }
 
 export function withRateLimit(
@@ -19,7 +26,7 @@ export function withRateLimit(
     if (!limit.allowed) return rateLimitResponse(limit.resetMs);
     try {
       const response = await handler(request);
-      trackApiRequest({
+      config.onRequest?.({
         path: new URL(request.url).pathname,
         durationMs: Date.now() - start,
         status: response.status,
@@ -31,7 +38,7 @@ export function withRateLimit(
         path: new URL(request.url).pathname,
         error: formatError(err),
       });
-      trackApiRequest({
+      config.onRequest?.({
         path: new URL(request.url).pathname,
         durationMs: Date.now() - start,
         status: 500,

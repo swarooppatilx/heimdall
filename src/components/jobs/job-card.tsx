@@ -3,9 +3,9 @@
 import { ArrowUpRightIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import type { Job } from "@/lib/job";
-import { timeAgo } from "@/lib/time-ago";
 import { toCompanySlug } from "@/modules/companies/slug";
+import type { Job } from "@/modules/jobs/job";
+import { timeAgo } from "@/modules/jobs/time-ago";
 
 interface JobCardProps {
   job: Job;

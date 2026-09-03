@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/jobs/route";
-import type { Job } from "@/lib/job";
+import type { Job } from "@/modules/jobs/job";
 
 function readJobs(res: Response): Promise<Job[]> {
   return res.json() as Promise<Job[]>;

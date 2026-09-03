@@ -1,6 +1,11 @@
 import { cacheKv } from "@/lib/cache-kv";
 import { formatError, logEvent } from "@/lib/logger";
-import { trackKvCache } from "@/modules/analytics/analytics";
+
+export interface KvCacheTrackEvent {
+  operation: "read" | "write";
+  key: string;
+  hit: boolean;
+}
 
 interface KvCacheOptions<T> {
   env: Pick<CloudflareEnv, "CACHE">;
@@ -8,6 +13,7 @@ interface KvCacheOptions<T> {
   edgeTtlSeconds: number;
   kvTtlSeconds: number;
   loader: () => Promise<T>;
+  onTrack?: (event: KvCacheTrackEvent) => void;
 }
 
 export async function kvCacheAside<T>({
@@ -16,13 +22,14 @@ export async function kvCacheAside<T>({
   edgeTtlSeconds,
   kvTtlSeconds,
   loader,
+  onTrack,
 }: KvCacheOptions<T>): Promise<T> {
   const cache = cacheKv(env);
   if (cache) {
     try {
       const hit = await cache.get<T>(key, { type: "json", cacheTtl: edgeTtlSeconds });
       if (hit) {
-        trackKvCache({ operation: "read", key, hit: true });
+        onTrack?.({ operation: "read", key, hit: true });
         return hit;
       }
     } catch (err) {
@@ -30,7 +37,7 @@ export async function kvCacheAside<T>({
     }
   }
 
-  trackKvCache({ operation: "read", key, hit: false });
+  onTrack?.({ operation: "read", key, hit: false });
   const data = await loader();
 
   if (cache) {

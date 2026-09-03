@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCrawlBudget } from "@/lib/http";
-import type { Job } from "@/lib/job";
 import { crawlAll, crawlSlices, shouldRunTick, sweepSlice } from "@/modules/crawl/scheduler";
+import type { Job } from "@/modules/jobs/job";
 
 const { fetchJobsMock, getJobsByBoardMock, deleteJobsByIdsMock } = vi.hoisted(() => ({
   fetchJobsMock: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock("@/modules/jobs/writes", () => ({
   updateJobs: vi.fn(async () => {}),
 }));
 
-vi.mock("@/lib/registry", () => ({
+vi.mock("@/modules/crawl/registry", () => ({
   getRegistry: () => [
     { name: "c0", provider: "greenhouse" },
     { name: "c1", provider: "greenhouse" },

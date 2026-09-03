@@ -1,11 +1,11 @@
-import { diffJobs, isSuspiciousDeletion } from "@/lib/diff";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/lib/http";
-import type { Job } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
-import { getRegistry, type RegistryEntry } from "@/lib/registry";
 import { MS_PER_MINUTE } from "@/lib/time";
 import { fetchJobs } from "@/modules/crawl/fetch-jobs";
+import { getRegistry, type RegistryEntry } from "@/modules/crawl/registry";
 import { recordCrawl } from "@/modules/crawl/store";
+import { diffJobs, isSuspiciousDeletion } from "@/modules/jobs/diff";
+import type { Job } from "@/modules/jobs/job";
 import { getJobsByBoard } from "@/modules/jobs/queries";
 import { deleteJobsByIds, insertJobs, updateJobs } from "@/modules/jobs/writes";
 

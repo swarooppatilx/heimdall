@@ -10,7 +10,7 @@ import {
   SEGMENT_SPLIT,
   STREET_PATTERN,
   US_STATES,
-} from "@/lib/gazetteer-data";
+} from "@/modules/crawl/gazetteer-data";
 
 export interface Place {
   city?: string;

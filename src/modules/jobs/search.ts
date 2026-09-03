@@ -1,6 +1,6 @@
-import { resolvePlace } from "@/lib/gazetteer";
-import type { Job } from "@/lib/job";
 import { sanitizeFilterValue } from "@/lib/sanitize";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
+import type { Job } from "@/modules/jobs/job";
 import {
   DEFAULT_LIMIT,
   type JobFilters,

@@ -1,7 +1,7 @@
 import { cacheKv } from "@/lib/cache-kv";
-import type { Job } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
 import { trackKvCache } from "@/modules/analytics/analytics";
+import type { Job } from "@/modules/jobs/job";
 import { searchJobs } from "@/modules/jobs/search";
 import { MAX_LIMIT, type SearchResult } from "@/modules/jobs/types";
 

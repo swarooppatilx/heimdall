@@ -1,4 +1,5 @@
 import { kvCacheAside, warmKvCache } from "@/lib/kv-cache";
+import { trackKvCache } from "@/modules/analytics/analytics";
 import { type FacetOptions, getFacetOptions } from "@/modules/jobs/facets";
 
 const CACHE_KEY = "facet-options";
@@ -12,6 +13,7 @@ export function getFacetOptionsCached(env: Pick<CloudflareEnv, "CACHE">): Promis
     edgeTtlSeconds: EDGE_TTL_SECONDS,
     kvTtlSeconds: KV_TTL_SECONDS,
     loader: getFacetOptions,
+    onTrack: trackKvCache,
   });
 }
 
