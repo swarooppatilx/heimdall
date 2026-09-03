@@ -1,38 +1,41 @@
+import { z } from "zod";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
 import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 
-interface WorkableJob {
-  title: string;
-  shortcode: string;
-  telecommuting?: boolean;
-  department?: string;
-  url?: string;
-  shortlink?: string;
-  published_on?: string;
-  created_at?: string;
-  country?: string;
-  city?: string;
-  locations?: { city?: string; country?: string }[];
-}
+const workableJobSchema = z.object({
+  title: z.string(),
+  shortcode: z.string(),
+  telecommuting: z.boolean().optional(),
+  department: z.string().optional(),
+  url: z.string().optional(),
+  shortlink: z.string().optional(),
+  published_on: z.string().optional(),
+  created_at: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
+  locations: z
+    .array(z.object({ city: z.string().optional(), country: z.string().optional() }))
+    .optional(),
+});
 
-interface WorkableBoard {
-  jobs?: WorkableJob[];
-}
+const workableResponseSchema = z.object({
+  jobs: z.array(workableJobSchema).optional(),
+});
 
 function widgetUrl(account: string): string {
   return `https://apply.workable.com/api/v1/widget/accounts/${account}`;
 }
 
-function primaryLocation(raw: WorkableJob): string {
+function primaryLocation(raw: z.infer<typeof workableJobSchema>): string {
   const place = [raw.city, raw.country].filter(Boolean).join(", ");
   if (raw.telecommuting) return place ? `Remote — ${place}` : "Remote";
   return place;
 }
 
-function structuredLocations(raw: WorkableJob): string[] {
+function structuredLocations(raw: z.infer<typeof workableJobSchema>): string[] {
   const listed = (raw.locations ?? [])
     .map((loc) => [loc.city, loc.country].filter(Boolean).join(", "))
     .filter(Boolean);
@@ -40,7 +43,7 @@ function structuredLocations(raw: WorkableJob): string[] {
   return [...listed.map((entry) => normalizeLocation(entry)), ...primary];
 }
 
-function mapJob(raw: WorkableJob, account: string): Job {
+function mapJob(raw: z.infer<typeof workableJobSchema>, account: string): Job {
   const dateStr = raw.published_on ?? raw.created_at;
   if (!dateStr) throw new Error(`Workable job ${raw.shortcode} missing posting date`);
   return {
@@ -57,12 +60,9 @@ function mapJob(raw: WorkableJob, account: string): Job {
 }
 
 export async function fetchWorkableJobs(account: string, budget?: CrawlBudget): Promise<Job[]> {
-  const board = await fetchJson<WorkableBoard>(
-    widgetUrl(account),
-    account,
-    undefined,
-    undefined,
-    budget,
-  );
+  const board = await fetchJson(widgetUrl(account), account, {
+    schema: workableResponseSchema,
+    ...(budget ? { budget } : {}),
+  });
   return mapPostings(board.jobs, account, (posting) => mapJob(posting, account));
 }

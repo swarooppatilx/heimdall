@@ -92,6 +92,25 @@ describe("fetchJobs", () => {
 
     expect(jobs).toHaveLength(0);
   });
+});
+
+describe("fetchJobs date validation", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json(boardResponse(["Junior Backend Engineer", "Staff Engineer"])),
+        ),
+    );
+    vi.useFakeTimers({ now: new Date("2026-08-20T12:00:00.000Z") });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it("drops jobs with invalid dates", async () => {
     vi.stubGlobal(
@@ -103,6 +122,7 @@ describe("fetchJobs", () => {
               id: 4000,
               title: "Broken Posting",
               location: { name: "Remote" },
+              updated_at: "not-a-date",
               absolute_url: "https://boards.greenhouse.io/testco/jobs/4000",
             },
           ],

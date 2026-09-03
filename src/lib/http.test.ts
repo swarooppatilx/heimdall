@@ -24,7 +24,7 @@ describe("fetchJson", () => {
     vi.stubGlobal("fetch", fetchMock);
     const budget = createCrawlBudget();
 
-    const pending = fetchJson("/x", "test", undefined, undefined, budget);
+    const pending = fetchJson("/x", "test", { budget });
     await vi.runAllTimersAsync();
     await expect(pending).resolves.toEqual({ ok: 1 });
     expect(budget.used).toBe(1);

@@ -1,33 +1,37 @@
+import { z } from "zod";
 import { type CrawlBudget, fetchJson } from "@/lib/http";
 import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
 import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 
-interface SmartRecruitersPosting {
-  id: string;
-  name: string;
-  uuid: string;
-  releasedDate: string;
-  company: { identifier: string };
-  location: {
-    city: string;
-    region: string;
-    country: string;
-    fullLocation: string;
-    remote: boolean;
-  };
-  department: { label?: string } | Record<string, never>;
-  function: { label?: string } | Record<string, never>;
-  experienceLevel?: { label?: string };
-}
+const smartRecruitersPostingSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  uuid: z.string(),
+  releasedDate: z.string(),
+  company: z.object({ identifier: z.string() }),
+  location: z.object({
+    city: z.string(),
+    region: z.string(),
+    country: z.string(),
+    fullLocation: z.string(),
+    remote: z.boolean(),
+  }),
+  department: z.union([
+    z.object({ label: z.string().optional() }),
+    z.record(z.string(), z.never()),
+  ]),
+  function: z.union([z.object({ label: z.string().optional() }), z.record(z.string(), z.never())]),
+  experienceLevel: z.object({ label: z.string().optional() }).optional(),
+});
 
-interface SmartRecruitersResponse {
-  totalFound: number;
-  content: SmartRecruitersPosting[];
-}
+const smartRecruitersResponseSchema = z.object({
+  totalFound: z.number(),
+  content: z.array(smartRecruitersPostingSchema),
+});
 
-function mapJob(raw: SmartRecruitersPosting, company: string): Job {
+function mapJob(raw: z.infer<typeof smartRecruitersPostingSchema>, company: string): Job {
   const locationStr = raw.location?.remote
     ? raw.location.fullLocation
       ? `Remote — ${raw.location.fullLocation}`
@@ -62,18 +66,15 @@ export async function fetchSmartRecruitersJobs(
   company: string,
   budget?: CrawlBudget,
 ): Promise<Job[]> {
-  const postings: SmartRecruitersPosting[] = [];
+  const postings: z.infer<typeof smartRecruitersPostingSchema>[] = [];
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const offset = page * PAGE_SIZE;
     const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${PAGE_SIZE}&offset=${offset}`;
-    const data = await fetchJson<SmartRecruitersResponse>(
-      url,
-      company,
-      undefined,
-      undefined,
-      budget,
-    );
+    const data = await fetchJson(url, company, {
+      schema: smartRecruitersResponseSchema,
+      ...(budget ? { budget } : {}),
+    });
     const content = data.content ?? [];
     postings.push(...content);
 
