@@ -1,4 +1,4 @@
-import { getAllFreshJobs } from "@/lib/job-queries";
+import { getRecentJobs } from "@/lib/job-queries";
 import { siteUrl } from "@/lib/site";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
@@ -10,9 +10,7 @@ export const GET = withRateLimit(
   { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 60 },
   async () => {
     const url = await siteUrl();
-    const jobs = (await getAllFreshJobs())
-      .sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime())
-      .slice(0, MAX_JOBS);
+    const jobs = await getRecentJobs(MAX_JOBS);
 
     const lines = [
       "# heimdall fresh jobs",
