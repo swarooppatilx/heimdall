@@ -9,7 +9,7 @@ import {
   getLatestCrawls,
   getRecentCrawlSamples,
 } from "@/lib/crawl-store";
-import { constantTimeEqual } from "@/lib/utils";
+import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const dynamic = "force-dynamic";
