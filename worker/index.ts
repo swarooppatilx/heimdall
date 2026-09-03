@@ -1,10 +1,10 @@
 import { bindDb } from "@/db";
-import { setAnalyticsBinding, trackCrawlTick } from "@/lib/analytics";
 import { assessBoards, driftedBoards } from "@/lib/board-health";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
 import { formatError, logEvent } from "@/lib/logger";
 import { getRegistry } from "@/lib/registry";
+import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
 import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
 import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";

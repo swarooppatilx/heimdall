@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { trackApiRequest } from "@/lib/analytics";
 import { formatError, logEvent } from "@/lib/logger";
 import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "@/lib/rate-limit";
+import { trackApiRequest } from "@/modules/analytics/analytics";
 
 interface RateLimitConfig {
   binding: RateLimitBinding;
