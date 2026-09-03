@@ -45,6 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "heimdall",
       url: `${url}/`,
       locale: "en_US",
+      images: [{ url: "/logo_dark.svg", width: 512, height: 512, alt: "heimdall" }],
     },
     twitter: {
       card: "summary_large_image",
@@ -52,6 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       creator: "@swarooppatilx",
       title: "heimdall — fresh tech jobs",
       description: "fresh, verified tech job opportunities from official company career pages.",
+      images: ["/logo_dark.svg"],
     },
     robots: {
       index: true,
