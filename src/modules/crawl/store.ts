@@ -8,7 +8,7 @@ const STATUS_SAMPLE_LIMIT = 100;
 
 export async function recordCrawl(
   company: string,
-  status: string,
+  status: "ok" | "error",
   jobsFound: number,
   durationMs: number,
   error?: string,

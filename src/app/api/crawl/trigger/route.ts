@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { bindDb } from "@/db";
 import { warmFacetCache } from "@/lib/facet-cache";
 import { configureFreshness } from "@/lib/freshness";
+import { formatError, logEvent } from "@/lib/logger";
 import { constantTimeEqual } from "@/lib/security";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { crawlSlices } from "@/modules/crawl/scheduler";
@@ -45,8 +46,12 @@ export const POST = withRateLimit(
     const runs = await crawlSlices(slices);
 
     const allJobs = await getAllFreshJobs();
-    await writeAllJobsToKV(allJobs, env);
-    await warmFacetCache(env);
+    try {
+      await writeAllJobsToKV(allJobs, env);
+      await warmFacetCache(env);
+    } catch (err) {
+      logEvent("kv_warm_failed", { error: formatError(err) });
+    }
 
     const ok = runs.reduce(
       (sum, run) => sum + run.results.filter((r) => r.status === "ok").length,

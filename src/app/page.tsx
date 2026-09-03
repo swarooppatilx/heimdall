@@ -88,7 +88,7 @@ function resolveCountLabel(
 ): string {
   if (isLoading) return "loading...";
   if (isError) return "something went wrong fetching jobs — try again";
-  if (total > jobsShown) return `showing ${jobsShown} of ${total} fresh roles`;
+  if (total > jobsShown) return `showing ${dedupedCount} of ${total} fresh roles`;
   return `${dedupedCount} fresh role${dedupedCount === 1 ? "" : "s"}`;
 }
 
