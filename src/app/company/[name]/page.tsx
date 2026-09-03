@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,14 +6,37 @@ import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
 import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
-import { countJobsByCompany, getJobsByCompany } from "@/lib/db";
+import { getAllFreshJobs, getJobsByCompany } from "@/lib/db";
+import type { Job } from "@/lib/job";
 import { dedupeJobs } from "@/lib/job";
+import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/lib/jobs-kv";
+import { formatError, logEvent } from "@/lib/logger";
 
 export const revalidate = 600;
 
 function decodeCompany(raw: string): string | null {
   const company = fromCompanySlug(raw);
   return company ? company : null;
+}
+
+interface CompanyJobs {
+  jobs: Job[];
+  total: number;
+}
+
+async function loadCompanyJobs(company: string): Promise<CompanyJobs> {
+  const { ctx, env } = getCloudflareContext();
+  const cached = await getCompanyJobsFromKV(env, company);
+  if (cached) return cached;
+  const jobs = await getJobsByCompany(company);
+  ctx.waitUntil(
+    getAllFreshJobs()
+      .then((fresh) => writeAllJobsToKV(fresh, env))
+      .catch((err) => {
+        logEvent("kv_rewarm_failed", { error: formatError(err) });
+      }),
+  );
+  return { jobs, total: jobs.length };
 }
 
 export async function generateMetadata({
@@ -23,7 +47,7 @@ export async function generateMetadata({
   const { name } = await params;
   const company = decodeCompany(name);
   if (!company) notFound();
-  const total = await countJobsByCompany(company);
+  const { total } = await loadCompanyJobs(company);
   return {
     title: `${company} — ${total} open position${total === 1 ? "" : "s"}`,
     alternates: {
@@ -47,7 +71,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
   const { name } = await params;
   const company = decodeCompany(name);
   if (!company) notFound();
-  const jobs = await getJobsByCompany(company);
+  const { jobs } = await loadCompanyJobs(company);
 
   if (jobs.length === 0) {
     notFound();
