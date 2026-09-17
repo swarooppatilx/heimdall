@@ -59,6 +59,11 @@ export async function warmKvCache<T>(
   const cache = cacheKv(env);
   if (!cache) return;
   try {
+    const existing = await cache.get(key, { type: "json" });
+    if (existing) {
+      logEvent("kv_warm_skipped", { key, reason: "already_cached" });
+      return;
+    }
     const data = await loader();
     await cache.put(key, JSON.stringify(data), { expirationTtl: kvTtlSeconds });
   } catch (err) {
