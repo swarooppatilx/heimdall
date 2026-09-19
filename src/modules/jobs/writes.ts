@@ -1,11 +1,11 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
-import type { Db } from "@/db";
-import { getDb } from "@/db";
-import { jobLocations, jobs } from "@/db/schema";
 import { resolvePlace } from "@/modules/crawl/gazetteer";
 import { freshnessCutoff } from "@/modules/jobs/freshness";
 import type { Job } from "@/modules/jobs/job";
+import type { Db } from "@/server/db";
+import { getDb } from "@/server/db";
+import { jobLocations, jobs } from "@/server/db/schema";
 
 const BATCH_LIMIT = 100;
 

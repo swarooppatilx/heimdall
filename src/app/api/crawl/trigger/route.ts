@@ -1,12 +1,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { requireToken } from "@/app/api/_lib/auth";
-import { bindDb } from "@/db";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
 import { crawlSlices } from "@/modules/crawl/scheduler";
 import { configureFreshness } from "@/modules/jobs/freshness";
+import { bindDb } from "@/server/db";
 
 export const dynamic = "force-dynamic";
 

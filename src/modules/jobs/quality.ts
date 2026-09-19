@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/db";
-import { jobs } from "@/db/schema";
+import { getDb } from "@/server/db";
+import { jobs } from "@/server/db/schema";
 
 export async function getJobQuality(): Promise<{
   total: number;

@@ -1,4 +1,3 @@
-import { bindDb } from "@/db";
 import { formatError, logEvent } from "@/lib/logger";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
@@ -11,6 +10,7 @@ import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/mo
 import { configureFreshness } from "@/modules/jobs/freshness";
 import { getJobQuality } from "@/modules/jobs/quality";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
+import { bindDb } from "@/server/db";
 import handler from "./open-next-handler.mjs";
 
 interface ScheduledController {
