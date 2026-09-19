@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { constantTimeEqual } from "@/lib/security";
+import { constantTimeEqual } from "@/server/api/security";
 
 describe("constantTimeEqual", () => {
   it("returns true for equal strings", () => {

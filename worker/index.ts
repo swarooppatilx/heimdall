@@ -1,6 +1,5 @@
-import { formatError, logEvent } from "@/lib/logger";
-import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
-import { warmAllCaches } from "@/modules/cache-warmer";
+import { setAnalyticsBinding, trackCrawlTick } from "@/server/analytics";
+import { warmAllCaches } from "@/server/cache-warmer";
 import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/server/crawl/drift";
 import { getRegistry } from "@/server/crawl/registry";
@@ -11,6 +10,7 @@ import { bindDb } from "@/server/db";
 import { configureFreshness } from "@/server/jobs/freshness";
 import { getJobQuality } from "@/server/jobs/quality";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/server/jobs/writes";
+import { formatError, logEvent } from "@/server/logger";
 import handler from "./open-next-handler.mjs";
 
 interface ScheduledController {

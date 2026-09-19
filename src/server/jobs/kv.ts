@@ -1,9 +1,9 @@
-import { cacheKv } from "@/lib/cache-kv";
 import type { Job } from "@/lib/job";
-import { formatError, logEvent } from "@/lib/logger";
 import { MAX_LIMIT, type SearchResult } from "@/lib/types";
-import { trackKvCache } from "@/modules/analytics/analytics";
+import { trackKvCache } from "@/server/analytics";
+import { cacheKv } from "@/server/cache-kv";
 import { searchJobs } from "@/server/jobs/search";
+import { formatError, logEvent } from "@/server/logger";
 
 const ALL_JOBS_KEY = "all-jobs";
 const EDGE_TTL_SECONDS = 300;

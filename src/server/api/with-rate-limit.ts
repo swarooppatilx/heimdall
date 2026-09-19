@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { formatError, logEvent } from "@/lib/logger";
-import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "@/lib/rate-limit";
+import { checkRateLimit, type RateLimitBinding, rateLimitResponse } from "@/server/api/rate-limit";
+import { formatError, logEvent } from "@/server/logger";
 
 export interface ApiRequestTrackEvent {
   path: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { requireToken } from "@/app/api/_lib/auth";
+import { requireToken } from "@/server/api/auth";
 
 function makeRequest(headerKey: string, value?: string): Request {
   const headers: Record<string, string> = {};

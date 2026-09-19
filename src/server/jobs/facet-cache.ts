@@ -1,6 +1,6 @@
-import { kvCacheAside, warmKvCache } from "@/lib/kv-cache";
-import { trackKvCache } from "@/modules/analytics/analytics";
+import { trackKvCache } from "@/server/analytics";
 import { type FacetOptions, getFacetOptions } from "@/server/jobs/facets";
+import { kvCacheAside, warmKvCache } from "@/server/kv-cache";
 
 const CACHE_KEY = "facet-options";
 const EDGE_TTL_SECONDS = 300;

@@ -102,7 +102,7 @@ The app runs as a single Worker (via the OpenNext adapter) with a cron-triggered
 - `src/server/crawl/registry.json` + `src/server/crawl/registry.ts`: the curated registry of company boards the crawler reads
 - `src/server/crawl/scheduler.ts`: slices the registry and runs a fetch pass per tick
 - `src/server/crawl/normalize.ts`, `src/server/crawl/diff.ts`, `src/server/jobs/writes.ts`: normalize, dedupe, diff, and persist listings to D1
-- `src/server/jobs/kv.ts`, `src/lib/cache-kv.ts`, `src/server/jobs/facets.ts`: KV response caches (`all-jobs` with a 2100s TTL, `facet-options` with a 3600s TTL, `rl:` rate-limit counters)
+- `src/server/jobs/kv.ts`, `src/server/cache-kv.ts`, `src/server/jobs/facets.ts`: KV response caches (`all-jobs` with a 2100s TTL, `facet-options` with a 3600s TTL, `rl:` rate-limit counters)
 - `src/server/locations/gazetteer.ts`, `src/lib/experience.ts`, `src/server/jobs/department.ts`: field normalization and remote/region detection
 
 How a crawl works: the cron (`*/30 * * * *`) computes the current sweep tick out of `TICKS_PER_SWEEP = 16`, takes the registry slice for that ordinal, and fetches each board. Rows are normalized, diffed against what D1 already has, and upserted. Listings older than `FRESHNESS_DAYS` are hidden from results, and the API serves from the KV caches before falling back to D1.

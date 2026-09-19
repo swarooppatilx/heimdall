@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/server/api/rate-limit";
 
 const mocks = vi.hoisted(() => {
   const store = new Map<string, string>();

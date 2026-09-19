@@ -12,7 +12,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({ env: state.env }),
 }));
 
-vi.mock("@/lib/rate-limit", () => ({
+vi.mock("@/server/api/rate-limit", () => ({
   checkRateLimit: () => ({ allowed: true, remaining: 100, resetMs: 60_000 }),
   rateLimitResponse: () => new Response("rate limited", { status: 429 }),
 }));

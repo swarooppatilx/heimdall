@@ -1,8 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { requireToken } from "@/app/api/_lib/auth";
-import { withRateLimit } from "@/lib/with-rate-limit";
-import { trackApiRequest } from "@/modules/analytics/analytics";
+import { trackApiRequest } from "@/server/analytics";
+import { requireToken } from "@/server/api/auth";
+import { withRateLimit } from "@/server/api/with-rate-limit";
 import { getCrawlStatusCached } from "@/server/crawl/status-cache";
 
 export const dynamic = "force-dynamic";

@@ -24,7 +24,7 @@
       }
     },
     {
-      "includes": ["src/lib/logger.ts"],
+      "includes": ["src/server/logger.ts"],
       "linter": {
         "rules": {
           "suspicious": { "noConsole": "off" }
