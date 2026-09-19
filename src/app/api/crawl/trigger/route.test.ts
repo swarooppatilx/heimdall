@@ -21,7 +21,7 @@ vi.mock("@/modules/crawl/scheduler", () => ({
   crawlSlices: (...args: unknown[]) => state.crawlSlicesMock(...args),
 }));
 
-vi.mock("@/db", () => ({
+vi.mock("@/server/db", () => ({
   bindDb: vi.fn(),
 }));
 

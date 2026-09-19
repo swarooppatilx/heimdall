@@ -1,7 +1,5 @@
 import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
-import { getDb } from "@/db";
-import { jobLocations, jobs } from "@/db/schema";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 import { resolvePlace } from "@/modules/crawl/gazetteer";
 import type { ExperienceLevel } from "@/modules/jobs/experience";
@@ -15,6 +13,8 @@ import {
   POSTED_WINDOWS_MS,
   type SearchResult,
 } from "@/modules/jobs/types";
+import { getDb } from "@/server/db";
+import { jobLocations, jobs } from "@/server/db/schema";
 
 // IMPORTANT: When adding a new filter to JobFilters, you must also update
 // `matchesFilters` in `@/modules/jobs/search.ts` to apply the same filter
