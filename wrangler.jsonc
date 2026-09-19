@@ -22,7 +22,7 @@
       "binding": "DB",
       "database_name": "heimdall",
       "database_id": "6b37f1bd-c8b0-403a-a09b-8bbf52eba642",
-      "migrations_dir": "drizzle"
+      "migrations_dir": "migrations"
     }
   ],
   "kv_namespaces": [

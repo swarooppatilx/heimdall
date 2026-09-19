@@ -97,7 +97,7 @@ The app runs as a single Worker (via the OpenNext adapter) with a cron-triggered
 
 - `worker/index.ts`: Worker entry point, request routing and the scheduled crawl
 - `src/app/`: Next.js pages and API routes (jobs, filters, crawl status)
-- `src/db/`: Drizzle schema (migrations live under `drizzle/`)
+- `src/db/`: Drizzle schema (migrations live under `migrations/`)
 - `src/modules/providers/`: one parser per ATS
 - `src/modules/crawl/registry.json` + `src/modules/crawl/registry.ts`: the curated registry of company boards the crawler reads
 - `src/modules/crawl/scheduler.ts`: slices the registry and runs a fetch pass per tick
