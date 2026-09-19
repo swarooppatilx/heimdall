@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
-import { getFacetOptionsCached } from "@/modules/jobs/facet-cache";
+import { getFacetOptionsCached } from "@/server/jobs/facet-cache";
 
 export const dynamic = "force-dynamic";
 

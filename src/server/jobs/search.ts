@@ -1,6 +1,4 @@
-import { sanitizeFilterValue } from "@/lib/sanitize";
-import { resolvePlace } from "@/modules/crawl/gazetteer";
-import type { Job } from "@/modules/jobs/job";
+import type { Job } from "@/lib/job";
 import {
   DEFAULT_LIMIT,
   type JobFilters,
@@ -8,7 +6,9 @@ import {
   type PageOptions,
   POSTED_WINDOWS_MS,
   type SearchResult,
-} from "@/modules/jobs/types";
+} from "@/lib/types";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
+import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 
 // IMPORTANT: When adding a new filter to JobFilters, you must also update
 // `jobConditions` in `@/modules/jobs/queries.ts` to apply the same filter

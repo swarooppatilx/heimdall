@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Job } from "@/modules/jobs/job";
+import type { Job } from "@/lib/job";
 import { createCrawlBudget } from "@/server/crawl/http";
 import { crawlAll, crawlSlices, shouldRunTick, sweepSlice } from "@/server/crawl/scheduler";
 
@@ -17,11 +17,11 @@ vi.mock("@/server/crawl/store", () => ({
   recordCrawl: vi.fn(async () => {}),
 }));
 
-vi.mock("@/modules/jobs/queries", () => ({
+vi.mock("@/server/jobs/queries", () => ({
   getJobsByBoard: (...args: unknown[]) => getJobsByBoardMock(...args),
 }));
 
-vi.mock("@/modules/jobs/writes", () => ({
+vi.mock("@/server/jobs/writes", () => ({
   deleteJobsByIds: (...args: unknown[]) => deleteJobsByIdsMock(...args),
   insertJobs: vi.fn(async () => {}),
   updateJobs: vi.fn(async () => {}),

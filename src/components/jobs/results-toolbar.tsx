@@ -4,9 +4,9 @@ import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreFiltersPopover } from "@/components/jobs/more-filters-popover";
 import { SortMenu } from "@/components/jobs/sort-menu";
+import { timeAgo } from "@/lib/time-ago";
 import { cn } from "@/lib/utils";
-import type { FacetOptions } from "@/modules/jobs/facets";
-import { timeAgo } from "@/modules/jobs/time-ago";
+import type { FacetOptions } from "@/server/jobs/facets";
 
 interface ResultsToolbarProps {
   countLabel: string;

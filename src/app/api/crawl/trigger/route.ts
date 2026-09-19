@@ -4,9 +4,9 @@ import { requireToken } from "@/app/api/_lib/auth";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
-import { configureFreshness } from "@/modules/jobs/freshness";
 import { crawlSlices } from "@/server/crawl/scheduler";
 import { bindDb } from "@/server/db";
+import { configureFreshness } from "@/server/jobs/freshness";
 
 export const dynamic = "force-dynamic";
 

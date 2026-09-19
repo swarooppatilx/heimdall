@@ -1,9 +1,6 @@
 import { formatError, logEvent } from "@/lib/logger";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
-import { configureFreshness } from "@/modules/jobs/freshness";
-import { getJobQuality } from "@/modules/jobs/quality";
-import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
 import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
 import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/server/crawl/drift";
 import { getRegistry } from "@/server/crawl/registry";
@@ -11,6 +8,9 @@ import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/server/craw
 import { warmCrawlStatusCache } from "@/server/crawl/status-cache";
 import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/server/crawl/store";
 import { bindDb } from "@/server/db";
+import { configureFreshness } from "@/server/jobs/freshness";
+import { getJobQuality } from "@/server/jobs/quality";
+import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/server/jobs/writes";
 import handler from "./open-next-handler.mjs";
 
 interface ScheduledController {

@@ -24,7 +24,7 @@ const mockFacets = {
   ],
 };
 
-vi.mock("@/modules/jobs/facet-cache", () => ({
+vi.mock("@/server/jobs/facet-cache", () => ({
   getFacetOptionsCached: async () => mockFacets,
 }));
 

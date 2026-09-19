@@ -1,12 +1,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { formatError, logEvent } from "@/lib/logger";
+import { type JobFilters, type PageOptions, POSTED_WINDOWS } from "@/lib/types";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
-import { readAllJobsFromKV, writeAllJobsToKV } from "@/modules/jobs/kv";
-import { getAllFreshJobs, searchJobsWithCount } from "@/modules/jobs/queries";
-import { searchJobs } from "@/modules/jobs/search";
-import { type JobFilters, type PageOptions, POSTED_WINDOWS } from "@/modules/jobs/types";
+import { readAllJobsFromKV, writeAllJobsToKV } from "@/server/jobs/kv";
+import { getAllFreshJobs, searchJobsWithCount } from "@/server/jobs/queries";
+import { searchJobs } from "@/server/jobs/search";
 
 export const dynamic = "force-dynamic";
 

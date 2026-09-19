@@ -1,8 +1,8 @@
-import { sanitizeFilterValue } from "@/lib/sanitize";
+import { EXPERIENCE_LEVELS } from "@/lib/experience";
 import { LOCATION_CATALOG } from "@/modules/crawl/gazetteer";
-import { DEPARTMENTS } from "@/modules/jobs/department";
-import { EXPERIENCE_LEVELS } from "@/modules/jobs/experience";
 import registry from "@/server/crawl/registry.json";
+import { DEPARTMENTS } from "@/server/jobs/department";
+import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 
 export const FILTER_SOURCES = [
   ...new Set(registry.map((entry) => entry.provider)),

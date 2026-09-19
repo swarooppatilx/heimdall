@@ -1,5 +1,5 @@
+import type { ExperienceLevel } from "@/lib/experience";
 import { logEvent } from "@/lib/logger";
-import type { ExperienceLevel } from "@/modules/jobs/experience";
 
 export interface Job {
   id: string;

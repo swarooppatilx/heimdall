@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Job } from "@/modules/jobs/job";
+import type { Job } from "@/lib/job";
 
 const jobs: Job[] = [
   {
@@ -28,11 +28,11 @@ const { mockGetRecentJobs } = vi.hoisted(() => ({
   mockGetRecentJobs: vi.fn(),
 }));
 
-vi.mock("@/modules/jobs/queries", () => ({
+vi.mock("@/server/jobs/queries", () => ({
   getRecentJobs: (limit: number) => mockGetRecentJobs(limit),
 }));
 
-vi.mock("@/modules/jobs/kv", () => ({
+vi.mock("@/server/jobs/kv", () => ({
   getRecentJobsFromKV: async () => undefined,
 }));
 
@@ -40,7 +40,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: async () => ({ env: { CACHE: null } }),
 }));
 
-vi.mock("@/modules/jobs/site", () => ({
+vi.mock("@/server/jobs/site", () => ({
   siteUrl: async () => "https://example.com",
 }));
 

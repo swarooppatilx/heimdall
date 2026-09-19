@@ -1,13 +1,13 @@
+import type { Job } from "@/lib/job";
 import { formatError, logEvent } from "@/lib/logger";
 import { MS_PER_MINUTE } from "@/lib/time";
-import type { Job } from "@/modules/jobs/job";
-import { getJobsByBoard } from "@/modules/jobs/queries";
-import { deleteJobsByIds, insertJobs, updateJobs } from "@/modules/jobs/writes";
 import { diffJobs, isSuspiciousDeletion } from "@/server/crawl/diff";
 import { fetchJobs } from "@/server/crawl/fetch-jobs";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/server/crawl/http";
 import { getRegistry, type RegistryEntry } from "@/server/crawl/registry";
 import { recordCrawl } from "@/server/crawl/store";
+import { getJobsByBoard } from "@/server/jobs/queries";
+import { deleteJobsByIds, insertJobs, updateJobs } from "@/server/jobs/writes";
 
 interface CrawlResult {
   company: string;
