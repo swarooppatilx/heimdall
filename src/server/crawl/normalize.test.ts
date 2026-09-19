@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeLocation } from "@/modules/crawl/normalize";
+import { normalizeLocation } from "@/server/crawl/normalize";
 
 describe("normalizeLocation", () => {
   it("returns unknown for empty input", () => {

@@ -1,10 +1,10 @@
 import { kvCacheAside, warmKvCache } from "@/lib/kv-cache";
 import { trackKvCache } from "@/modules/analytics/analytics";
-import { assessBoards, driftedBoards } from "@/modules/crawl/board-health";
-import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
-import { toPublic } from "@/modules/crawl/helpers";
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
-import { getCrawlHistory, getLatestCrawls, getRecentCrawlSamples } from "@/modules/crawl/store";
+import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
+import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/server/crawl/drift";
+import { toPublic } from "@/server/crawl/helpers";
+import type { CrawlStatusEntry } from "@/server/crawl/status";
+import { getCrawlHistory, getLatestCrawls, getRecentCrawlSamples } from "@/server/crawl/store";
 
 const CACHE_KEY = "crawl-status";
 const EDGE_TTL_SECONDS = 60;

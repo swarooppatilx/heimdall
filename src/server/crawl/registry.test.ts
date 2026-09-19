@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRegistry } from "@/modules/crawl/registry";
+import { getRegistry } from "@/server/crawl/registry";
 
 const KNOWN_PROVIDERS = new Set(["greenhouse", "lever", "ashby", "smartrecruiters", "workable"]);
 

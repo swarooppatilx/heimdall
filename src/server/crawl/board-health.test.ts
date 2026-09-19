@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessBoards, driftedBoards } from "@/modules/crawl/board-health";
+import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
 
 const sample = (company: string, jobsFound: number, status = "ok") => ({
   company,

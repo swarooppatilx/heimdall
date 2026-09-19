@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { type CrawlBudget, fetchJson } from "@/lib/http";
-import { normalizeLocation, normalizeLocations } from "@/modules/crawl/normalize";
 import { inferDepartment } from "@/modules/jobs/department";
 import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
+import { type CrawlBudget, fetchJson } from "@/server/crawl/http";
+import { normalizeLocation, normalizeLocations } from "@/server/crawl/normalize";
 
 const ashbyJobSchema = z.object({
   id: z.string(),

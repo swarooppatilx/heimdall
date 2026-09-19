@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { requireToken } from "@/app/api/_lib/auth";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
-import { getCrawlStatusCached } from "@/modules/crawl/status-cache";
+import { getCrawlStatusCached } from "@/server/crawl/status-cache";
 
 export const dynamic = "force-dynamic";
 
