@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { FilterSelect } from "@/components/filter-select";
+import { FilterSelect } from "@/components/jobs/filter-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { FacetOptions } from "@/server/jobs/facets";
 

@@ -3,11 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
-import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobCardSkeleton } from "@/components/jobs/job-card-skeleton";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { ResultsToolbar } from "@/components/jobs/results-toolbar";
+import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";

@@ -1,7 +1,7 @@
 "use client";
 
-import { GitHubLink } from "@/components/github-link";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { GitHubLink } from "@/components/layout/github-link";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 type HeaderProps = {
   left?: React.ReactNode;

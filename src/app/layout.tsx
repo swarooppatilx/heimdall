@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Script from "next/script";
-import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
+import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/lib/site-config";
 import { siteUrl } from "@/server/jobs/site";
