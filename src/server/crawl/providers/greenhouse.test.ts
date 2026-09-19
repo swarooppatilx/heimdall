@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchGreenhouseJobs } from "@/modules/providers/greenhouse";
+import { fetchGreenhouseJobs } from "@/server/crawl/providers/greenhouse";
 
 const mockResponse = {
   jobs: [
