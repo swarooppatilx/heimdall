@@ -10,11 +10,11 @@ import {
   POSTED_WINDOWS_MS,
   type SearchResult,
 } from "@/lib/types";
-import { resolvePlace } from "@/modules/crawl/gazetteer";
 import { getDb } from "@/server/db";
 import { jobLocations, jobs } from "@/server/db/schema";
 import { freshnessCutoff } from "@/server/jobs/freshness";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
+import { resolvePlace } from "@/server/locations/gazetteer";
 
 // IMPORTANT: When adding a new filter to JobFilters, you must also update
 // `matchesFilters` in `@/modules/jobs/search.ts` to apply the same filter

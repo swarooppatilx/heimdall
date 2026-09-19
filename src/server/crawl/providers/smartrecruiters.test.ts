@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchSmartRecruitersJobs } from "@/modules/providers/smartrecruiters";
+import { fetchSmartRecruitersJobs } from "@/server/crawl/providers/smartrecruiters";
 
 const mockResponse = {
   totalFound: 2,

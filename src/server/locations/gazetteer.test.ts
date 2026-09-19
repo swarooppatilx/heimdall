@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPlace, resolvePlace } from "@/modules/crawl/gazetteer";
+import { formatPlace, resolvePlace } from "@/server/locations/gazetteer";
 
 describe("resolvePlace", () => {
   const city = (raw: string) => {
