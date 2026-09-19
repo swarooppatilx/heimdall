@@ -1,5 +1,5 @@
-import { cacheKv } from "@/lib/cache-kv";
-import { formatError, logEvent } from "@/lib/logger";
+import { cacheKv } from "@/server/cache-kv";
+import { formatError, logEvent } from "@/server/logger";
 
 export interface KvCacheTrackEvent {
   operation: "read" | "write";

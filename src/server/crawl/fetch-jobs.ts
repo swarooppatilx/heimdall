@@ -1,6 +1,5 @@
 import { detectExperienceLevel } from "@/lib/experience";
 import type { Job } from "@/lib/job";
-import { logEvent } from "@/lib/logger";
 import type { CrawlBudget } from "@/server/crawl/http";
 import { fetchAshbyJobs } from "@/server/crawl/providers/ashby";
 import { fetchGreenhouseJobs } from "@/server/crawl/providers/greenhouse";
@@ -12,6 +11,7 @@ import { normalizeDepartment } from "@/server/jobs/department";
 import { freshnessCutoff } from "@/server/jobs/freshness";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 import { formatPlace, resolvePlace } from "@/server/locations/gazetteer";
+import { logEvent } from "@/server/logger";
 
 type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
 

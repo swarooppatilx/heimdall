@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { withRateLimit } from "@/lib/with-rate-limit";
+import { withRateLimit } from "@/server/api/with-rate-limit";
 
 vi.mock("./rate-limit", () => ({
   checkRateLimit: () => ({ allowed: true, remaining: 10, resetMs: 60_000 }),

@@ -1,4 +1,4 @@
-import { constantTimeEqual } from "@/lib/security";
+import { constantTimeEqual } from "@/server/api/security";
 
 interface TokenOptions {
   env: unknown;

@@ -5,12 +5,12 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
+import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
 import type { Job } from "@/lib/job";
 import { dedupeJobs } from "@/lib/job";
-import { formatError, logEvent } from "@/lib/logger";
-import { fromCompanySlug, toCompanySlug } from "@/modules/companies/slug";
 import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/server/jobs/kv";
 import { getAllFreshJobs, getJobsByCompany } from "@/server/jobs/queries";
+import { formatError, logEvent } from "@/server/logger";
 
 function decodeCompany(raw: string): string | null {
   const company = fromCompanySlug(raw);

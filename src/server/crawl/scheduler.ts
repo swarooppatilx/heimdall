@@ -1,5 +1,4 @@
 import type { Job } from "@/lib/job";
-import { formatError, logEvent } from "@/lib/logger";
 import { MS_PER_MINUTE } from "@/lib/time";
 import { diffJobs, isSuspiciousDeletion } from "@/server/crawl/diff";
 import { fetchJobs } from "@/server/crawl/fetch-jobs";
@@ -8,6 +7,7 @@ import { getRegistry, type RegistryEntry } from "@/server/crawl/registry";
 import { recordCrawl } from "@/server/crawl/store";
 import { getJobsByBoard } from "@/server/jobs/queries";
 import { deleteJobsByIds, insertJobs, updateJobs } from "@/server/jobs/writes";
+import { formatError, logEvent } from "@/server/logger";
 
 interface CrawlResult {
   company: string;

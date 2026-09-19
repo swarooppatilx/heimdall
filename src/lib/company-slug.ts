@@ -1,4 +1,4 @@
-import { formatError, logEvent } from "@/lib/logger";
+import { formatError, logEvent } from "@/server/logger";
 
 export function toCompanySlug(company: string): string {
   return encodeURIComponent(company);

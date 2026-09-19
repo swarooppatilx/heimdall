@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { formatError, logEvent } from "@/lib/logger";
 import { MS_PER_SECOND } from "@/lib/time";
+import { formatError, logEvent } from "@/server/logger";
 
 interface RateLimitEntry {
   timestamps: number[];
