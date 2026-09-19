@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MS_PER_DAY } from "@/lib/time";
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
+import type { CrawlStatusEntry } from "@/server/crawl/status";
 
 export function useSyncStatus() {
   const { data: crawlStatus } = useQuery<{ latest: CrawlStatusEntry[] }>({

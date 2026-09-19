@@ -1,15 +1,15 @@
 import { formatError, logEvent } from "@/lib/logger";
 import { setAnalyticsBinding, trackCrawlTick } from "@/modules/analytics/analytics";
 import { warmAllCaches } from "@/modules/cache-warmer";
-import { assessBoards, driftedBoards } from "@/modules/crawl/board-health";
-import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/modules/crawl/drift";
-import { getRegistry } from "@/modules/crawl/registry";
-import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/modules/crawl/scheduler";
-import { warmCrawlStatusCache } from "@/modules/crawl/status-cache";
-import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/modules/crawl/store";
 import { configureFreshness } from "@/modules/jobs/freshness";
 import { getJobQuality } from "@/modules/jobs/quality";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/modules/jobs/writes";
+import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
+import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/server/crawl/drift";
+import { getRegistry } from "@/server/crawl/registry";
+import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/server/crawl/scheduler";
+import { warmCrawlStatusCache } from "@/server/crawl/status-cache";
+import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/server/crawl/store";
 import { bindDb } from "@/server/db";
 import handler from "./open-next-handler.mjs";
 

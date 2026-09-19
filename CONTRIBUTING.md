@@ -99,9 +99,9 @@ The app runs as a single Worker (via the OpenNext adapter) with a cron-triggered
 - `src/app/`: Next.js pages and API routes (jobs, filters, crawl status)
 - `src/db/`: Drizzle schema (migrations live under `migrations/`)
 - `src/modules/providers/`: one parser per ATS
-- `src/modules/crawl/registry.json` + `src/modules/crawl/registry.ts`: the curated registry of company boards the crawler reads
-- `src/modules/crawl/scheduler.ts`: slices the registry and runs a fetch pass per tick
-- `src/modules/crawl/normalize.ts`, `src/modules/jobs/diff.ts`, `src/modules/jobs/writes.ts`: normalize, dedupe, diff, and persist listings to D1
+- `src/server/crawl/registry.json` + `src/server/crawl/registry.ts`: the curated registry of company boards the crawler reads
+- `src/server/crawl/scheduler.ts`: slices the registry and runs a fetch pass per tick
+- `src/server/crawl/normalize.ts`, `src/server/crawl/diff.ts`, `src/modules/jobs/writes.ts`: normalize, dedupe, diff, and persist listings to D1
 - `src/modules/jobs/kv.ts`, `src/lib/cache-kv.ts`, `src/modules/jobs/facets.ts`: KV response caches (`all-jobs` with a 2100s TTL, `facet-options` with a 3600s TTL, `rl:` rate-limit counters)
 - `src/modules/crawl/gazetteer.ts`, `src/modules/jobs/experience.ts`, `src/modules/jobs/department.ts`: field normalization and remote/region detection
 
@@ -113,7 +113,7 @@ The quickest way to add a provider is to copy the shape of an existing one; `src
 
 1. Create `src/modules/providers/<name>.ts`: a parse function (or async fetcher) that maps the ATS's raw listing into the `Job` shape from `src/modules/jobs/job.ts`. `id`, `title`, `company`, `location`, and `url` are required. Let `detectExperienceLevel` infer a level from the title (`src/modules/jobs/experience.ts`) when the ATS provides none, and detect remote via the gazetteer (`resolvePlace` in `src/modules/crawl/gazetteer.ts`) instead of string matching in the provider.
 2. Add `src/modules/providers/<name>.test.ts` with fixtures mirroring the raw ATS payload, asserting the mapped `Job` fields.
-3. Add one entry per company board to `src/modules/crawl/registry.json`, with `provider: "<name>"` and `apiUrl` when the ATS exposes one.
+3. Add one entry per company board to `src/server/crawl/registry.json`, with `provider: "<name>"` and `apiUrl` when the ATS exposes one.
 4. Run the [Checks](#checks).
 
 Keep the fetch budget in mind: an invocation allows 35 external subrequests, so a sweep tick processes roughly 31 boards. The registry is near its ceiling (~500 boards). Prefer the one-request-per-board pattern the existing providers use over per-listing requests, and when in doubt, ask in the PR.

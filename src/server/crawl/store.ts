@@ -1,7 +1,7 @@
 import { desc, sql } from "drizzle-orm";
 import { MS_PER_SECOND } from "@/lib/time";
-import type { CrawlSample } from "@/modules/crawl/board-health";
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
+import type { CrawlSample } from "@/server/crawl/board-health";
+import type { CrawlStatusEntry } from "@/server/crawl/status";
 import { getDb } from "@/server/db";
 import { crawls } from "@/server/db/schema";
 

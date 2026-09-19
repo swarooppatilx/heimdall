@@ -1,8 +1,6 @@
-import type { CrawlBudget } from "@/lib/http";
 import { logEvent } from "@/lib/logger";
 import { sanitizeFilterValue } from "@/lib/sanitize";
 import { formatPlace, resolvePlace } from "@/modules/crawl/gazetteer";
-import type { RegistryEntry } from "@/modules/crawl/registry";
 import { normalizeDepartment } from "@/modules/jobs/department";
 import { detectExperienceLevel } from "@/modules/jobs/experience";
 import { freshnessCutoff } from "@/modules/jobs/freshness";
@@ -12,6 +10,8 @@ import { fetchGreenhouseJobs } from "@/modules/providers/greenhouse";
 import { fetchLeverJobs } from "@/modules/providers/lever";
 import { fetchSmartRecruitersJobs } from "@/modules/providers/smartrecruiters";
 import { fetchWorkableJobs } from "@/modules/providers/workable";
+import type { CrawlBudget } from "@/server/crawl/http";
+import type { RegistryEntry } from "@/server/crawl/registry";
 
 type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
 

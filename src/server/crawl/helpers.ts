@@ -1,4 +1,4 @@
-import type { CrawlStatusEntry } from "@/modules/crawl/status";
+import type { CrawlStatusEntry } from "@/server/crawl/status";
 
 export function toIsoUtc(dbTimestamp: string): string {
   return new Date(`${dbTimestamp.replace(" ", "T")}Z`).toISOString();

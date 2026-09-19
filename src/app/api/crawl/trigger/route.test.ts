@@ -17,7 +17,7 @@ vi.mock("@/lib/rate-limit", () => ({
   rateLimitResponse: () => new Response("rate limited", { status: 429 }),
 }));
 
-vi.mock("@/modules/crawl/scheduler", () => ({
+vi.mock("@/server/crawl/scheduler", () => ({
   crawlSlices: (...args: unknown[]) => state.crawlSlicesMock(...args),
 }));
 
