@@ -1,10 +1,10 @@
 import { z } from "zod";
+import type { Job } from "@/lib/job";
 import { splitLocations } from "@/modules/crawl/gazetteer";
-import { inferDepartment } from "@/modules/jobs/department";
-import type { Job } from "@/modules/jobs/job";
 import { mapPostings } from "@/modules/providers/postings";
 import { type CrawlBudget, fetchJson } from "@/server/crawl/http";
 import { normalizeLocation, normalizeLocations } from "@/server/crawl/normalize";
+import { inferDepartment } from "@/server/jobs/department";
 
 const greenhouseJobSchema = z.object({
   id: z.number(),

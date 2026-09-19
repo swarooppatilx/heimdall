@@ -1,8 +1,8 @@
 import { cacheKv } from "@/lib/cache-kv";
 import { formatError, logEvent } from "@/lib/logger";
-import { warmFacetCache } from "@/modules/jobs/facet-cache";
-import { writeAllJobsToKV } from "@/modules/jobs/kv";
-import { getAllFreshJobs } from "@/modules/jobs/queries";
+import { warmFacetCache } from "@/server/jobs/facet-cache";
+import { writeAllJobsToKV } from "@/server/jobs/kv";
+import { getAllFreshJobs } from "@/server/jobs/queries";
 
 const ALL_JOBS_KEY = "all-jobs";
 

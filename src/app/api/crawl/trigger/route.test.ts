@@ -25,19 +25,19 @@ vi.mock("@/server/db", () => ({
   bindDb: vi.fn(),
 }));
 
-vi.mock("@/modules/jobs/queries", () => ({
+vi.mock("@/server/jobs/queries", () => ({
   getAllFreshJobs: (...args: unknown[]) => state.getAllFreshJobsMock(...args),
 }));
 
-vi.mock("@/modules/jobs/kv", () => ({
+vi.mock("@/server/jobs/kv", () => ({
   writeAllJobsToKV: (...args: unknown[]) => state.writeAllJobsToKVMock(...args),
 }));
 
-vi.mock("@/modules/jobs/facet-cache", () => ({
+vi.mock("@/server/jobs/facet-cache", () => ({
   warmFacetCache: (...args: unknown[]) => state.warmFacetCacheMock(...args),
 }));
 
-vi.mock("@/modules/jobs/freshness", () => ({
+vi.mock("@/server/jobs/freshness", () => ({
   DAY_MS: 86_400_000,
   configureFreshness: vi.fn(),
 }));

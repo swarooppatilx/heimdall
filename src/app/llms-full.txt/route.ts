@@ -1,9 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { trackApiRequest } from "@/modules/analytics/analytics";
-import { getRecentJobsFromKV } from "@/modules/jobs/kv";
-import { getRecentJobs } from "@/modules/jobs/queries";
-import { siteUrl } from "@/modules/jobs/site";
+import { getRecentJobsFromKV } from "@/server/jobs/kv";
+import { getRecentJobs } from "@/server/jobs/queries";
+import { siteUrl } from "@/server/jobs/site";
 
 export const dynamic = "force-dynamic";
 

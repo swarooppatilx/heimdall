@@ -1,5 +1,5 @@
 import { FilterSelect } from "@/components/filter-select";
-import type { FacetOptions } from "@/modules/jobs/facets";
+import type { FacetOptions } from "@/server/jobs/facets";
 
 interface JobFiltersProps {
   query: string;

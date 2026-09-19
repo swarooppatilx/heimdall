@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/jobs/route";
-import type { Job } from "@/modules/jobs/job";
+import type { Job } from "@/lib/job";
 
 function readJobs(res: Response): Promise<Job[]> {
   return res.json() as Promise<Job[]>;
@@ -8,13 +8,13 @@ function readJobs(res: Response): Promise<Job[]> {
 
 const mockSearchJobsWithCount = vi.fn();
 
-vi.mock("@/modules/jobs/queries", () => ({
+vi.mock("@/server/jobs/queries", () => ({
   searchJobsWithCount: (...args: unknown[]) => mockSearchJobsWithCount(...args),
   getAllFreshJobs: vi.fn(async () => []),
 }));
 
-vi.mock("@/modules/jobs/types", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/modules/jobs/types")>();
+vi.mock("@/lib/types", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/lib/types")>();
   return { ...original, POSTED_WINDOWS: ["today", "week"] };
 });
 

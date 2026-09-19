@@ -1,10 +1,7 @@
 import type { AnyColumn } from "drizzle-orm";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
-import { sanitizeFilterValue } from "@/lib/sanitize";
-import { resolvePlace } from "@/modules/crawl/gazetteer";
-import type { ExperienceLevel } from "@/modules/jobs/experience";
-import { freshnessCutoff } from "@/modules/jobs/freshness";
-import type { Job } from "@/modules/jobs/job";
+import type { ExperienceLevel } from "@/lib/experience";
+import type { Job } from "@/lib/job";
 import {
   DEFAULT_LIMIT,
   type JobFilters,
@@ -12,9 +9,12 @@ import {
   type PageOptions,
   POSTED_WINDOWS_MS,
   type SearchResult,
-} from "@/modules/jobs/types";
+} from "@/lib/types";
+import { resolvePlace } from "@/modules/crawl/gazetteer";
 import { getDb } from "@/server/db";
 import { jobLocations, jobs } from "@/server/db/schema";
+import { freshnessCutoff } from "@/server/jobs/freshness";
+import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 
 // IMPORTANT: When adding a new filter to JobFilters, you must also update
 // `matchesFilters` in `@/modules/jobs/search.ts` to apply the same filter

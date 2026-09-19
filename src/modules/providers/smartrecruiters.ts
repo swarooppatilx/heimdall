@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { inferDepartment } from "@/modules/jobs/department";
-import type { Job } from "@/modules/jobs/job";
+import type { Job } from "@/lib/job";
 import { mapPostings } from "@/modules/providers/postings";
 import { type CrawlBudget, fetchJson } from "@/server/crawl/http";
 import { normalizeLocation, normalizeLocations } from "@/server/crawl/normalize";
+import { inferDepartment } from "@/server/jobs/department";
 
 const smartRecruitersPostingSchema = z.object({
   id: z.string(),

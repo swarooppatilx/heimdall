@@ -5,7 +5,7 @@ import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/lib/site-config";
-import { siteUrl } from "@/modules/jobs/site";
+import { siteUrl } from "@/server/jobs/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 

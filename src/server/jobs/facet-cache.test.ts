@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getFacetOptionsCached } from "@/modules/jobs/facet-cache";
+import { getFacetOptionsCached } from "@/server/jobs/facet-cache";
 
 const kvStore = new Map<string, string>();
 // biome-ignore lint/suspicious/useAwait: mock implementation returns promise by design
@@ -18,7 +18,7 @@ const cacheEnv = { CACHE: { get: kvGet, put: kvPut } } as unknown as Pick<Cloudf
 const dbFacets = { remoteCount: 7, countries: [] };
 const dbGet = vi.fn(async () => dbFacets);
 
-vi.mock("@/modules/jobs/facets", () => ({
+vi.mock("@/server/jobs/facets", () => ({
   getFacetOptions: () => dbGet(),
 }));
 

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { FacetOptions } from "@/modules/jobs/facets";
+import type { FacetOptions } from "@/server/jobs/facets";
 
 export function useLocationOptions(filterOptions: FacetOptions | undefined): string[] {
   return useMemo(() => {

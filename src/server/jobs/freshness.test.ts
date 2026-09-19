@@ -4,7 +4,7 @@ import {
   currentFreshnessDays,
   DEFAULT_FRESHNESS_DAYS,
   freshnessCutoff,
-} from "@/modules/jobs/freshness";
+} from "@/server/jobs/freshness";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

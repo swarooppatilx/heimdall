@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Job } from "@/modules/jobs/job";
-import { searchJobs } from "@/modules/jobs/search";
+import type { Job } from "@/lib/job";
+import { searchJobs } from "@/server/jobs/search";
 
 function makeJob(overrides: Partial<Job> = {}): Job {
   return {

@@ -1,8 +1,8 @@
 "use client";
 
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import type { Job } from "@/modules/jobs/job";
-import { DEFAULT_LIMIT } from "@/modules/jobs/types";
+import type { Job } from "@/lib/job";
+import { DEFAULT_LIMIT } from "@/lib/types";
 
 interface JobFiltersInput {
   q: string;
