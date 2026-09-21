@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS `idx_crawls_company_id` ON `crawls` (`company`, `id` DESC);
