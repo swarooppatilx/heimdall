@@ -10,11 +10,14 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-outfit);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -29,6 +32,9 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --spacing-header: 5rem;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,13 +55,14 @@
   --primary-foreground: oklch(0.986 0.002 67.8);
   --secondary: oklch(0.945 0.005 70);
   --secondary-foreground: oklch(0.22 0.008 55);
-  --muted: oklch(0.945 0.005 70);
+  --muted: oklch(0.955 0.004 70);
   --muted-foreground: oklch(0.5 0.015 60);
-  --accent: oklch(0.945 0.005 70);
+  --accent: oklch(0.925 0.006 70);
   --accent-foreground: oklch(0.22 0.008 55);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.005 65);
-  --input: oklch(0.9 0.005 65);
+  --destructive: oklch(0.56 0.2 27);
+  --warning: oklch(0.555 0.14 49);
+  --border: oklch(0.88 0.006 65);
+  --input: oklch(0.88 0.006 65);
   --ring: oklch(0.55 0.11 260);
   --radius: 0.625rem;
 }
@@ -71,14 +78,22 @@
   --primary-foreground: oklch(0.214 0.009 43.1);
   --secondary: oklch(0.25 0.006 55);
   --secondary-foreground: oklch(0.958 0.006 80);
-  --muted: oklch(0.25 0.006 55);
+  --muted: oklch(0.22 0.005 55);
   --muted-foreground: oklch(0.72 0.008 70);
-  --accent: oklch(0.25 0.006 55);
+  --accent: oklch(0.28 0.007 55);
   --accent-foreground: oklch(0.958 0.006 80);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.26 0.006 60);
-  --input: oklch(1 0 0 / 14%);
+  --destructive: oklch(0.704 0.17 22);
+  --warning: oklch(0.828 0.16 84);
+  --border: oklch(0.28 0.006 60);
+  --input: oklch(0.3 0.006 60);
   --ring: oklch(0.78 0.087 260);
+}
+
+/* Off-screen cards skip layout and paint until scrolled near; the intrinsic
+   size keeps the scrollbar honest. Matches a one-line card. */
+@utility content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 5rem;
 }
 
 @layer base {
@@ -92,6 +107,17 @@
     @apply cursor-pointer;
   }
   html {
-    @apply font-sans;
+    scroll-padding-top: calc(var(--spacing-header) + --spacing(16));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
 }
