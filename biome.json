@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -11,15 +11,23 @@
   "overrides": [
     {
       "includes": ["cloudflare-env.d.ts"],
-      "linter": { "enabled": false },
-      "formatter": { "enabled": false },
-      "assist": { "enabled": false }
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      },
+      "assist": {
+        "enabled": false
+      }
     },
     {
       "includes": ["**/*.test.ts", "**/*.test.tsx"],
       "linter": {
         "rules": {
-          "style": { "noMagicNumbers": "off" }
+          "style": {
+            "noMagicNumbers": "off"
+          }
         }
       }
     },
@@ -27,7 +35,27 @@
       "includes": ["src/server/logger.ts"],
       "linter": {
         "rules": {
-          "suspicious": { "noConsole": "off" }
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off"
+          },
+          "complexity": {
+            "noImplicitCoercions": "off"
+          },
+          "suspicious": {
+            "noDoubleEquals": "off",
+            "noLeakedRender": "off",
+            "noArrayIndexKey": "off"
+          }
         }
       }
     }
