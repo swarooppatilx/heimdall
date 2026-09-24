@@ -1,7 +1,7 @@
 import { GithubIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/lib/site";
 
 export function GitHubLink() {
   return (

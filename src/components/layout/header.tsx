@@ -1,36 +1,20 @@
-"use client";
-
 import { GitHubLink } from "@/components/layout/github-link";
+import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
-type HeaderProps = {
+interface HeaderProps {
   left?: React.ReactNode;
   right?: React.ReactNode;
-};
+}
 
 function DefaultLeft() {
   return (
     <div className="flex items-center gap-1">
-      <img
-        src={"logo_dark.svg"}
-        height={128}
-        width={128}
-        alt="Heimdall Logo"
-        className="h-14 w-14 hidden dark:block"
-      />
-      <img
-        src={"logo_light.svg"}
-        height={128}
-        width={128}
-        alt="Heimdall Logo"
-        className="h-14 w-14 dark:hidden"
-      />
-      <div className="-ml-2 flex flex-col leading-none">
-        <h1 className="text-xl font-semibold tracking-tight">heimdall</h1>
-
-        <span className="text-[10px] text-muted-foreground">
-          fresh tech jobs, direct from source
-        </span>
+      {/* decorative: the heading beside it carries the name */}
+      <Logo size={56} className="-ml-2 size-14" />
+      <div className="-ml-2 flex flex-col gap-0.5">
+        <h1 className="font-display text-xl leading-none font-semibold tracking-tight">heimdall</h1>
+        <span className="text-2xs text-muted-foreground">fresh tech jobs, direct from source</span>
       </div>
     </div>
   );
@@ -47,8 +31,8 @@ function DefaultRight() {
 
 export function Header({ left, right }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 border-b border-border/40 bg-background/5 backdrop-blur-3xl">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-20 h-header border-b border-border bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-6">
         {left ?? <DefaultLeft />}
         {right ?? <DefaultRight />}
       </div>

@@ -1,14 +1,14 @@
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/lib/site";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/40 bg-background/5 backdrop-blur-3xl">
-      <div className="mx-auto flex max-w-5xl justify-center px-4 py-4 text-xs text-muted-foreground sm:px-6">
+    <footer className="border-t border-border">
+      <div className="mx-auto flex max-w-5xl justify-center px-4 py-2 text-xs text-muted-foreground sm:px-6">
         <a
           href={siteConfig.author.twitter}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-foreground transition-colors"
+          className="py-2 transition-colors hover:text-foreground"
         >
           made by {siteConfig.author.name}
         </a>
