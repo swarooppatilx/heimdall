@@ -1,7 +1,7 @@
 "use client";
 
 import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
+import { StatusPage } from "@/components/layout/status-page";
 import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
@@ -13,24 +13,13 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Header />
-        <main className="flex flex-1 items-center justify-center px-4 py-16">
-          <div className="text-center">
-            <p className="text-6xl font-semibold tracking-tight text-muted-foreground">whoops</p>
-            <p className="mt-3 text-sm text-muted-foreground">
-              something went wrong at the gate. the issue is probably temporary.
-            </p>
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <Button size="sm" onClick={() => reset()}>
-                try again
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <a href="/">back to fresh jobs</a>
-              </Button>
-            </div>
-          </div>
-        </main>
+      <body className="flex min-h-dvh flex-col bg-background text-foreground">
+        <StatusPage code="500" message="something broke at the gate. it's usually temporary.">
+          <Button onClick={() => reset()}>try again</Button>
+          <Button asChild variant="outline">
+            <a href="/">back to fresh jobs</a>
+          </Button>
+        </StatusPage>
         <Footer />
       </body>
     </html>
