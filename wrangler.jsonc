@@ -3,11 +3,14 @@
   "keep_names": false,
   "name": "heimdall",
   "main": "worker/index.ts",
-  "compatibility_date": "2026-06-15",
+  "compatibility_date": "2026-10-02",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public", "enable_request_signal"],
   "upload_source_maps": true,
   "cache": {
     "enabled": true
+  },
+  "placement": {
+    "mode": "smart"
   },
   "vars": {
     "FRESHNESS_DAYS": "15",
@@ -22,6 +25,7 @@
       "binding": "DB",
       "database_name": "heimdall",
       "database_id": "6b37f1bd-c8b0-403a-a09b-8bbf52eba642",
+      "preview_database_id": "fac64079-6ed9-4a02-ac5a-098b14d8d4c7",
       "migrations_dir": "migrations"
     }
   ],
@@ -31,6 +35,27 @@
       "id": "18d7a6e62e0f4a0ab248982bb2faa2ce"
     }
   ],
+  "ratelimits": [
+    {
+      "name": "JOBS_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 100, "period": 60 }
+    },
+    {
+      "name": "FILTERS_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 30, "period": 60 }
+    },
+    {
+      "name": "STATUS_RATE_LIMITER",
+      "namespace_id": "1003",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ],
+  "queues": {
+    "producers": [{ "binding": "CRAWL_QUEUE", "queue": "heimdall-crawl" }],
+    "consumers": [{ "queue": "heimdall-crawl", "max_batch_size": 1, "max_retries": 2 }]
+  },
   "triggers": {
     "crons": ["*/30 * * * *"]
   },
@@ -40,13 +65,61 @@
       "dataset": "heimdall"
     }
   ],
+  // Previews never inherit production bindings: they get their own D1, KV and
+  // rate-limit counters (namespace ids are account-wide), and no queue
+  // producer, so a branch can never start a production crawl.
+  "previews": {
+    "vars": {
+      "FRESHNESS_DAYS": "15",
+      "NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "30c1eed54e67440c8dce414f993f30aa"
+    },
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "heimdall-preview",
+        "database_id": "fac64079-6ed9-4a02-ac5a-098b14d8d4c7",
+        "migrations_dir": "migrations"
+      }
+    ],
+    "kv_namespaces": [
+      {
+        "binding": "CACHE",
+        "id": "d9f368c09622438f8c55d83a4a9998e3"
+      }
+    ],
+    "ratelimits": [
+      {
+        "name": "JOBS_RATE_LIMITER",
+        "namespace_id": "2001",
+        "simple": { "limit": 100, "period": 60 }
+      },
+      {
+        "name": "FILTERS_RATE_LIMITER",
+        "namespace_id": "2002",
+        "simple": { "limit": 30, "period": 60 }
+      },
+      {
+        "name": "STATUS_RATE_LIMITER",
+        "namespace_id": "2003",
+        "simple": { "limit": 30, "period": 60 }
+      }
+    ],
+    "analytics_engine_datasets": [
+      {
+        "binding": "ANALYTICS",
+        "dataset": "heimdall-preview"
+      }
+    ]
+  },
   "observability": {
+    "enabled": true,
     "logs": {
       "enabled": true,
       "invocation_logs": true
     },
     "traces": {
-      "enabled": false
+      "enabled": true,
+      "head_sampling_rate": 0.1
     }
   }
 }

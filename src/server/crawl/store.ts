@@ -1,87 +1,91 @@
-import { desc, sql } from "drizzle-orm";
+import { eq, gte, sql } from "drizzle-orm";
 import { MS_PER_SECOND } from "@/lib/time";
-import type { CrawlSample } from "@/server/crawl/board-health";
-import type { CrawlStatusEntry } from "@/server/crawl/status";
-import { getDb } from "@/server/db";
-import { crawls } from "@/server/db/schema";
+import { getDb, getReadDb } from "@/server/db";
+import { boardStatus } from "@/server/db/schema";
 
-const STATUS_SAMPLE_LIMIT = 100;
+interface RecordCrawlOptions {
+  board: string;
+  status: "ok" | "error";
+  jobsFound: number;
+  durationMs: number;
+  error?: string | null;
+  lastModified?: string | null;
+  changed?: boolean;
+}
 
-export async function recordCrawl(
-  company: string,
-  status: "ok" | "error",
-  jobsFound: number,
-  durationMs: number,
-  error?: string,
-): Promise<void> {
+/** Folds the crawl into the board's latest status. */
+export async function recordCrawl(options: RecordCrawlOptions): Promise<void> {
   const db = await getDb();
-  await db.insert(crawls).values({
-    company,
-    status,
-    jobsFound,
-    durationMs,
-    error: error ?? null,
-  });
+  const { board, status, jobsFound, durationMs } = options;
+  const error = options.error ?? null;
+  await db
+    .insert(boardStatus)
+    .values({
+      board,
+      status,
+      jobsFound,
+      durationMs,
+      error,
+      lastModified: options.lastModified ?? null,
+      consecutiveEmpty: status === "ok" && jobsFound === 0 ? 1 : 0,
+      changedAt: options.changed ? sql`(datetime('now'))` : null,
+    })
+    .onConflictDoUpdate({
+      target: boardStatus.board,
+      set: {
+        status,
+        jobsFound,
+        durationMs,
+        error,
+        lastModified: sql`coalesce(excluded.last_modified, ${boardStatus.lastModified})`,
+        consecutiveEmpty: sql`case when excluded.consecutive_empty = 1 then ${boardStatus.consecutiveEmpty} + 1 else 0 end`,
+        changedAt: sql`coalesce(excluded.changed_at, ${boardStatus.changedAt})`,
+        crawledAt: sql`(datetime('now'))`,
+      },
+    });
+}
+
+export async function getLastModified(board: string): Promise<string | null> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ lastModified: boardStatus.lastModified })
+    .from(boardStatus)
+    .where(eq(boardStatus.board, board));
+  return row?.lastModified ?? null;
+}
+
+/** Whether any crawl since `sinceMs` inserted, updated or deleted jobs. */
+export async function hasChangesSince(sinceMs: number): Promise<boolean> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ board: boardStatus.board })
+    .from(boardStatus)
+    .where(
+      gte(
+        boardStatus.changedAt,
+        sql`datetime(${Math.floor(sinceMs / MS_PER_SECOND)}, 'unixepoch')`,
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
 }
 
 export async function getLatestCrawlUnix(): Promise<number | null> {
-  const db = await getDb();
+  const db = await getReadDb();
   const [row] = await db
-    .select({ latest: sql<string | null>`strftime('%s', max(${crawls.createdAt}))` })
-    .from(crawls);
+    .select({ latest: sql<string | null>`strftime('%s', max(${boardStatus.crawledAt}))` })
+    .from(boardStatus);
   const latest = row?.latest;
   return latest ? Number(latest) * MS_PER_SECOND : null;
 }
 
-function toCrawlStatusEntry(row: typeof crawls.$inferSelect): CrawlStatusEntry {
-  return {
-    company: row.company,
-    status: row.status as "ok" | "error",
-    jobsFound: row.jobsFound,
-    durationMs: row.durationMs,
-    error: row.error,
-    createdAt: row.createdAt,
-  };
-}
-
-export async function getCrawlHistory(): Promise<CrawlStatusEntry[]> {
+/** Boards whose last `minEmpty` successful crawls in a row found nothing. */
+export async function getDriftedBoards(
+  minEmpty: number,
+): Promise<{ board: string; consecutiveEmpty: number }[]> {
   const db = await getDb();
-  const rows = await db
-    .select()
-    .from(crawls)
-    .orderBy(desc(crawls.createdAt))
-    .limit(STATUS_SAMPLE_LIMIT);
-  return rows.map(toCrawlStatusEntry);
-}
-
-export async function getLatestCrawls(): Promise<CrawlStatusEntry[]> {
-  const db = await getDb();
-  const rows = await db
-    .select()
-    .from(crawls)
-    .where(sql`id IN (SELECT MAX(id) FROM ${crawls} GROUP BY company)`)
-    .orderBy(desc(crawls.createdAt));
-  return rows.map(toCrawlStatusEntry);
-}
-
-export async function getRecentCrawlSamples(hours: number): Promise<CrawlSample[]> {
-  const db = await getDb();
-  const rows = await db
-    .select({
-      company: crawls.company,
-      status: crawls.status,
-      jobsFound: crawls.jobsFound,
-    })
-    .from(crawls)
-    .where(sql`${crawls.createdAt} >= datetime('now', ${`-${hours} hours`})`)
-    .orderBy(desc(crawls.id));
-  return rows;
-}
-
-export async function deleteOldCrawls(days: number): Promise<number> {
-  const db = await getDb();
-  const result = await db.run(
-    sql`DELETE FROM crawls WHERE created_at < datetime('now', ${`-${days} days`})`,
-  );
-  return result.meta?.changes ?? 0;
+  return db
+    .select({ board: boardStatus.board, consecutiveEmpty: boardStatus.consecutiveEmpty })
+    .from(boardStatus)
+    .where(gte(boardStatus.consecutiveEmpty, minEmpty));
 }

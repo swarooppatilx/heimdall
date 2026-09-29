@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createCrawlBudget, fetchJson } from "@/server/crawl/http";
+import {
+  createCrawlBudget,
+  type FetchJsonOptions,
+  fetchJsonWithHeaders,
+} from "@/server/crawl/http";
 
-describe("fetchJson", () => {
+async function fetchJson(url: string, source: string, options?: FetchJsonOptions) {
+  return (await fetchJsonWithHeaders(url, source, options)).data;
+}
+
+describe("fetchJsonWithHeaders", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -16,7 +24,7 @@ describe("fetchJson", () => {
     await expect(fetchJson("/x", "test")).resolves.toEqual({ ok: 1 });
   });
 
-  it("charges only the first attempt to the budget", async () => {
+  it("charges every attempt to the budget", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(new Response("down", { status: 503 }))
@@ -27,7 +35,7 @@ describe("fetchJson", () => {
     const pending = fetchJson("/x", "test", { budget });
     await vi.runAllTimersAsync();
     await expect(pending).resolves.toEqual({ ok: 1 });
-    expect(budget.used).toBe(1);
+    expect(budget.used).toBe(2);
   });
 
   it("retries transient server errors and succeeds", async () => {
@@ -76,5 +84,26 @@ describe("fetchJson", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(elapsed).toBeGreaterThanOrEqual(1500);
     expect(elapsed).toBeLessThanOrEqual(2000);
+  });
+});
+
+describe("crawler identity", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("identifies the crawler with a contact URL unless the caller sets its own agent", async () => {
+    const fetchMock = vi.fn((_url: string, _init?: RequestInit) =>
+      Promise.resolve(Response.json({ ok: 1 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchJson("/x", "test");
+    await fetchJson("/x", "test", { init: { headers: { "User-Agent": "custom" } } });
+
+    const agent = (call: number) =>
+      new Headers(fetchMock.mock.calls[call]?.[1]?.headers).get("user-agent");
+    expect(agent(0)).toMatch(/^heimdall \(\+https?:\/\//);
+    expect(agent(1)).toBe("custom");
   });
 });

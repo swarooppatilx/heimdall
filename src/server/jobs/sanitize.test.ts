@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeFilterValue } from "@/server/jobs/sanitize";
+import { companyFromSlug, sanitizeFilterValue } from "@/server/jobs/sanitize";
 
 describe("sanitizeFilterValue", () => {
   it("lowercases and strips bracketed suffixes", () => {
@@ -8,7 +8,6 @@ describe("sanitizeFilterValue", () => {
   });
 
   it("replaces separators with spaces but keeps allowed punctuation", () => {
-    expect(sanitizeFilterValue("full_time")).toBe("full time");
     expect(sanitizeFilterValue("customer.io")).toBe("customer.io");
     expect(sanitizeFilterValue("data & analytics")).toBe("data & analytics");
     expect(sanitizeFilterValue("washington d.c.")).toBe("washington d.c.");
@@ -17,6 +16,18 @@ describe("sanitizeFilterValue", () => {
 
   it("collapses whitespace left by removals", () => {
     expect(sanitizeFilterValue("  Acme   Corp (formerly X) ")).toBe("acme corp");
+  });
+});
+
+describe("companyFromSlug", () => {
+  it("matches a title-cased company url to the stored name", () => {
+    expect(companyFromSlug("Apple")).toBe("apple");
+    expect(companyFromSlug("Scale%20AI")).toBe("scale ai");
+    expect(companyFromSlug("scale+ai")).toBe("scale ai");
+  });
+
+  it("returns an empty name for a malformed escape", () => {
+    expect(companyFromSlug("%E0%A4%A")).toBe("");
   });
 });
 

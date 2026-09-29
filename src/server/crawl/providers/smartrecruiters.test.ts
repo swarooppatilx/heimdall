@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createCrawlBudget } from "@/server/crawl/http";
 import { fetchSmartRecruitersJobs } from "@/server/crawl/providers/smartrecruiters";
 
 const mockResponse = {
@@ -51,38 +52,42 @@ describe("fetchSmartRecruitersJobs", () => {
   it("maps SmartRecruiters postings API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchSmartRecruitersJobs("testco");
+    const result = await fetchSmartRecruitersJobs("testco");
+    const jobs = result?.jobs ?? [];
 
     expect(jobs).toHaveLength(2);
     expect(jobs[0]).toEqual({
       id: "sr-testco-sr-001",
       title: "Senior Engineer",
       company: "testco",
-      location: "london, united kingdom",
-      locations: ["london, united kingdom"],
-      department: "engineering",
+      location: "London, United Kingdom",
+      locations: ["London, United Kingdom"],
+      department: "Engineering",
       url: "https://careers.smartrecruiters.com/testco/aaaa-1111",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
       source: "smartrecruiters",
-      region: "gb",
-      isEarlyCareer: false,
+      isRemote: false,
+      departmentHints: ["Backend"],
     });
   });
 
-  it("infers department when department and function are empty", async () => {
+  it("leaves an empty department for ingest when department and function are empty", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchSmartRecruitersJobs("testco");
+    const result = await fetchSmartRecruitersJobs("testco");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[1]?.department).toBe("product");
+    expect(jobs[1]?.department).toBe("");
   });
 
-  it("normalizes remote locations", async () => {
+  it("keeps SmartRecruiters' remote flag on remote postings", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchSmartRecruitersJobs("testco");
+    const result = await fetchSmartRecruitersJobs("testco");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[1]?.location).toBe("remote");
+    expect(jobs[1]?.location).toBe("Remote");
+    expect(jobs[1]?.isRemote).toBe(true);
   });
 
   it("paginates through multiple pages", async () => {
@@ -129,7 +134,8 @@ describe("fetchSmartRecruitersJobs", () => {
       .mockResolvedValueOnce(Response.json(page1))
       .mockResolvedValueOnce(Response.json(page2));
 
-    const jobs = await fetchSmartRecruitersJobs("testco");
+    const result = await fetchSmartRecruitersJobs("testco");
+    const jobs = result?.jobs ?? [];
 
     expect(jobs).toHaveLength(150);
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -152,5 +158,43 @@ describe("fetchSmartRecruitersJobs", () => {
       "https://api.smartrecruiters.com/v1/companies/mycompany/postings?limit=100&offset=0",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+  });
+});
+
+describe("fetchSmartRecruitersJobs budget", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns the pages it reached, marked partial, when the budget runs out", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ ...mockResponse, totalFound: 250 }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const budget = createCrawlBudget();
+    budget.used = 34;
+
+    const result = await fetchSmartRecruitersJobs("testco", budget);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(result?.jobs).toHaveLength(2);
+    expect(result?.complete).toBe(false);
+  });
+
+  it("marks a board complete once the last page is in", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const result = await fetchSmartRecruitersJobs("testco", createCrawlBudget());
+
+    expect(result?.complete).toBe(true);
   });
 });

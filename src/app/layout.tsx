@@ -1,75 +1,64 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import Script from "next/script";
 import { JsonLd } from "@/components/json-ld";
 import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers";
-import { siteConfig } from "@/lib/site-config";
-import { siteUrl } from "@/server/jobs/site";
+import { siteConfig } from "@/lib/site";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
+// Geist carries the interface, Geist Mono the timestamps (tabular figures line
+// up down the list), Outfit only the wordmark and page headings.
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: siteConfig.themeColor.dark },
+    { media: "(prefers-color-scheme: light)", color: siteConfig.themeColor.light },
   ],
 };
 
-export async function generateMetadata(): Promise<Metadata> {
-  const url = await siteUrl();
-  return {
-    metadataBase: new URL(url),
-    applicationName: "heimdall",
-    manifest: "/manifest.webmanifest",
-    appleWebApp: {
-      title: "heimdall",
-      capable: true,
-      statusBarStyle: "black-translucent",
-    },
-    alternates: {
-      canonical: "/",
-    },
-    verification: { google: siteConfig.verification.google },
-    title: {
-      default: "heimdall — fresh tech jobs",
-      template: "%s | heimdall",
-    },
-    description:
-      "fresh, verified tech job opportunities from official company career pages. no stale listings, no ghost jobs.",
-    openGraph: {
-      title: "heimdall — fresh tech jobs",
-      description: "fresh, verified tech job opportunities from official company career pages.",
-      type: "website",
-      siteName: "heimdall",
-      url: `${url}/`,
-      locale: "en_US",
-      images: ["/opengraph-image.png"],
-    },
-    twitter: {
-      card: "summary_large_image",
-      site: siteConfig.author.twitter.replace("https://x.com/", "@"),
-      creator: siteConfig.author.twitter.replace("https://x.com/", "@"),
-      title: "heimdall — fresh tech jobs",
-      description: "fresh, verified tech job opportunities from official company career pages.",
-      images: ["/twitter-image.png"],
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-snippet": -1,
-      },
-    },
-  };
-}
+const url = siteConfig.url;
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const url = await siteUrl();
+export const metadata: Metadata = {
+  metadataBase: new URL(url),
+  applicationName: "heimdall",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    title: "heimdall",
+    capable: true,
+    statusBarStyle: "default",
+  },
+  verification: { google: siteConfig.verification.google },
+  title: {
+    default: "heimdall — fresh tech jobs",
+    template: "%s — heimdall",
+  },
+  description:
+    "fresh, verified tech job opportunities from official company career pages. no stale listings, no ghost jobs.",
+  openGraph: {
+    title: "heimdall — fresh tech jobs",
+    description: "fresh, verified tech job opportunities from official company career pages.",
+    type: "website",
+    siteName: "heimdall",
+    url: `${url}/`,
+    locale: "en_US",
+    images: ["/opengraph-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: siteConfig.author.twitter.replace("https://x.com/", "@"),
+    creator: siteConfig.author.twitter.replace("https://x.com/", "@"),
+    title: "heimdall — fresh tech jobs",
+    description: "fresh, verified tech job opportunities from official company career pages.",
+    images: ["/twitter-image.png"],
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -86,7 +75,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", "font-sans", outfit.variable)}
+      className={cn(
+        "h-full antialiased font-sans",
+        geist.variable,
+        geistMono.variable,
+        outfit.variable,
+      )}
       suppressHydrationWarning
     >
       <head>
@@ -97,7 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           strategy="afterInteractive"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="flex min-h-dvh flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
         <Footer />
       </body>

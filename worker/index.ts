@@ -1,86 +1,100 @@
-import { setAnalyticsBinding, trackCrawlTick } from "@/server/analytics";
-import { warmAllCaches } from "@/server/cache-warmer";
-import { assessBoards, driftedBoards } from "@/server/crawl/board-health";
-import { DRIFT_MIN_EMPTY, DRIFT_WINDOW_HOURS } from "@/server/crawl/drift";
-import { getRegistry } from "@/server/crawl/registry";
-import { crawlAll, shouldRunTick, sweepOrdinal, sweepSlice } from "@/server/crawl/scheduler";
-import { warmCrawlStatusCache } from "@/server/crawl/status-cache";
-import { deleteOldCrawls, getLatestCrawlUnix, getRecentCrawlSamples } from "@/server/crawl/store";
+import { MS_PER_MINUTE } from "@/lib/time";
+import { setAnalyticsBinding, trackCrawlCleanup, trackCrawlTick } from "@/server/analytics";
+import { setJobsCacheHeaders } from "@/server/api/cache-headers";
+import { type CrawlMessage, enqueueBoards, handleCrawlBatch } from "@/server/crawl/queue";
+import { sweepOrdinal, sweepSlice, TICK_MS } from "@/server/crawl/scheduler";
+import { listCrawlableSources, markSourceHealth } from "@/server/crawl/sources";
+import { DRIFT_MIN_EMPTY } from "@/server/crawl/status";
+import { getDriftedBoards, getLatestCrawlUnix, hasChangesSince } from "@/server/crawl/store";
 import { bindDb } from "@/server/db";
+import { warmJobViews } from "@/server/jobs/cached-views";
 import { configureFreshness } from "@/server/jobs/freshness";
-import { getJobQuality } from "@/server/jobs/quality";
 import { dedupeCrossSourceJobs, deleteStaleJobs } from "@/server/jobs/writes";
-import { formatError, logEvent } from "@/server/logger";
+import { formatError, logError, logEvent } from "@/server/logger";
 import handler from "./open-next-handler.mjs";
+import { purgeJobsCache } from "./purge";
 
-interface ScheduledController {
-  cron: string;
-  scheduledTime: number;
-  noRetry(): void;
+const STALE_ALERT_MINUTES = 60;
+const STALE_ALERT_MS = STALE_ALERT_MINUTES * MS_PER_MINUTE;
+const HTML_BROWSER_MAX_AGE_SECONDS = 0;
+const EDGE_CACHED_PAGES =
+  /^\/(?:$|company\/|sitemap\.xml$|robots\.txt$|llms-full\.txt$|feed\.xml$)/;
+
+function bindEnv(env: CloudflareEnv): void {
+  bindDb(env.DB);
+  setAnalyticsBinding(env.ANALYTICS);
+  configureFreshness(env.FRESHNESS_DAYS);
 }
 
-interface ExecutionContext {
-  waitUntil(promise: Promise<unknown>): void;
+// Next marks dynamic pages private; job pages only change when a crawl does,
+// so they are cached at the edge and purged by tag after each crawl.
+function withPageCache(request: Request, response: Response): Response {
+  if (request.method !== "GET" || !response.ok) return response;
+  const url = new URL(request.url);
+  // Filtered URLs (`/?q=…`) are unbounded keys that rarely repeat; caching them
+  // only spends the request budget and evicts the pages that do repeat.
+  if (url.search || !EDGE_CACHED_PAGES.test(url.pathname)) return response;
+  const cacheable = new Response(response.body, response);
+  setJobsCacheHeaders(cacheable.headers, HTML_BROWSER_MAX_AGE_SECONDS);
+  return cacheable;
 }
-
-// biome-ignore lint/style/noMagicNumbers: self-explanatory compound
-const STALE_ALERT_MS = 30 * 60 * 1000;
-const CRAWL_RETENTION_DAYS = 45;
 
 export default {
-  fetch: handler.fetch,
+  async fetch(request: Request, env: CloudflareEnv, ctx: ExecutionContext) {
+    return withPageCache(request, await handler.fetch(request, env, ctx));
+  },
   scheduled(controller: ScheduledController, env: CloudflareEnv, ctx: ExecutionContext) {
     ctx.waitUntil(
       runTick(controller, env).catch((err: unknown) => {
-        logEvent("crawl_failed", { error: formatError(err) });
+        logError("crawl_failed", { error: formatError(err) });
       }),
     );
+  },
+  async queue(batch: MessageBatch<CrawlMessage>, env: CloudflareEnv) {
+    bindEnv(env);
+    const runs = await handleCrawlBatch(batch, env.CRAWL_QUEUE);
+    for (const run of runs) {
+      const failed = run.results.filter((r) => r.status === "error").length;
+      trackCrawlTick({
+        durationMs: run.durationMs,
+        companies: run.results.length,
+        ok: run.results.length - failed,
+        failed,
+        discovered: run.discovered,
+        skipped: run.skipped,
+        sweep: sweepOrdinal(),
+      });
+    }
   },
 };
 
 async function runTick(controller: ScheduledController, env: CloudflareEnv): Promise<void> {
-  bindDb(env.DB);
-  setAnalyticsBinding(env.ANALYTICS);
-  configureFreshness(env.FRESHNESS_DAYS);
+  bindEnv(env);
 
-  const lastCrawlAt = await getLatestCrawlUnix();
-  if (!shouldRunTick(lastCrawlAt, Date.now())) {
-    logEvent("tick_skipped", { lastCrawlAt });
-    return;
-  }
+  const sweep = sweepOrdinal(controller.scheduledTime);
+  const sweepStart = sweep === 0;
+  const enqueued = await enqueueBoards(
+    env.CRAWL_QUEUE,
+    sweepSlice(await listCrawlableSources(), controller.scheduledTime),
+  );
 
-  const run = await crawlAll(sweepSlice(getRegistry(), controller.scheduledTime));
-  const sweepStart = sweepOrdinal(controller.scheduledTime) === 0;
   const removed = sweepStart ? await deleteStaleJobs() : 0;
   const deduped = sweepStart ? await dedupeCrossSourceJobs() : 0;
-  const expiredCrawls = sweepStart ? await deleteOldCrawls(CRAWL_RETENTION_DAYS) : 0;
+  const crawlsChanged = await hasChangesSince(controller.scheduledTime - TICK_MS);
+  const dataChanged = crawlsChanged || removed > 0 || deduped > 0;
 
-  await Promise.all([warmAllCaches(env), warmCrawlStatusCache(env)]);
+  if (dataChanged) {
+    await warmJobViews(env);
+    await purgeJobsCache();
+  }
 
-  const failed = run.results.filter((r) => r.status === "error").length;
-  logEvent("scheduled_crawl", {
+  logEvent("scheduled_tick", {
     cron: controller.cron,
-    companies: run.results.length,
-    ok: run.results.length - failed,
-    failed,
-    discovered: run.discovered,
+    sweep,
+    enqueued,
     removed,
     deduped,
-    expiredCrawls,
-    skipped: run.skipped,
-    durationMs: run.durationMs,
-  });
-
-  trackCrawlTick({
-    durationMs: run.durationMs,
-    companies: run.results.length,
-    ok: run.results.length - failed,
-    failed,
-    discovered: run.discovered,
-    removed,
-    deduped,
-    skipped: run.skipped,
-    sweep: sweepOrdinal(controller.scheduledTime),
+    dataChanged,
   });
 
   const latestCrawlAt = await getLatestCrawlUnix();
@@ -90,19 +104,9 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   }
 
   if (sweepStart) {
-    const quality = await getJobQuality();
-    logEvent("job_quality", quality);
-    const drifted = driftedBoards(
-      assessBoards(await getRecentCrawlSamples(DRIFT_WINDOW_HOURS)),
-      DRIFT_MIN_EMPTY,
-    );
-    if (drifted.length > 0) {
-      logEvent("board_drift", {
-        boards: drifted.map((b) => ({
-          company: b.company,
-          consecutiveEmpty: b.consecutiveEmpty,
-        })),
-      });
-    }
+    trackCrawlCleanup({ removed, deduped });
+    const drifted = await getDriftedBoards(DRIFT_MIN_EMPTY);
+    if (drifted.length > 0) logEvent("board_drift", { boards: drifted });
+    await markSourceHealth(DRIFT_MIN_EMPTY);
   }
 }

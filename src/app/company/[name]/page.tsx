@@ -1,46 +1,36 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/json-ld";
 import { Header } from "@/components/layout/header";
-import { fromCompanySlug, toCompanySlug } from "@/lib/company-slug";
-import type { Job } from "@/lib/job";
-import { dedupeJobs } from "@/lib/job";
-import { getCompanyJobsFromKV, writeAllJobsToKV } from "@/server/jobs/kv";
-import { getAllFreshJobs, getJobsByCompany } from "@/server/jobs/queries";
-import { formatError, logEvent } from "@/server/logger";
+import { SkipLink } from "@/components/layout/skip-link";
+import { Button } from "@/components/ui/button";
+import { toCompanySlug } from "@/lib/company-slug";
+import { dedupeJobs, dedupeKey, type Job } from "@/lib/job";
+import { getJobsByCompany } from "@/server/jobs/queries";
+import { companyFromSlug } from "@/server/jobs/sanitize";
+import { formatError, logError } from "@/server/logger";
 
 function decodeCompany(raw: string): string | null {
-  const company = fromCompanySlug(raw);
+  const company = companyFromSlug(raw);
   return company ? company : null;
 }
 
-interface CompanyJobs {
-  jobs: Job[];
-  total: number;
+// One card per role, however many openings it has; counts follow the cards.
+function roleCards(jobs: Job[]) {
+  return dedupeJobs(jobs, dedupeKey);
 }
 
-async function loadCompanyJobs(company: string): Promise<CompanyJobs> {
+const loadCompanyJobs = cache(async (company: string): Promise<Job[]> => {
   try {
-    const { ctx, env } = await getCloudflareContext();
-    const cached = await getCompanyJobsFromKV(env, company);
-    if (cached) return cached;
-    const jobs = await getJobsByCompany(company);
-    ctx.waitUntil(
-      getAllFreshJobs()
-        .then((fresh) => writeAllJobsToKV(fresh, env))
-        .catch((err) => {
-          logEvent("kv_rewarm_failed", { error: formatError(err) });
-        }),
-    );
-    return { jobs, total: jobs.length };
+    return await getJobsByCompany(company);
   } catch (err) {
-    logEvent("company_page_load_failed", { company, error: formatError(err) });
-    return { jobs: [], total: 0 };
+    logError("company_page_load_failed", { company, error: formatError(err) });
+    throw err;
   }
-}
+});
 
 export async function generateMetadata({
   params,
@@ -50,22 +40,26 @@ export async function generateMetadata({
   const { name } = await params;
   const company = decodeCompany(name);
   if (!company) notFound();
-  const { total } = await loadCompanyJobs(company);
+  const total = roleCards(await loadCompanyJobs(company)).length;
   return {
-    title: `${company} — ${total} open position${total === 1 ? "" : "s"}`,
+    title: `${company}: ${total} fresh job${total === 1 ? "" : "s"}`,
     alternates: {
       canonical: `/company/${toCompanySlug(company)}`,
     },
     description: `browse ${total} fresh tech job openings at ${company}. direct from the company career page.`,
     openGraph: {
       title: `${company} — fresh tech jobs`,
-      description: `${total} open positions at ${company}.`,
+      description: `${total} fresh jobs at ${company}.`,
       type: "website",
+      siteName: "heimdall",
+      url: `/company/${toCompanySlug(company)}`,
+      images: ["/opengraph-image.png"],
     },
     twitter: {
       card: "summary_large_image",
       title: `${company} — fresh tech jobs`,
-      description: `${total} open positions at ${company}.`,
+      description: `${total} fresh jobs at ${company}.`,
+      images: ["/twitter-image.png"],
     },
   };
 }
@@ -74,64 +68,53 @@ export default async function CompanyPage({ params }: { params: Promise<{ name: 
   const { name } = await params;
   const company = decodeCompany(name);
   if (!company) notFound();
-  const { jobs } = await loadCompanyJobs(company);
-
-  if (jobs.length === 0) {
-    notFound();
-  }
+  const jobs = await loadCompanyJobs(company);
+  if (jobs.length === 0) notFound();
+  const cards = roleCards(jobs);
 
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: company,
-    url: jobs[0]?.url?.split("/jobs/")[0] || undefined,
+  };
+  // The roles in display order; each links to the posting on the company's own ATS.
+  const listJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${company} jobs`,
+    itemListElement: cards.map(({ job }, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: job.url,
+      name: job.title,
+    })),
   };
 
-  const jobJsonLd = jobs.slice(0, 10).map((job) => ({
-    "@context": "https://schema.org",
-    "@type": "JobPosting",
-    title: job.title,
-    datePosted: typeof job.postedAt === "string" ? job.postedAt : job.postedAt.toISOString(),
-    hiringOrganization: { "@type": "Organization", name: company },
-    jobLocation: {
-      "@type": "Place",
-      address: { "@type": "PostalAddress", addressLocality: job.location },
-    },
-    url: job.url,
-  }));
-
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <JsonLd data={orgJsonLd} />
-      {jobJsonLd.map((job) => (
-        <JsonLd key={job.title} data={job} />
-      ))}
-      <a
-        href="#job-results"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-foreground"
-      >
-        Skip to results
-      </a>
+      <JsonLd data={listJsonLd} />
+      <SkipLink href="#job-results" />
       <Header
         left={
-          <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
-            ← all jobs
-          </Link>
+          <Button asChild variant="ghost" size="sm" className="-ml-3">
+            <Link href="/">← all jobs</Link>
+          </Button>
         }
       />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">{company}</h1>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-8 sm:px-6">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">{company}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {jobs.length} open position{jobs.length === 1 ? "" : "s"}
+            {cards.length} fresh job{cards.length === 1 ? "" : "s"}
           </p>
         </div>
 
         {/* biome-ignore lint/correctness/useUniqueElementIds: stable anchor target for the skip link */}
         <ul id="job-results" tabIndex={-1} className="flex flex-col gap-2">
-          {dedupeJobs(jobs, (job) => job.title.toLowerCase()).map(({ key, job, openings }) => (
-            <JobCard key={key} job={job} openings={openings} />
+          {cards.map(({ key, job, openings }) => (
+            <JobCard key={key} job={job} openings={openings} showCompany={false} />
           ))}
         </ul>
       </main>

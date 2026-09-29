@@ -2,25 +2,24 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { trackApiRequest } from "@/server/analytics";
 import { requireToken } from "@/server/api/auth";
-import { withRateLimit } from "@/server/api/with-rate-limit";
-import { warmAllCaches } from "@/server/cache-warmer";
-import { crawlSlices } from "@/server/crawl/scheduler";
-import { bindDb } from "@/server/db";
-import { configureFreshness } from "@/server/jobs/freshness";
+import { withNoStore } from "@/server/api/cache-headers";
+import { defineRoute } from "@/server/api/define-route";
+import { enqueueBoards } from "@/server/crawl/queue";
+import { TICKS_PER_SWEEP, upcomingBoards } from "@/server/crawl/scheduler";
+import { listCrawlableSources } from "@/server/crawl/sources";
 
 export const dynamic = "force-dynamic";
 
-const MAX_SLICES = 16;
 const DEFAULT_SLICES = 1;
 
 function parseSlices(url: URL): number {
   const raw = Number(url.searchParams.get("slices") ?? DEFAULT_SLICES);
   if (!Number.isInteger(raw) || raw < 1) return DEFAULT_SLICES;
-  return Math.min(raw, MAX_SLICES);
+  return Math.min(raw, TICKS_PER_SWEEP);
 }
 
-export const POST = withRateLimit(
-  { binding: "STATUS_RATE_LIMITER", windowMs: 60_000, max: 30, onRequest: trackApiRequest },
+export const POST = defineRoute(
+  { binding: "STATUS_RATE_LIMITER", onRequest: trackApiRequest },
   async (request) => {
     const { env } = await getCloudflareContext();
     if (
@@ -29,35 +28,17 @@ export const POST = withRateLimit(
         request,
       )
     ) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return withNoStore(NextResponse.json({ error: "unauthorized" }, { status: 401 }));
     }
 
-    bindDb(env.DB);
-    configureFreshness(env.FRESHNESS_DAYS);
+    // Previews have no queue binding, so they can never start a production crawl.
+    if (!env.CRAWL_QUEUE) {
+      return withNoStore(NextResponse.json({ error: "queue_unavailable" }, { status: 503 }));
+    }
 
-    const start = Date.now();
     const slices = parseSlices(new URL(request.url));
-    const runs = await crawlSlices(slices);
-
-    const jobCount = await warmAllCaches(env);
-
-    const ok = runs.reduce(
-      (sum, run) => sum + run.results.filter((r) => r.status === "ok").length,
-      0,
-    );
-    const failed = runs.reduce(
-      (sum, run) => sum + run.results.filter((r) => r.status === "error").length,
-      0,
-    );
-    const discovered = runs.reduce((sum, run) => sum + run.discovered, 0);
-
-    return NextResponse.json({
-      ok,
-      failed,
-      discovered,
-      durationMs: Date.now() - start,
-      slices,
-      jobs: jobCount,
-    });
+    const boards = upcomingBoards(await listCrawlableSources(), slices);
+    const messages = await enqueueBoards(env.CRAWL_QUEUE, boards);
+    return withNoStore(NextResponse.json({ slices, boards: boards.length, messages }));
   },
 );

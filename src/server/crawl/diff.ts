@@ -1,13 +1,18 @@
-import { detectExperienceLevel, type ExperienceLevel } from "@/lib/experience";
 import type { Job } from "@/lib/job";
+import { MS_PER_SECOND } from "@/lib/time";
+
+export interface ChangedFields {
+  location: boolean;
+  core: boolean;
+}
 
 interface JobDiff {
   inserts: Job[];
-  updates: Job[];
+  updates: Array<{ job: Job; changed: ChangedFields }>;
   deletedIds: string[];
 }
 
-const DRIFT_MS = 60 * 1000;
+const DRIFT_MS = 60 * MS_PER_SECOND;
 const GUARD_MIN_EXISTING = 10;
 const GUARD_MAX_DELETE_SHARE = 0.5;
 
@@ -16,24 +21,30 @@ export function isSuspiciousDeletion(existingCount: number, deletedCount: number
   return deletedCount > existingCount * GUARD_MAX_DELETE_SHARE;
 }
 
-function effectiveLevel(job: Job): ExperienceLevel {
-  return job.experienceLevel ?? detectExperienceLevel(job.title);
+function sameLocations(a: Job, b: Job): boolean {
+  return [...(a.locations ?? [])].sort().join(",") === [...(b.locations ?? [])].sort().join(",");
 }
 
-function samePosting(a: Job, b: Job): boolean {
-  return (
-    a.company === b.company &&
-    a.title === b.title &&
-    a.location === b.location &&
-    a.department === b.department &&
-    a.url === b.url &&
-    Math.abs(a.postedAt.getTime() - b.postedAt.getTime()) < DRIFT_MS &&
-    (a.salary ?? "") === (b.salary ?? "") &&
-    JSON.stringify(a.locations ?? []) === JSON.stringify(b.locations ?? []) &&
-    (a.region ?? "") === (b.region ?? "") &&
-    Boolean(a.isEarlyCareer) === Boolean(b.isEarlyCareer) &&
-    effectiveLevel(a) === effectiveLevel(b)
-  );
+function detectChanges(a: Job, b: Job): ChangedFields {
+  return {
+    location:
+      a.location !== b.location ||
+      !sameLocations(a, b) ||
+      a.city !== b.city ||
+      a.country !== b.country ||
+      a.isRemote !== b.isRemote,
+    core:
+      a.company !== b.company ||
+      a.title !== b.title ||
+      a.department !== b.department ||
+      a.url !== b.url ||
+      (a.salary ?? "") !== (b.salary ?? "") ||
+      a.level !== b.level,
+  };
+}
+
+function samePostedAt(a: Job, b: Job): boolean {
+  return Math.abs(a.postedAt.getTime() - b.postedAt.getTime()) < DRIFT_MS;
 }
 
 export function diffJobs(existing: Job[], fetched: Job[]): JobDiff {
@@ -41,7 +52,7 @@ export function diffJobs(existing: Job[], fetched: Job[]): JobDiff {
   const fetchedIds = new Set(fetched.map((job) => job.id));
 
   const inserts: Job[] = [];
-  const updates: Job[] = [];
+  const updates: Array<{ job: Job; changed: ChangedFields }> = [];
 
   for (const job of fetched) {
     const current = existingById.get(job.id);
@@ -53,8 +64,9 @@ export function diffJobs(existing: Job[], fetched: Job[]): JobDiff {
       job.postedAt.getTime() > current.postedAt.getTime() + DRIFT_MS
         ? { ...job, postedAt: current.postedAt }
         : job;
-    if (!samePosting(current, effective)) {
-      updates.push(effective);
+    const changed = detectChanges(current, effective);
+    if (changed.location || changed.core || !samePostedAt(current, effective)) {
+      updates.push({ job: effective, changed });
     }
   }
 

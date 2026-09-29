@@ -8,6 +8,11 @@ describe("company slug roundtrip", () => {
     expect(toCompanySlug("rocket chat")).toBe("rocket%20chat");
   });
 
+  it("round-trips a name with a real plus sign", () => {
+    expect(toCompanySlug("disney+ hotstar")).toBe("disney%2B%20hotstar");
+    expect(fromCompanySlug(toCompanySlug("disney+ hotstar"))).toBe("disney+ hotstar");
+  });
+
   it("leaves single-word companies unchanged", () => {
     expect(toCompanySlug("bell")).toBe("bell");
     expect(toCompanySlug("stripe")).toBe("stripe");

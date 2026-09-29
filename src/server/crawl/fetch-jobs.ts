@@ -1,79 +1,120 @@
-import { detectExperienceLevel } from "@/lib/experience";
 import type { Job } from "@/lib/job";
+import { isHttpUrl } from "@/lib/url";
 import type { CrawlBudget } from "@/server/crawl/http";
 import { fetchAshbyJobs } from "@/server/crawl/providers/ashby";
 import { fetchGreenhouseJobs } from "@/server/crawl/providers/greenhouse";
 import { fetchLeverJobs } from "@/server/crawl/providers/lever";
+import type { ProviderResult } from "@/server/crawl/providers/postings";
 import { fetchSmartRecruitersJobs } from "@/server/crawl/providers/smartrecruiters";
 import { fetchWorkableJobs } from "@/server/crawl/providers/workable";
-import type { RegistryEntry } from "@/server/crawl/registry";
-import { normalizeDepartment } from "@/server/jobs/department";
+import type { Source } from "@/server/crawl/sources";
+import { inferDepartment } from "@/server/jobs/department";
+import { mapDepartment } from "@/server/jobs/department-map";
 import { freshnessCutoff } from "@/server/jobs/freshness";
+import { detectLevel } from "@/server/jobs/level";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 import { formatPlace, resolvePlace } from "@/server/locations/gazetteer";
 import { logEvent } from "@/server/logger";
 
-type ProviderFetcher = (entry: RegistryEntry, budget?: CrawlBudget) => Promise<Job[]>;
+type ProviderFetcher = (
+  board: string,
+  budget?: CrawlBudget,
+  ifModifiedSince?: string,
+) => Promise<ProviderResult | undefined>;
 
-const PROVIDERS: Record<string, ProviderFetcher> = {
-  greenhouse: (entry, budget) => fetchGreenhouseJobs(entry.name, budget),
-  lever: (entry, budget) => fetchLeverJobs(entry.name, budget),
-  ashby: (entry, budget) => fetchAshbyJobs(entry.name, budget),
-  smartrecruiters: (entry, budget) => fetchSmartRecruitersJobs(entry.name, budget),
-  workable: (entry, budget) => fetchWorkableJobs(entry.name, budget),
+interface Provider {
+  idPrefix: string;
+  fetch: ProviderFetcher;
+}
+
+const PROVIDERS: Record<string, Provider> = {
+  greenhouse: { idPrefix: "gh", fetch: fetchGreenhouseJobs },
+  lever: { idPrefix: "lv", fetch: fetchLeverJobs },
+  ashby: { idPrefix: "ab", fetch: fetchAshbyJobs },
+  smartrecruiters: { idPrefix: "sr", fetch: fetchSmartRecruitersJobs },
+  workable: { idPrefix: "wb", fetch: fetchWorkableJobs },
 };
 
-function deriveFields(job: Job): Job {
-  const level = job.experienceLevel ?? detectExperienceLevel(job.title);
+function providerFor(entry: Source): Provider {
+  const provider = PROVIDERS[entry.provider];
+  if (!provider) throw new Error(`Unknown provider: ${entry.provider}`);
+  return provider;
+}
+
+/** Every job id from a board starts with this prefix, e.g. `gh-doordash-`. */
+export function boardIdPrefix(entry: Source): string {
+  return `${providerFor(entry).idPrefix}-${entry.name}-`;
+}
+
+// One line per board fetch, capped, so the mapping table grows from real
+// values without flooding the logs.
+const UNMAPPED_SAMPLE = 10;
+
+function logUnmapped(company: string, departments: Set<string>): void {
+  if (departments.size === 0) return;
+  logEvent("taxonomy_unmapped", {
+    company,
+    departments: [...departments].slice(0, UNMAPPED_SAMPLE),
+  });
+}
+
+// ATS taxonomy first (department, then team/function), the title only when
+// the ATS says nothing we recognise.
+function classifyDepartment(job: Job, unmapped: Set<string>): string {
+  const match = mapDepartment([job.department, ...(job.departmentHints ?? [])]);
+  for (const value of match.unmapped) unmapped.add(value);
+  return match.department ?? inferDepartment(job.title);
+}
+
+function deriveFields(posting: Job, unmapped: Set<string>): Job {
+  // Hints are read here and never stored.
+  const department = classifyDepartment(posting, unmapped);
+  const { departmentHints: _departmentHints, ...job } = posting;
   const place = resolvePlace(job.location);
+  // A remote role keeps its country ("remote, germany") so country filters
+  // still find it; it just has no city.
   const city = place?.remote ? undefined : place?.city;
-  const country = place?.remote ? undefined : place?.country;
+  const country = place?.country;
   const rawLocations = [job.location, ...(job.locations ?? [])];
-  const isRemote = rawLocations.some((entry) => resolvePlace(entry)?.remote);
+  // A provider's own remote flag wins; otherwise any remote office counts.
+  const isRemote =
+    Boolean(job.isRemote) || rawLocations.some((entry) => resolvePlace(entry)?.remote);
   return {
     ...job,
     company: sanitizeFilterValue(job.company),
     location: place ? formatPlace(place) : "unknown",
-    region: country ?? "",
     ...(city === undefined ? {} : { city }),
     ...(country === undefined ? {} : { country }),
     isRemote,
-    experienceLevel: level,
-    isEarlyCareer: Boolean(job.isEarlyCareer) || level === "intern" || level === "entry",
-    department: normalizeDepartment(job.department),
+    level: detectLevel(job.title),
+    department,
   };
 }
 
-const ALLOWED_URL_PROTOCOLS = new Set(["http:", "https:"]);
+export async function fetchJobs(
+  entry: Source,
+  budget?: CrawlBudget,
+  ifModifiedSince?: string,
+): Promise<ProviderResult | undefined> {
+  const result = await providerFor(entry).fetch(entry.name, budget, ifModifiedSince);
+  if (result === undefined) return undefined;
 
-function hasSafeUrl(url: string): boolean {
-  try {
-    return ALLOWED_URL_PROTOCOLS.has(new URL(url).protocol);
-  } catch {
-    return false;
-  }
-}
-
-export async function fetchJobs(entry: RegistryEntry, budget?: CrawlBudget): Promise<Job[]> {
-  const fetchProviderJobs = PROVIDERS[entry.provider];
-
-  if (!fetchProviderJobs) {
-    throw new Error(`Unknown provider: ${entry.provider}`);
-  }
-
-  const mapped = await fetchProviderJobs(entry, budget);
   const company = entry.label ?? entry.name;
 
-  const unsafeUrls = mapped.filter((job) => !hasSafeUrl(job.url)).length;
+  const unsafeUrls = result.jobs.filter((job) => !isHttpUrl(job.url)).length;
   if (unsafeUrls > 0) logEvent("postings_invalid_url", { company, skipped: unsafeUrls });
 
   const cutoffMs = Date.parse(freshnessCutoff());
+  const unmapped = new Set<string>();
 
-  return mapped
-    .filter((job) => hasSafeUrl(job.url))
+  const jobs = result.jobs
+    .filter((job) => isHttpUrl(job.url))
     .filter((job) => {
       if (Number.isNaN(job.postedAt.getTime())) return false;
       return job.postedAt.getTime() >= cutoffMs;
     })
-    .map((job) => deriveFields({ ...job, company }));
+    .map((job) => deriveFields({ ...job, company }, unmapped));
+  logUnmapped(company, unmapped);
+
+  return { jobs, lastModified: result.lastModified, complete: result.complete };
 }

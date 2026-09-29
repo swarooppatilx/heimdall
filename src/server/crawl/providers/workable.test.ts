@@ -33,15 +33,17 @@ describe("fetchWorkableJobs", () => {
   it("maps Workable job board API response to Job objects", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(board)));
 
-    const jobs = await fetchWorkableJobs("deliveroo");
+    const result = await fetchWorkableJobs("deliveroo");
+    const jobs = result?.jobs ?? [];
 
     expect(jobs).toHaveLength(2);
     expect(jobs[0]).toMatchObject({
       id: "wb-deliveroo-A1B2C3D4",
       title: "Senior Backend Engineer",
       company: "deliveroo",
-      location: "london, united kingdom",
+      location: "London, United Kingdom",
       source: "workable",
+      isRemote: false,
     });
     expect(new Date(jobs[0]?.postedAt ?? 0).toISOString()).toBe("2026-08-10T00:00:00.000Z");
   });
@@ -49,9 +51,11 @@ describe("fetchWorkableJobs", () => {
   it("marks telecommuting roles as remote", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(board)));
 
-    const jobs = await fetchWorkableJobs("deliveroo");
+    const result = await fetchWorkableJobs("deliveroo");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[1]?.location).toBe("remote");
+    expect(jobs[1]?.location).toBe("Remote");
+    expect(jobs[1]?.isRemote).toBe(true);
   });
 
   it("throws on http errors", async () => {

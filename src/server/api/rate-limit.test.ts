@@ -46,6 +46,32 @@ describe("checkRateLimit", () => {
     expect(blocked.allowed).toBe(false);
     expect(other.allowed).toBe(true);
   });
+
+  it("admits a new client even when the store is full of active ones", async () => {
+    const limit = { windowMs: 60_000, max: 5 };
+    for (let i = 0; i < 1000; i += 1)
+      await checkRateLimit(fakeRequest(`10.0.${i >> 8}.${i & 255}`), limit);
+
+    const newcomer = await checkRateLimit(fakeRequest("192.168.1.1"), limit);
+    expect(newcomer.allowed).toBe(true);
+  });
+
+  it("keeps a separate budget per binding for the same client", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const limit = { windowMs: 60_000, max: 2 };
+    const filters = { ...limit, binding: "FILTERS_RATE_LIMITER" as const };
+    await checkRateLimit(fakeRequest("3.3.3.3"), filters);
+    await checkRateLimit(fakeRequest("3.3.3.3"), filters);
+
+    const blocked = await checkRateLimit(fakeRequest("3.3.3.3"), filters);
+    const jobs = await checkRateLimit(fakeRequest("3.3.3.3"), {
+      ...limit,
+      binding: "JOBS_RATE_LIMITER",
+    });
+
+    expect(blocked.allowed).toBe(false);
+    expect(jobs.allowed).toBe(true);
+  });
 });
 
 describe("rateLimitResponse", () => {

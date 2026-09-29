@@ -1,26 +1,51 @@
 import { z } from "zod";
 import type { Job } from "@/lib/job";
-import { type CrawlBudget, fetchJson } from "@/server/crawl/http";
-import { normalizeLocation, normalizeLocations } from "@/server/crawl/normalize";
-import { mapPostings } from "@/server/crawl/providers/postings";
-import { inferDepartment } from "@/server/jobs/department";
-import { splitLocations } from "@/server/locations/gazetteer";
+import { type CrawlBudget, fetchJsonWithHeaders } from "@/server/crawl/http";
+import { mapPostings, type ProviderResult } from "@/server/crawl/providers/postings";
+import { postingLocations } from "@/server/locations/gazetteer";
 
 const greenhouseJobSchema = z.object({
   id: z.number(),
   title: z.string(),
   location: z.object({ name: z.string() }),
   updated_at: z.string(),
-  first_published: z.string().optional(),
+  first_published: z.string().nullish(),
   absolute_url: z.string(),
   metadata: z
-    .array(z.object({ name: z.string(), value: z.unknown(), value_type: z.string() }))
-    .optional(),
+    .array(z.object({ name: z.string(), value: z.unknown(), value_type: z.string().nullish() }))
+    .nullish(),
+});
+
+const currencyRangeSchema = z.object({
+  min: z.number(),
+  max: z.number(),
+  currency: z.string().nullish(),
 });
 
 const greenhouseResponseSchema = z.object({
-  jobs: z.array(greenhouseJobSchema),
+  jobs: z.array(z.unknown()),
 });
+
+const WHOLE_NUMBERS: Intl.NumberFormatOptions = { maximumFractionDigits: 0 };
+
+// "$120,000 – $160,000" with a real currency symbol. A missing or unknown
+// currency code (Intl throws RangeError) falls back to bare numbers rather
+// than the old " 70,000 – 90,000" with a dangling space.
+export function formatSalaryRange(min: number, max: number, currency?: string | null): string {
+  if (currency) {
+    try {
+      return new Intl.NumberFormat("en", {
+        ...WHOLE_NUMBERS,
+        style: "currency",
+        currency,
+      }).formatRange(min, max);
+    } catch {
+      // fall through to plain numbers
+    }
+  }
+  const plain = new Intl.NumberFormat("en", WHOLE_NUMBERS);
+  return `${plain.format(min)} – ${plain.format(max)}`;
+}
 
 interface MetaMatch {
   value: string;
@@ -33,61 +58,51 @@ function metaValue(
   typePattern?: RegExp,
 ): MetaMatch {
   const entry = job.metadata?.find(
-    (m) => keyPattern.test(m.name) && (!typePattern || typePattern.test(m.value_type)),
+    (m) => keyPattern.test(m.name) && (!typePattern || typePattern.test(m.value_type ?? "")),
   );
   if (entry?.value == null || entry.value === "") return { value: "", salary: "" };
 
-  if (
-    entry.value_type === "currency_range" &&
-    typeof entry.value === "object" &&
-    entry.value != null
-  ) {
-    const range = entry.value as { min?: number; max?: number; currency?: string };
-    const currency = range.currency ?? "";
-    const unit = currency === "USD" ? "$" : `${currency} `;
-    const salary =
-      range.min != null && range.max != null
-        ? `${unit}${range.min.toLocaleString()} – ${unit}${range.max.toLocaleString()}`
-        : "";
+  if (entry.value_type === "currency_range") {
+    const range = currencyRangeSchema.safeParse(entry.value);
+    if (!range.success) return { value: "", salary: "" };
+    const salary = formatSalaryRange(range.data.min, range.data.max, range.data.currency);
     return { value: salary, salary };
   }
 
   return { value: String(entry.value), salary: "" };
 }
 
-export async function fetchGreenhouseJobs(board: string, budget?: CrawlBudget): Promise<Job[]> {
-  const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs`;
-  const data = await fetchJson(url, board, {
+export async function fetchGreenhouseJobs(
+  board: string,
+  budget?: CrawlBudget,
+  ifModifiedSince?: string,
+): Promise<ProviderResult | undefined> {
+  const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs`;
+  const result = await fetchJsonWithHeaders(url, board, {
     schema: greenhouseResponseSchema,
     ...(budget ? { budget } : {}),
+    ...(ifModifiedSince ? { ifModifiedSince } : {}),
   });
-  return mapPostings(data.jobs, board, (j) => mapJob(j, board));
+  if (result.data === undefined) return undefined;
+  const jobs = mapPostings(result.data.jobs, board, greenhouseJobSchema, (j) => mapJob(j, board));
+  return { jobs, lastModified: result.lastModified, complete: true };
 }
 
 function mapJob(raw: z.infer<typeof greenhouseJobSchema>, board: string): Job {
-  const locationParts = splitLocations(raw.location.name);
-  const primary = normalizeLocation(locationParts[0] ?? "");
-  const department = (
-    metaValue(raw, /department|categor|^area\b|team/i).value || inferDepartment(raw.title)
-  ).toLowerCase();
+  // Boards name their department custom field differently ("Department",
+  // "External Department", "Team"); the field name is matched, not the value.
+  const department = metaValue(raw, /department|categor|^area\b|team/i).value;
   const pay = metaValue(raw, /pay|salary|compensation/i, /currency|range/);
-  const region = metaValue(raw, /geography|region|country/i).value.toLowerCase();
-  const earlyCareerMeta = raw.metadata?.some(
-    (m) => /early career/i.test(m.name) && Boolean(m.value),
-  );
 
   return {
     id: `gh-${board}-${raw.id}`,
     title: raw.title,
     company: board,
-    location: primary,
-    locations: normalizeLocations(raw.location.name),
+    ...postingLocations(raw.location.name),
     department,
     url: raw.absolute_url,
     postedAt: new Date(raw.first_published ?? raw.updated_at),
     source: "greenhouse",
     salary: pay.salary,
-    region,
-    isEarlyCareer: Boolean(earlyCareerMeta),
   };
 }

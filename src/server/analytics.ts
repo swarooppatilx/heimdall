@@ -2,11 +2,12 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 let cachedBinding: AnalyticsEngineDataset | undefined;
 
-async function getAnalyticsBinding(): Promise<AnalyticsEngineDataset | undefined> {
+// Writes are fire-and-forget by design (writeDataPoint is synchronous), so
+// tracking never hands callers a promise they could forget to handle.
+function getAnalyticsBinding(): AnalyticsEngineDataset | undefined {
   if (cachedBinding) return cachedBinding;
   try {
-    const { env } = await getCloudflareContext();
-    cachedBinding = (env as CloudflareEnv).ANALYTICS;
+    cachedBinding = getCloudflareContext().env.ANALYTICS;
     return cachedBinding;
   } catch {
     return undefined;
@@ -23,28 +24,42 @@ interface CrawlTickData {
   ok: number;
   failed: number;
   discovered: number;
-  removed: number;
-  deduped: number;
   skipped: number;
   sweep: number;
 }
 
-export async function trackCrawlTick(data: CrawlTickData): Promise<void> {
-  const ae = await getAnalyticsBinding();
+export function trackCrawlTick(data: CrawlTickData): void {
+  const ae = getAnalyticsBinding();
   if (!ae) return;
   ae.writeDataPoint({
     indexes: ["crawl_tick"],
-    blobs: ["crawl_tick", `sweep_${data.sweep}`, data.failed > 0 ? "partial" : "ok"],
+    blobs: [`sweep_${data.sweep}`, data.failed > 0 ? "partial" : "ok"],
     doubles: [
       data.durationMs,
       data.companies,
       data.ok,
       data.failed,
       data.discovered,
-      data.removed,
-      data.deduped,
+      // Former removed/deduped slots, kept so existing column positions hold.
+      0,
+      0,
       data.skipped,
     ],
+  });
+}
+
+interface CrawlCleanupData {
+  removed: number;
+  deduped: number;
+}
+
+/** Written once per sweep by the cron, which owns stale-job removal and dedupe. */
+export function trackCrawlCleanup(data: CrawlCleanupData): void {
+  const ae = getAnalyticsBinding();
+  if (!ae) return;
+  ae.writeDataPoint({
+    indexes: ["crawl_cleanup"],
+    doubles: [data.removed, data.deduped],
   });
 }
 
@@ -52,31 +67,14 @@ interface ApiRequestData {
   path: string;
   durationMs: number;
   status: number;
-  kvHit: boolean;
 }
 
-export async function trackApiRequest(data: ApiRequestData): Promise<void> {
-  const ae = await getAnalyticsBinding();
+export function trackApiRequest(data: ApiRequestData): void {
+  const ae = getAnalyticsBinding();
   if (!ae) return;
   ae.writeDataPoint({
     indexes: ["api_request"],
-    blobs: [data.path, `${data.status}`, data.kvHit ? "hit" : "miss"],
+    blobs: [data.path, String(data.status)],
     doubles: [data.durationMs],
-  });
-}
-
-interface KvCacheData {
-  operation: "read" | "write";
-  key: string;
-  hit: boolean;
-}
-
-export async function trackKvCache(data: KvCacheData): Promise<void> {
-  const ae = await getAnalyticsBinding();
-  if (!ae) return;
-  ae.writeDataPoint({
-    indexes: ["kv_cache"],
-    blobs: [data.operation, data.key, data.hit ? "hit" : "miss"],
-    doubles: [],
   });
 }

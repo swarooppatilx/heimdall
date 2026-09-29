@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { formatError } from "./logger";
+import { describe, expect, it, vi } from "vitest";
+import { formatError, logError, logEvent } from "./logger";
 
 describe("formatError", () => {
   it("appends captured frames for errors with a stack trace", () => {
@@ -16,5 +16,26 @@ describe("formatError", () => {
 
   it("stringifies non-error rejections", () => {
     expect(formatError("d1 unreachable")).toBe("d1 unreachable");
+  });
+});
+
+describe("log levels", () => {
+  it("tags info events and routes errors to console.error", () => {
+    const info = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    logEvent("tick", { n: 1 });
+    logError("crawl_failed", { error: "boom" });
+    expect(JSON.parse(info.mock.calls[0]?.[0] as string)).toEqual({
+      event: "tick",
+      level: "info",
+      n: 1,
+    });
+    expect(JSON.parse(error.mock.calls[0]?.[0] as string)).toEqual({
+      event: "crawl_failed",
+      level: "error",
+      error: "boom",
+    });
+    info.mockRestore();
+    error.mockRestore();
   });
 });

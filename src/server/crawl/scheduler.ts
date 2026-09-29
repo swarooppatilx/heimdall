@@ -1,90 +1,54 @@
-import type { Job } from "@/lib/job";
 import { MS_PER_MINUTE } from "@/lib/time";
-import { diffJobs, isSuspiciousDeletion } from "@/server/crawl/diff";
-import { fetchJobs } from "@/server/crawl/fetch-jobs";
+import { type BoardCrawlResult, crawlBoard } from "@/server/crawl/board";
 import { type CrawlBudget, createCrawlBudget, hasBudgetLeft } from "@/server/crawl/http";
-import { getRegistry, type RegistryEntry } from "@/server/crawl/registry";
-import { recordCrawl } from "@/server/crawl/store";
-import { getJobsByBoard } from "@/server/jobs/queries";
-import { deleteJobsByIds, insertJobs, updateJobs } from "@/server/jobs/writes";
-import { formatError, logEvent } from "@/server/logger";
-
-interface CrawlResult {
-  company: string;
-  status: "ok" | "error";
-  jobsFound: number;
-  durationMs: number;
-  error?: string;
-}
+import type { Source } from "@/server/crawl/sources";
 
 const TICK_MINUTES = 30;
-const TICK_MS = TICK_MINUTES * MS_PER_MINUTE;
-const TICK_MARGIN_MINUTES = 2;
-const TICK_MARGIN_MS = TICK_MARGIN_MINUTES * MS_PER_MINUTE;
-const TICKS_PER_SWEEP = 16;
-const CRAWL_CONCURRENCY = 6;
-
-export function shouldRunTick(lastCrawlUnix: number | null, now: number): boolean {
-  if (lastCrawlUnix === null) return true;
-  return now - lastCrawlUnix >= TICK_MS - TICK_MARGIN_MS;
-}
+export const TICK_MS = TICK_MINUTES * MS_PER_MINUTE;
+// Each tick enqueues a quarter of the registry, so a full sweep takes two hours.
+export const TICKS_PER_SWEEP = 4;
+// The budget is checked before each board starts, so every board in flight can
+// still spend its writes. Two at a time keeps that overshoot small inside the
+// 50 subrequests (fetches and D1 calls) one queue invocation is allowed.
+const CRAWL_CONCURRENCY = 2;
 
 export function sweepOrdinal(now = Date.now()): number {
   return Math.floor(now / TICK_MS) % TICKS_PER_SWEEP;
 }
 
-export function sweepSlice(entries: RegistryEntry[], now = Date.now()): RegistryEntry[] {
+export function sweepSlice(entries: Source[], now = Date.now()): Source[] {
   const ordinal = sweepOrdinal(now);
   const start = Math.floor((ordinal * entries.length) / TICKS_PER_SWEEP);
   const end = Math.floor(((ordinal + 1) * entries.length) / TICKS_PER_SWEEP);
   return entries.slice(start, end);
 }
 
-interface CrawlRun {
-  results: CrawlResult[];
+export interface CrawlRun {
+  results: BoardCrawlResult[];
   discovered: number;
   durationMs: number;
   skipped: number;
-}
-
-async function applyDiff(
-  entry: RegistryEntry,
-  existing: Job[],
-  fetched: Job[],
-): Promise<{ inserts: number; updates: number; deleted: number }> {
-  const diff = diffJobs(existing, fetched);
-  await insertJobs(diff.inserts);
-  await updateJobs(diff.updates);
-  if (isSuspiciousDeletion(existing.length, diff.deletedIds.length)) {
-    logEvent("suspicious_diff", {
-      company: entry.name,
-      existing: existing.length,
-      deleted: diff.deletedIds.length,
-    });
-  } else {
-    await deleteJobsByIds(diff.deletedIds);
-  }
-  return {
-    inserts: diff.inserts.length,
-    updates: diff.updates.length,
-    deleted: diff.deletedIds.length,
-  };
+  wrote: boolean;
 }
 
 export async function crawlAll(
-  slice?: RegistryEntry[],
+  registry: Source[],
   budget: CrawlBudget = createCrawlBudget(),
 ): Promise<CrawlRun> {
   const start = Date.now();
-  const registry = slice ?? getRegistry();
-  const results: CrawlResult[] = [];
+  const results: BoardCrawlResult[] = [];
+  let anyWrote = false;
 
   let cursor = 0;
   const workers = Array.from({ length: Math.min(CRAWL_CONCURRENCY, registry.length) }, async () => {
     while (cursor < registry.length && hasBudgetLeft(budget)) {
       const entry = registry[cursor];
       cursor += 1;
-      if (entry) results.push(await crawlOne(entry, budget));
+      if (entry) {
+        const result = await crawlBoard(entry, budget);
+        if (result.wrote) anyWrote = true;
+        results.push(result);
+      }
     }
   });
   await Promise.all(workers);
@@ -98,55 +62,13 @@ export async function crawlAll(
     discovered,
     durationMs: Date.now() - start,
     skipped: registry.length - results.length,
+    wrote: anyWrote,
   };
 }
 
-export async function crawlSlices(count: number): Promise<CrawlRun[]> {
-  const registry = getRegistry();
-  const now = Date.now();
-  const runs: CrawlRun[] = [];
-  for (let i = 0; i < count; i += 1) {
-    runs.push(await crawlAll(sweepSlice(registry, now + i * TICK_MS)));
-  }
-  return runs;
-}
-
-function recordSafe(
-  entry: RegistryEntry,
-  status: "ok" | "error",
-  jobsFound: number,
-  durationMs: number,
-  error?: string,
-): Promise<void> {
-  return recordCrawl(entry.name, status, jobsFound, durationMs, error).catch((err: unknown) => {
-    logEvent("crawl_record_failed", { company: entry.name, error: formatError(err) });
-  });
-}
-
-async function crawlOne(entry: RegistryEntry, budget?: CrawlBudget): Promise<CrawlResult> {
-  const start = Date.now();
-  try {
-    const jobs = await fetchJobs(entry, budget);
-    const existing = await getJobsByBoard(entry.provider, entry.name);
-    await applyDiff(entry, existing, jobs);
-    const durationMs = Date.now() - start;
-    await recordSafe(entry, "ok", jobs.length, durationMs);
-    return {
-      company: entry.name,
-      status: "ok",
-      jobsFound: jobs.length,
-      durationMs,
-    };
-  } catch (err) {
-    const durationMs = Date.now() - start;
-    const msg = formatError(err);
-    await recordSafe(entry, "error", 0, durationMs, msg);
-    return {
-      company: entry.name,
-      status: "error",
-      jobsFound: 0,
-      durationMs,
-      error: msg,
-    };
-  }
+// Starts at the next tick: the current slice is already queued by the cron.
+export function upcomingBoards(sources: Source[], count: number, now = Date.now()): Source[] {
+  return Array.from({ length: count }, (_, i) =>
+    sweepSlice(sources, now + (i + 1) * TICK_MS),
+  ).flat();
 }

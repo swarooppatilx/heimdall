@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import type { Job } from "@/lib/job";
 import { mapPostings } from "@/server/crawl/providers/postings";
+
+const postingSchema = z.object({ id: z.string(), remote: z.boolean().nullish() });
 
 function job(id: string): Job {
   return {
@@ -21,28 +24,43 @@ afterEach(() => {
 
 describe("mapPostings", () => {
   it("maps every posting when all are well-formed", () => {
-    const result = mapPostings([{ id: "1" }, { id: "2" }], "acme", (p) => job(p.id));
+    const result = mapPostings(
+      [{ id: "1" }, { id: "2", remote: null }],
+      "acme",
+      postingSchema,
+      (p) => job(p.id),
+    );
     expect(result).toHaveLength(2);
   });
 
-  it("skips postings whose mapper throws and logs the count", () => {
+  it("skips invalid postings instead of failing the board, logging one summary", () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     const result = mapPostings(
-      [{ id: "1" }, null, { id: "3" }] as { id: string }[],
+      [{ id: "1" }, { id: 2 }, null, { id: "4" }],
       "acme",
-      (p) => {
-        if (p === null) throw new Error("malformed");
-        return job(p.id);
-      },
+      postingSchema,
+      (p) => job(p.id),
     );
 
-    expect(result.map((j) => j.id)).toEqual(["1", "3"]);
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("postings_skipped"));
+    expect(result.map((j) => j.id)).toEqual(["1", "4"]);
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    const logged = JSON.parse(logSpy.mock.calls[0]?.[0] as string);
+    expect(logged).toMatchObject({ event: "postings_skipped", company: "acme", skipped: 2 });
+    expect(logged.reason).toContain("id");
   });
 
-  it("tolerates an undefined posting list", () => {
-    const result = mapPostings(undefined, "acme", () => job("1"));
-    expect(result).toEqual([]);
+  it("skips postings whose mapper throws", () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const result = mapPostings([{ id: "1" }, { id: "bad" }], "acme", postingSchema, (p) => {
+      if (p.id === "bad") throw new Error("missing posting date");
+      return job(p.id);
+    });
+    expect(result.map((j) => j.id)).toEqual(["1"]);
+  });
+
+  it("tolerates a missing posting list", () => {
+    expect(mapPostings(undefined, "acme", postingSchema, (p) => job(p.id))).toEqual([]);
+    expect(mapPostings(null, "acme", postingSchema, (p) => job(p.id))).toEqual([]);
   });
 });
