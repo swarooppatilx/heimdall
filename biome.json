@@ -11,23 +11,15 @@
   "overrides": [
     {
       "includes": ["cloudflare-env.d.ts"],
-      "linter": {
-        "enabled": false
-      },
-      "formatter": {
-        "enabled": false
-      },
-      "assist": {
-        "enabled": false
-      }
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false },
+      "assist": { "enabled": false }
     },
     {
       "includes": ["**/*.test.ts", "**/*.test.tsx"],
       "linter": {
         "rules": {
-          "style": {
-            "noMagicNumbers": "off"
-          }
+          "style": { "noMagicNumbers": "off" }
         }
       }
     },
@@ -35,9 +27,7 @@
       "includes": ["src/server/logger.ts"],
       "linter": {
         "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          }
+          "suspicious": { "noConsole": "off" }
         }
       }
     },
@@ -45,12 +35,8 @@
       "includes": ["src/components/ui/**"],
       "linter": {
         "rules": {
-          "a11y": {
-            "useSemanticElements": "off"
-          },
-          "complexity": {
-            "noImplicitCoercions": "off"
-          },
+          "a11y": { "useSemanticElements": "off" },
+          "complexity": { "noImplicitCoercions": "off" },
           "suspicious": {
             "noDoubleEquals": "off",
             "noLeakedRender": "off",
@@ -58,6 +44,32 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/lib/**", "src/components/**", "src/hooks/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/server/**"],
+                    "message": "Browser code must not import server modules; move shared code to src/lib."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["migrations/**"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false },
+      "assist": { "enabled": false }
     }
   ],
   "formatter": {
@@ -70,6 +82,7 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
+      "nursery": { "noFloatingPromises": "error" },
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
