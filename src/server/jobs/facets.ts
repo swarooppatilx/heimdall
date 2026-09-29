@@ -1,127 +1,55 @@
-import { and, eq, gte, isNotNull, sql } from "drizzle-orm";
-import {
-  FILTER_COMPANIES,
-  FILTER_DEPARTMENTS,
-  FILTER_EXPERIENCE_LEVELS,
-  FILTER_LOCATIONS,
-  FILTER_SOURCES,
-} from "@/lib/taxonomy";
-import { getDb } from "@/server/db";
+import { and, asc, countDistinct, desc, eq, gte, ne } from "drizzle-orm";
+import type { FacetOptions } from "@/lib/api-types";
+import { getReadDb } from "@/server/db";
 import { jobLocations, jobs } from "@/server/db/schema";
 import { freshnessCutoff } from "@/server/jobs/freshness";
 
-interface FacetOption {
-  value: string;
-  count: number;
-}
-
-interface CountryFacet {
-  value: string;
-  count: number;
-  cities: FacetOption[];
-}
-
-export interface FacetOptions {
-  remoteCount: number;
-  countries: CountryFacet[];
-  companies: FacetOption[];
-  departments: FacetOption[];
-  sources: FacetOption[];
-  experienceLevels: FacetOption[];
-}
-
+/**
+ * Filter options straight from the data: every value offered has fresh jobs,
+ * and a newly crawled country or company shows up without a code change.
+ * Locations count jobs through job_locations, so a posting with two German
+ * offices counts once for Germany and once for each city.
+ */
 export async function getFacetOptions(): Promise<FacetOptions> {
-  const db = await getDb();
-  const cutoff = freshnessCutoff();
+  const db = await getReadDb();
+  const fresh = gte(jobs.postedAt, freshnessCutoff());
+  const jobCount = countDistinct(jobs.id);
 
-  const [remoteRows, cityRows, countryRows, companyRows, departmentRows, sourceRows, levelRows] =
-    await Promise.all([
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(and(eq(jobs.isRemote, 1), gte(jobs.postedAt, cutoff))),
-      db
-        .select({
-          country: jobLocations.country,
-          city: jobLocations.city,
-          count: sql<number>`count(*)`,
-        })
-        .from(jobLocations)
-        .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobLocations.country, jobLocations.city),
-      db
-        .select({ value: jobs.country, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(and(gte(jobs.postedAt, cutoff), isNotNull(jobs.country)))
-        .groupBy(jobs.country),
-      db
-        .select({
-          value: jobs.company,
-          count: sql<number>`count(*)`,
-        })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.company),
-      db
-        .select({ value: jobs.department, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.department),
-      db
-        .select({ value: jobs.source, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.source),
-      db
-        .select({ value: jobs.experienceLevel, count: sql<number>`count(*)` })
-        .from(jobs)
-        .where(gte(jobs.postedAt, cutoff))
-        .groupBy(jobs.experienceLevel),
-    ]);
+  const valueCounts = (column: typeof jobs.company | typeof jobs.department) =>
+    db
+      .select({ value: column, count: jobCount })
+      .from(jobs)
+      .where(and(fresh, ne(column, "")))
+      .groupBy(column)
+      .orderBy(asc(column));
 
-  const cityCounts = new Map<string, number>();
-  for (const row of cityRows) {
-    if (!row.city) continue;
-    cityCounts.set(`${row.country}|${row.city.toLowerCase()}`, Number(row.count));
-  }
-  const countryCounts = new Map(countryRows.map((r) => [r.value, Number(r.count)] as const));
-  const countMap = (rows: { value: string | null; count: number }[]) =>
-    new Map(rows.map((r) => [r.value ?? "", Number(r.count)] as const));
-
-  const departmentCounts = countMap(departmentRows);
-  const sourceCounts = countMap(sourceRows);
-  const levelCounts = countMap(levelRows);
-  const companyCounts = new Map(companyRows.map((r) => [r.value, Number(r.count)] as const));
+  const [countryRows, cityRows, companies, departments] = await Promise.all([
+    db
+      .select({ value: jobLocations.country, count: jobCount })
+      .from(jobLocations)
+      .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
+      .where(fresh)
+      .groupBy(jobLocations.country)
+      .orderBy(desc(jobCount)),
+    db
+      .select({ country: jobLocations.country, value: jobLocations.city, count: jobCount })
+      .from(jobLocations)
+      .innerJoin(jobs, eq(jobs.id, jobLocations.jobId))
+      .where(and(fresh, ne(jobLocations.city, "")))
+      .groupBy(jobLocations.country, jobLocations.city)
+      .orderBy(desc(jobCount)),
+    valueCounts(jobs.company),
+    valueCounts(jobs.department),
+  ]);
 
   return {
-    remoteCount: Number(remoteRows[0]?.count ?? 0),
-    countries: FILTER_LOCATIONS.countries.map((value) => ({
-      value,
-      count: countryCounts.get(value) ?? 0,
-      cities: FILTER_LOCATIONS.cities
-        .filter((city) => city.country === value)
-        .map((city) => ({
-          value: city.value,
-          count: cityCounts.get(`${value}|${city.value}`) ?? 0,
-        })),
+    countries: countryRows.map((country) => ({
+      ...country,
+      cities: cityRows
+        .filter((city) => city.country === country.value)
+        .map(({ value, count }) => ({ value, count })),
     })),
-
-    companies: FILTER_COMPANIES.map((value) => ({
-      value,
-      count: companyCounts.get(value) ?? 0,
-    })),
-    departments: FILTER_DEPARTMENTS.map((value) => ({
-      value,
-      count: departmentCounts.get(value) ?? 0,
-    })),
-    sources: FILTER_SOURCES.map((value) => ({
-      value,
-      count: sourceCounts.get(value) ?? 0,
-    })),
-    experienceLevels: FILTER_EXPERIENCE_LEVELS.map((value) => ({
-      value,
-      count: levelCounts.get(value) ?? 0,
-    })),
+    companies,
+    departments,
   };
 }

@@ -37,7 +37,7 @@ describe("diffJobs", () => {
     const stored = job("a", { title: "Old Title" });
     const fetched = job("a", { title: "New Title" });
     const diff = diffJobs([stored], [fetched]);
-    expect(diff.updates.map((j) => j.id)).toEqual(["a"]);
+    expect(diff.updates.map((u) => u.job.id)).toEqual(["a"]);
   });
 
   it("keeps the first seen date when a provider bumps postedAt forward", () => {
@@ -52,7 +52,7 @@ describe("diffJobs", () => {
     const corrected = job("a", { postedAt: new Date("2026-08-20T00:00:00.000Z") });
     const diff = diffJobs([stored], [corrected]);
     expect(diff.updates).toHaveLength(1);
-    expect(diff.updates[0]?.postedAt.toISOString()).toBe("2026-08-20T00:00:00.000Z");
+    expect(diff.updates[0]?.job.postedAt.toISOString()).toBe("2026-08-20T00:00:00.000Z");
   });
 
   it("ignores sub-minute postedAt drift", () => {
@@ -62,18 +62,17 @@ describe("diffJobs", () => {
     expect(diff.updates).toHaveLength(0);
   });
 
-  it("flags experience level changes as updates", () => {
-    const stored = job("a");
-    const promoted = job("a", { title: "Staff Role" });
-    const diff = diffJobs([stored], [promoted]);
-    expect(diff.updates).toHaveLength(1);
+  it("flags a level change as an update", () => {
+    const stored = job("a", { level: "mid" });
+    const reclassified = job("a", { level: "senior" });
+    expect(diffJobs([stored], [reclassified]).updates).toHaveLength(1);
   });
 
-  it("treats stored and inferred experience levels as equal", () => {
-    const stored = job("a", { title: "Senior Engineer", experienceLevel: "senior" });
-    const fetched = job("a", { title: "Senior Engineer" });
-    const diff = diffJobs([stored], [fetched]);
-    expect(diff.updates).toHaveLength(0);
+  it("flags title changes as updates", () => {
+    const stored = job("a");
+    const retitled = job("a", { title: "Staff Role" });
+    const diff = diffJobs([stored], [retitled]);
+    expect(diff.updates).toHaveLength(1);
   });
 
   it("flags company renames as updates", () => {
@@ -93,8 +92,35 @@ describe("diffJobs", () => {
     const fetched = [job("same"), job("edited"), job("brand-new")];
     const diff = diffJobs(existing, fetched);
     expect(diff.inserts.map((j) => j.id)).toEqual(["brand-new"]);
-    expect(diff.updates.map((j) => j.id)).toEqual(["edited"]);
+    expect(diff.updates.map((u) => u.job.id)).toEqual(["edited"]);
     expect(diff.deletedIds).toEqual(["closed"]);
+  });
+
+  it("reports location-only changes in changed fields", () => {
+    const stored = job("a", { location: "New York" });
+    const fetched = job("a", { location: "London" });
+    const diff = diffJobs([stored], [fetched]);
+    expect(diff.updates).toHaveLength(1);
+    expect(diff.updates[0]?.changed.location).toBe(true);
+    expect(diff.updates[0]?.changed.core).toBe(false);
+  });
+
+  it("reports core-only changes in changed fields", () => {
+    const stored = job("a", { title: "Engineer", location: "NYC" });
+    const fetched = job("a", { title: "Senior Engineer", location: "NYC" });
+    const diff = diffJobs([stored], [fetched]);
+    expect(diff.updates).toHaveLength(1);
+    expect(diff.updates[0]?.changed.location).toBe(false);
+    expect(diff.updates[0]?.changed.core).toBe(true);
+  });
+
+  it("reports both groups changed when multiple fields differ", () => {
+    const stored = job("a", { title: "Engineer", location: "NYC" });
+    const fetched = job("a", { title: "Senior Engineer", location: "London" });
+    const diff = diffJobs([stored], [fetched]);
+    expect(diff.updates).toHaveLength(1);
+    expect(diff.updates[0]?.changed.location).toBe(true);
+    expect(diff.updates[0]?.changed.core).toBe(true);
   });
 
   it("flags mass deletions as suspicious", () => {

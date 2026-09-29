@@ -36,37 +36,44 @@ describe("fetchAshbyJobs", () => {
   it("maps Ashby job board API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchAshbyJobs("testco");
+    const result = await fetchAshbyJobs("testco");
+    const jobs = result?.jobs ?? [];
 
     expect(jobs).toHaveLength(2);
     expect(jobs[0]).toEqual({
       id: "ab-testco-ash-001",
       title: "Frontend Engineer",
       company: "testco",
-      location: "united states",
-      locations: ["united states"],
-      department: "engineering",
+      location: "Remote - United States",
+      locations: ["Remote - United States"],
+      department: "Engineering",
       url: "https://jobs.ashbyhq.com/testco/ash-001",
       postedAt: new Date("2026-08-15T12:00:00.000Z"),
       source: "ashby",
+      isRemote: true,
+      departmentHints: [],
     });
   });
 
-  it("infers department from title when empty", async () => {
+  it("leaves an empty department for ingest to resolve", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchAshbyJobs("testco");
+    const result = await fetchAshbyJobs("testco");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[1]?.department).toBe("engineering");
+    expect(jobs[1]?.department).toBe("");
   });
 
-  it("normalizes location", async () => {
+  it("passes location text through and keeps Ashby's remote flag", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchAshbyJobs("testco");
+    const result = await fetchAshbyJobs("testco");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[0]?.location).toBe("united states");
-    expect(jobs[1]?.location).toBe("san francisco bay area");
+    expect(jobs[0]?.location).toBe("Remote - United States");
+    expect(jobs[0]?.isRemote).toBe(true);
+    expect(jobs[1]?.location).toBe("San Francisco Bay Area");
+    expect(jobs[1]?.isRemote).toBe(false);
   });
 
   it("throws on HTTP error", async () => {
@@ -84,5 +91,24 @@ describe("fetchAshbyJobs", () => {
       "https://api.ashbyhq.com/posting-api/job-board/mycompany",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+  });
+
+  it("accepts isRemote null, as Ashby sends for many postings", async () => {
+    const [first] = mockResponse.jobs;
+    vi.mocked(fetch).mockResolvedValue(
+      Response.json({ jobs: [{ ...first, isRemote: null, department: null }] }),
+    );
+    const result = await fetchAshbyJobs("testco");
+    expect(result?.jobs).toHaveLength(1);
+  });
+
+  it("skips a malformed posting without failing the board", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const [first, second] = mockResponse.jobs;
+    vi.mocked(fetch).mockResolvedValue(
+      Response.json({ jobs: [first, { ...second, title: undefined }] }),
+    );
+    const result = await fetchAshbyJobs("testco");
+    expect(result?.jobs.map((job) => job.title)).toEqual(["Frontend Engineer"]);
   });
 });

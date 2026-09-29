@@ -1,5 +1,5 @@
-import type { ExperienceLevel } from "@/lib/experience";
-import { logEvent } from "@/server/logger";
+import { fold } from "@/lib/fold";
+import type { Level } from "@/lib/level";
 
 export interface Job {
   id: string;
@@ -12,29 +12,54 @@ export interface Job {
   source: string;
   salary?: string;
   locations?: string[];
-  region?: string;
-  isEarlyCareer?: boolean;
-  experienceLevel?: ExperienceLevel;
+  level?: Level;
   city?: string;
   country?: string;
   isRemote?: boolean;
+  /** Raw ATS team/function names after `department`, in order; resolved at ingest, never stored. */
+  departmentHints?: string[];
 }
 
-interface DedupedJob {
+/**
+ * A job as it crosses the wire in `/api/jobs` and the home page payload: only
+ * the fields a job card shows, with the date as an ISO string. Location facets
+ * and flags stay on the server, where filtering happens.
+ */
+export type JobDto = Pick<
+  Job,
+  "id" | "title" | "company" | "location" | "url" | "source" | "salary"
+> & {
+  postedAt: string;
+};
+
+export function toJobDto(job: Job): JobDto {
+  return {
+    id: job.id,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    url: job.url,
+    source: job.source,
+    postedAt: job.postedAt.toISOString(),
+    ...(job.salary ? { salary: job.salary } : {}),
+  };
+}
+
+/** Two listings are the same role when company and title match, ignoring case and accents. */
+export function dedupeKey(job: Pick<Job, "company" | "title">): string {
+  return `${fold(job.company)}|${fold(job.title)}`;
+}
+
+export interface DedupedJob<T = Job> {
   key: string;
-  job: Job;
+  job: T;
   openings: number;
 }
 
-/** Deduplicates jobs by a key function, returning the first job for each key with an opening count. */
-export function dedupeJobs(jobs: Job[], keyFn: (job: Job) => string): DedupedJob[] {
-  const primary = new Map<string, Job>();
+export function dedupeJobs<T>(jobs: T[], keyFn: (job: T) => string): DedupedJob<T>[] {
+  const primary = new Map<string, T>();
   const counts = new Map<string, number>();
   for (const job of jobs) {
-    if (!(job.title && job.company)) {
-      logEvent("job_dropped_no_title_or_company", { id: job.id, source: job.source });
-      continue;
-    }
     const key = keyFn(job);
     if (!primary.has(key)) primary.set(key, job);
     counts.set(key, (counts.get(key) ?? 0) + 1);

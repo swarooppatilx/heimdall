@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { escapeLike } from "@/server/jobs/queries";
+import { escapeLike, idPrefixRange } from "@/server/jobs/queries";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 import { resolvePlace } from "@/server/locations/gazetteer";
+
+describe("idPrefixRange", () => {
+  it("covers one board's ids and excludes boards sharing the prefix", () => {
+    const { from, to } = idPrefixRange("gh-doordash-");
+    const inRange = (id: string) => id >= from && id < to;
+    expect(inRange("gh-doordash-123")).toBe(true);
+    expect(inRange("gh-doordash-")).toBe(true);
+    expect(inRange("gh-doordashusa-123")).toBe(false);
+    expect(inRange("gh-doordas-1")).toBe(false);
+  });
+});
 
 describe("escapeLike", () => {
   it("escapes percent sign", () => {

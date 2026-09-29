@@ -1,25 +1,21 @@
-import type { AnyColumn } from "drizzle-orm";
-import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
-import type { ExperienceLevel } from "@/lib/experience";
+import { type AnyColumn, and, asc, count, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import type { Job } from "@/lib/job";
 import {
+  COUNT_CAP,
   DEFAULT_LIMIT,
   type JobFilters,
   MAX_LIMIT,
   type PageOptions,
   POSTED_WINDOWS_MS,
   type SearchResult,
-} from "@/lib/types";
-import { getDb } from "@/server/db";
+} from "@/lib/search-params";
+import { isHttpUrl } from "@/lib/url";
+import { getDb, getReadDb } from "@/server/db";
 import { jobLocations, jobs } from "@/server/db/schema";
 import { freshnessCutoff } from "@/server/jobs/freshness";
+import { buildMatchQuery } from "@/server/jobs/fts";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 import { resolvePlace } from "@/server/locations/gazetteer";
-
-// IMPORTANT: When adding a new filter to JobFilters, you must also update
-// `matchesFilters` in `@/modules/jobs/search.ts` to apply the same filter
-// in the in-memory search path. These two files implement the same filtering
-// logic for different execution contexts (database query vs in-memory KV cache).
 
 function parseLocations(raw: string, fallback: string): string[] {
   try {
@@ -34,18 +30,16 @@ function parseLocations(raw: string, fallback: string): string[] {
 function toJob(row: typeof jobs.$inferSelect): Job {
   return {
     id: row.id,
-    title: row.title ?? "",
-    company: row.company ?? "",
-    location: row.location ?? "",
-    department: row.department ?? "",
-    url: row.url ?? "",
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    department: row.department,
+    url: row.url,
     postedAt: new Date(row.postedAt),
-    source: row.source ?? "",
+    source: row.source,
     salary: row.salary,
     locations: parseLocations(row.locations, row.location),
-    region: row.region,
-    isEarlyCareer: row.isEarlyCareer === 1,
-    experienceLevel: (row.experienceLevel ?? "mid") as ExperienceLevel,
+    level: row.level,
     ...(row.city === null ? {} : { city: row.city }),
     ...(row.country === null ? {} : { country: row.country }),
     isRemote: row.isRemote === 1,
@@ -54,6 +48,15 @@ function toJob(row: typeof jobs.$inferSelect): Job {
 
 export function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
+}
+
+function searchCondition(value: string | undefined) {
+  if (!value) return undefined;
+  const match = buildMatchQuery(value);
+  // A query with nothing searchable ("+++") matches nothing; dropping it would
+  // return every job while the URL still claims a search.
+  if (!match) return sql`0`;
+  return inArray(jobs.id, sql`(SELECT job_id FROM jobs_fts WHERE jobs_fts MATCH ${match})`);
 }
 
 function facetMatch(city: string | undefined, country: string | undefined) {
@@ -73,6 +76,12 @@ function eqJobCompany(value: string) {
 
 function eqColumn(column: AnyColumn, value: string) {
   return sql`${column} = ${value}`;
+}
+
+// Job links render as hrefs. Ingest already rejects non-http(s) URLs; this
+// keeps any row that slipped in another way off the page.
+function toRenderableJobs(rows: (typeof jobs.$inferSelect)[]): Job[] {
+  return rows.filter((row) => isHttpUrl(row.url)).map(toJob);
 }
 
 function companyCondition(value: string | undefined) {
@@ -110,20 +119,14 @@ function postedCondition(value: string | undefined) {
 function jobConditions(filters: JobFilters) {
   const conditions = [
     gte(jobs.postedAt, freshnessCutoff()),
+    searchCondition(filters.q),
     companyCondition(filters.company),
     locationCondition(filters.location),
     cityCountryCondition(filters.city, filters.country),
-    columnCondition(jobs.source, filters.source),
-    columnCondition(jobs.experienceLevel, filters.experience),
     columnCondition(jobs.department, filters.department),
-    filters.earlyCareer === "true" ? eq(jobs.isEarlyCareer, 1) : undefined,
+    columnCondition(jobs.level, filters.level),
     postedCondition(filters.posted),
   ];
-
-  if (filters.q) {
-    const escaped = escapeLike(filters.q);
-    conditions.push(sql`${jobs.title} LIKE ${`%${escaped}%`} ESCAPE '\\'`);
-  }
 
   return conditions.filter((c): c is NonNullable<typeof c> => c != null);
 }
@@ -132,16 +135,21 @@ export async function searchJobsWithCount(
   filters: JobFilters,
   page?: PageOptions,
 ): Promise<SearchResult> {
-  const db = await getDb();
+  const db = await getReadDb();
 
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
 
   const orderBy =
-    filters.sort === "company" ? [asc(jobs.company), desc(jobs.postedAt)] : [desc(jobs.postedAt)];
+    // id breaks ties so offsets are stable: many ATSes post date-only timestamps.
+    filters.sort === "company"
+      ? [asc(jobs.company), desc(jobs.postedAt), desc(jobs.id)]
+      : [desc(jobs.postedAt), desc(jobs.id)];
 
   const conditions = and(...jobConditions(filters));
 
+  // The capped count reads up to COUNT_CAP rows, so it runs once per search,
+  // on the first page, not on every page of an infinite scroll.
   const [jobRows, countResult] = await Promise.all([
     db
       .select()
@@ -150,62 +158,75 @@ export async function searchJobsWithCount(
       .orderBy(...orderBy)
       .limit(limit)
       .offset(offset),
-    db.select({ value: count() }).from(jobs).where(conditions),
+    offset === 0
+      ? db
+          .select({ value: count() })
+          .from(
+            db.select({ one: sql`1` }).from(jobs).where(conditions).limit(COUNT_CAP).as("capped"),
+          )
+      : null,
   ]);
 
   return {
-    jobs: jobRows.map(toJob),
-    total: countResult[0]?.value ?? 0,
+    jobs: toRenderableJobs(jobRows),
+    total: countResult ? (countResult[0]?.value ?? 0) : null,
   };
 }
 
-export async function getJobsByBoard(source: string, company: string): Promise<Job[]> {
+// "." is the character right after "-", so this is an index range over one
+// board's ids that excludes boards sharing the prefix ("doordash" vs "doordashusa").
+export function idPrefixRange(prefix: string): { from: string; to: string } {
+  return { from: prefix, to: `${prefix.slice(0, -1)}.` };
+}
+
+/**
+ * A board's stored jobs that are still fresh. Expired rows are left to the
+ * stale sweep; counting them here would make every expiry look like a mass
+ * deletion and trip the suspicious-diff guard.
+ */
+export async function getJobsByIdPrefix(prefix: string): Promise<Job[]> {
   const db = await getDb();
+  const { from, to } = idPrefixRange(prefix);
   const rows = await db
     .select()
     .from(jobs)
-    .where(
-      and(
-        sql`${jobs.source} = ${source.toLowerCase()}`,
-        sql`${jobs.company} = ${company.toLowerCase()}`,
-      ),
-    );
+    .where(and(gte(jobs.id, from), lt(jobs.id, to), gte(jobs.postedAt, freshnessCutoff())));
   return rows.map(toJob);
 }
 
-export async function getCompanyNames(): Promise<string[]> {
-  const db = await getDb();
-  const rows = await db
-    .selectDistinct({ value: jobs.company })
+export interface CompanyEntry {
+  name: string;
+  lastPostedAt: string;
+}
+
+/** Companies with fresh jobs and their newest posting, read off the (company, posted_at) index. */
+export async function getCompanyIndex(): Promise<CompanyEntry[]> {
+  const db = await getReadDb();
+  return db
+    .select({ name: jobs.company, lastPostedAt: sql<string>`max(${jobs.postedAt})` })
     .from(jobs)
     .where(and(ne(jobs.company, ""), gte(jobs.postedAt, freshnessCutoff())))
+    .groupBy(jobs.company)
     .orderBy(asc(jobs.company));
-  return rows.map((r) => r.value);
 }
 
 export async function getJobsByCompany(company: string): Promise<Job[]> {
-  const db = await getDb();
+  const db = await getReadDb();
   const rows = await db
     .select()
     .from(jobs)
     .where(and(eqJobCompany(company), gte(jobs.postedAt, freshnessCutoff())))
     .orderBy(desc(jobs.postedAt));
-  return rows.map(toJob);
-}
-
-export async function getAllFreshJobs(): Promise<Job[]> {
-  const db = await getDb();
-  const rows = await db.select().from(jobs).where(gte(jobs.postedAt, freshnessCutoff()));
-  return rows.map(toJob);
+  return toRenderableJobs(rows);
 }
 
 export async function getRecentJobs(limit: number): Promise<Job[]> {
-  const db = await getDb();
+  const db = await getReadDb();
   const rows = await db
     .select()
     .from(jobs)
     .where(gte(jobs.postedAt, freshnessCutoff()))
     .orderBy(desc(jobs.postedAt))
     .limit(limit);
-  return rows.map(toJob);
+  return toRenderableJobs(rows);
 }

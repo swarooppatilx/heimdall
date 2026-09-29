@@ -1,3 +1,4 @@
+import { fold } from "@/lib/fold";
 import {
   CA_PROVINCES,
   CITY_ALIASES,
@@ -18,12 +19,13 @@ export interface Place {
   remote?: boolean;
 }
 
+// Segments are folded, so "München", "MUNCHEN" and "munchen" hit the same
+// ASCII alias row and resolve to the same canonical place.
 function cleanSegment(segment: string): string {
-  return segment
+  return fold(segment)
     .replace(/^[-–—()\s]+|[-–—()\s]+$/g, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+    .trim();
 }
 
 function lookupCountry(token: string): string | undefined {
@@ -44,18 +46,20 @@ function escapeRegExp(text: string): string {
 
 const MIN_ALIAS_LENGTH = 5;
 
+const fuzzyRegexCache = Object.entries(CITY_ALIASES)
+  .filter(([alias]) => alias.length >= MIN_ALIAS_LENGTH)
+  .map(([alias, place]) => ({
+    alias,
+    place: [place[0], place[1]] as [string, string],
+    pattern: new RegExp(`\\b${escapeRegExp(alias)}\\b`),
+  }))
+  .sort((a, b) => b.alias.length - a.alias.length);
+
 function fuzzyCity(text: string): [string, string] | undefined {
-  let bestAlias = "";
-  let bestMatch: [string, string] | undefined;
-  for (const [alias, place] of Object.entries(CITY_ALIASES)) {
-    if (alias.length < MIN_ALIAS_LENGTH || alias.length <= bestAlias.length) continue;
-    const pattern = new RegExp(`\\b${escapeRegExp(alias)}\\b`);
-    if (pattern.test(text)) {
-      bestAlias = alias;
-      bestMatch = [place[0], place[1]];
-    }
+  for (const { place, pattern } of fuzzyRegexCache) {
+    if (pattern.test(text)) return place;
   }
-  return bestMatch;
+  return undefined;
 }
 
 function resolveExplicitCountry(segments: string[]): string | undefined {
@@ -72,13 +76,14 @@ function resolveExplicitCountry(segments: string[]): string | undefined {
 
 function resolveStreetAddress(trimmed: string): Place | null {
   if (!STREET_PATTERN.test(trimmed) || lookupCity(cleanSegment(trimmed))) return null;
-  const fuzzy = fuzzyCity(trimmed.toLowerCase());
+  const fuzzy = fuzzyCity(fold(trimmed));
   return fuzzy ? { city: fuzzy[0], country: fuzzy[1] } : null;
 }
 
 function resolveRemote(segments: string[]): Place {
+  // Re-clean after stripping so "us (remote)" leaves "us", not "us (".
   const stripped = segments
-    .map((segment) => segment.replace(REMOTE_PATTERN, " ").replace(/\s+/g, " ").trim())
+    .map((segment) => cleanSegment(segment.replace(REMOTE_PATTERN, " ")))
     .filter(Boolean);
   const remoteCountry = resolveExplicitCountry(stripped);
   return remoteCountry ? { remote: true, country: remoteCountry } : { remote: true };
@@ -112,16 +117,30 @@ function resolveCityFromSegments(
   return { city: resolvedCity ?? "", country: resolvedCountry };
 }
 
+const PLACE_CACHE_MAX = 2000;
+const placeCache = new Map<string, Place | null>();
+
 export function resolvePlace(raw: string): Place | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
+  const key = fold(trimmed);
+  const cached = placeCache.get(key);
+  if (cached !== undefined) return cached;
+
+  if (placeCache.size >= PLACE_CACHE_MAX) placeCache.clear();
+  const place = resolveUncached(trimmed);
+  placeCache.set(key, place);
+  return place;
+}
+
+function resolveUncached(trimmed: string): Place | null {
   if (/^\d+\s+locations?$/i.test(trimmed) || GARBAGE_PATTERN.test(trimmed)) return null;
 
   const street = resolveStreetAddress(trimmed);
   if (street) return street;
 
-  const lowered = trimmed.toLowerCase();
+  const lowered = fold(trimmed);
   const segments = lowered
     .split(SEGMENT_SPLIT)
     .map(cleanSegment)
@@ -156,26 +175,21 @@ export function formatPlace(place: Place): string {
   return "unknown";
 }
 
-interface LocationCatalog {
-  countries: string[];
-  cities: { value: string; country: string }[];
+/**
+ * A posting's raw location text split into offices, the first being the
+ * primary. Providers pass text through untouched; `resolvePlace` canonicalizes
+ * it once at ingest, so signals like "Remote" survive until it reads them.
+ */
+export function postingLocations(raw: string): { location: string; locations: string[] } {
+  const locations = splitLocations(raw);
+  return { location: locations[0] ?? "", locations };
 }
 
-export const LOCATION_CATALOG: LocationCatalog = {
-  countries: [...new Set([...COUNTRIES, ...Object.values(COUNTRY_CANONICAL)])].sort(),
-  cities: [
-    ...new Map(
-      Object.values(CITY_ALIASES).map(([city, country]) => [
-        `${city.toLowerCase()}|${country.toLowerCase()}`,
-        { value: city.toLowerCase(), country: country.toLowerCase() },
-      ]),
-    ).values(),
-  ].sort((a, b) => a.value.localeCompare(b.value)),
-};
-
+// Separates offices in a multi-location posting. A slash only counts with
+// spaces around it ("Berlin / Munich"); "Remote/US" is one location.
 export function splitLocations(raw: string): string[] {
   return raw
-    .split(/\s*[;•|]\s*/)
+    .split(/\s*[;•|]\s*|\s+\/\s+/)
     .map((part) => part.trim())
     .filter(Boolean);
 }

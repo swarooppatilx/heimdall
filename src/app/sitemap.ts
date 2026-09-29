@@ -1,23 +1,31 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MetadataRoute } from "next";
 import { toCompanySlug } from "@/lib/company-slug";
-import { getCompanyNamesFromKV } from "@/server/jobs/kv";
-import { getCompanyNames } from "@/server/jobs/queries";
-import { siteUrl } from "@/server/jobs/site";
+import { siteConfig } from "@/lib/site";
+import { getCompanyIndexCached } from "@/server/jobs/cached-views";
+
+// Company pages come and go with each crawl, so the sitemap is built per request.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const url = await siteUrl();
-  const { env } = await getCloudflareContext();
-  const kvNames = await getCompanyNamesFromKV(env);
-  const companies = kvNames ?? (await getCompanyNames());
+  const url = siteConfig.url;
+  const { env } = await getCloudflareContext({ async: true });
+  const companies = await getCompanyIndexCached(env);
+  // ISO strings sort chronologically, so the newest posting is the max.
+  const newest = companies.reduce<string | undefined>(
+    (latest, { lastPostedAt }) => (!latest || lastPostedAt > latest ? lastPostedAt : latest),
+    undefined,
+  );
   return [
     {
       url,
+      ...(newest ? { lastModified: new Date(newest) } : {}),
       changeFrequency: "hourly",
       priority: 1,
     },
-    ...companies.map((company) => ({
-      url: `${url}/company/${toCompanySlug(company)}`,
+    ...companies.map(({ name, lastPostedAt }) => ({
+      url: `${url}/company/${toCompanySlug(name)}`,
+      lastModified: new Date(lastPostedAt),
       changeFrequency: "daily" as const,
       priority: 0.7,
     })),

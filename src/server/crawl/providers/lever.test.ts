@@ -36,29 +36,32 @@ describe("fetchLeverJobs", () => {
   it("maps Lever postings API response to Job objects", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchLeverJobs("example");
+    const result = await fetchLeverJobs("example");
+    const jobs = result?.jobs ?? [];
 
     expect(jobs).toHaveLength(2);
     expect(jobs[0]).toEqual({
       id: "lv-example-abc-123",
       title: "Backend Engineer",
       company: "example",
-      location: "us",
-      locations: ["us"],
-      department: "engineering",
+      location: "Remote, US",
+      locations: ["Remote, US"],
+      department: "Engineering",
       url: "https://jobs.lever.co/example/abc-123",
       postedAt: new Date(1724160000000),
       source: "lever",
+      departmentHints: [],
     });
   });
 
   it("handles missing location and department", async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(mockResponse));
 
-    const jobs = await fetchLeverJobs("example");
+    const result = await fetchLeverJobs("example");
+    const jobs = result?.jobs ?? [];
 
-    expect(jobs[1]?.location).toBe("unknown");
-    expect(jobs[1]?.department).toBe("design");
+    expect(jobs[1]?.location).toBe("");
+    expect(jobs[1]?.department).toBe("");
   });
 
   it("throws on HTTP error", async () => {
@@ -76,5 +79,12 @@ describe("fetchLeverJobs", () => {
       "https://api.lever.co/v0/postings/testco",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+  });
+
+  it("accepts postings with no department or location category", async () => {
+    const [first] = mockResponse;
+    vi.mocked(fetch).mockResolvedValue(Response.json([{ ...first, categories: {} }]));
+    const result = await fetchLeverJobs("example");
+    expect(result?.jobs[0]?.location).toBe("");
   });
 });

@@ -18,6 +18,7 @@ const RULES: [RegExp, string][] = [
   [/operations?|logistics|supply chain/i, "operations"],
 ];
 
+// Last resort when the ATS names no known department: guess from the title.
 export function inferDepartment(title: string): string {
   for (const [pattern, department] of RULES) {
     if (pattern.test(title)) return department;
@@ -26,12 +27,3 @@ export function inferDepartment(title: string): string {
 }
 
 export const DEPARTMENTS = [...new Set([...RULES.map(([, department]) => department), "general"])];
-
-const BUCKETS = new Set<string>(DEPARTMENTS);
-
-export function normalizeDepartment(raw: string): string {
-  const value = raw.trim().toLowerCase().replace(/\s+/g, " ");
-  if (!value) return "general";
-  if (BUCKETS.has(value)) return value;
-  return inferDepartment(value);
-}

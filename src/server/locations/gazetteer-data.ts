@@ -1,5 +1,7 @@
 export const COUNTRY_CANONICAL: Record<string, string> = {
+  // Bare "korea" in job postings means South Korea; North Korea has no listings.
   korea: "south korea",
+  "czech republic": "czechia",
   usa: "united states",
   "u.s.": "united states",
   us: "united states",
@@ -30,7 +32,7 @@ export const COUNTRIES = new Set([
   "china",
   "colombia",
   "czechia",
-  "czech republic",
+  "croatia",
   "denmark",
   "egypt",
   "estonia",
@@ -219,22 +221,18 @@ export const CITY_ALIASES: Record<string, [string, string]> = {
   bordeaux: ["Bordeaux", "France"],
   meylan: ["Grenoble", "France"],
   zurich: ["Zurich", "Switzerland"],
-  zürich: ["Zurich", "Switzerland"],
   geneva: ["Geneva", "Switzerland"],
   basel: ["Basel", "Switzerland"],
   vienna: ["Vienna", "Austria"],
   wien: ["Vienna", "Austria"],
   stockholm: ["Stockholm", "Sweden"],
   malmo: ["Malmo", "Sweden"],
-  malmö: ["Malmo", "Sweden"],
   copenhagen: ["Copenhagen", "Denmark"],
   oslo: ["Oslo", "Norway"],
   helsinki: ["Helsinki", "Finland"],
   warsaw: ["Warsaw", "Poland"],
   krakow: ["Krakow", "Poland"],
-  kraków: ["Krakow", "Poland"],
   wroclaw: ["Wroclaw", "Poland"],
-  wrocław: ["Wroclaw", "Poland"],
   gdansk: ["Gdansk", "Poland"],
   prague: ["Prague", "Czechia"],
   brno: ["Brno", "Czechia"],
@@ -295,13 +293,11 @@ export const CITY_ALIASES: Record<string, [string, string]> = {
   auckland: ["Auckland", "New Zealand"],
   wellington: ["Wellington", "New Zealand"],
   "sao paulo": ["Sao Paulo", "Brazil"],
-  "são paulo": ["Sao Paulo", "Brazil"],
   "porto alegre": ["Porto Alegre", "Brazil"],
   "belo horizonte": ["Belo Horizonte", "Brazil"],
   "buenos aires": ["Buenos Aires", "Argentina"],
   santiago: ["Santiago", "Chile"],
   bogota: ["Bogota", "Colombia"],
-  bogotá: ["Bogota", "Colombia"],
   lima: ["Lima", "Peru"],
   "mexico city": ["Mexico City", "Mexico"],
   guadalajara: ["Guadalajara", "Mexico"],
@@ -320,7 +316,6 @@ export const CITY_ALIASES: Record<string, [string, string]> = {
   johannesburg: ["Johannesburg", "South Africa"],
   "cape town": ["Cape Town", "South Africa"],
   reykjavik: ["Reykjavik", "Iceland"],
-  reykjavík: ["Reykjavik", "Iceland"],
 };
 
 export const CITY_COUNTRY_OVERRIDES: Record<string, Record<string, string>> = {
@@ -391,7 +386,10 @@ export const CA_PROVINCES: Record<string, string> = {
   saskatchewan: "Canada",
 };
 
-export const REMOTE_PATTERN = /\b(remote|work from home|wfh|anywhere|distributed)\b/i;
+// Matched per segment. "remote" is unambiguous anywhere in a location string;
+// the other words only count at the start of a segment ("Anywhere in the US"),
+// and "distributed" only on its own, so "Distributed Systems, Berlin" keeps its city.
+export const REMOTE_PATTERN = /\bremote\b|^(?:anywhere|work from home|wfh)\b|^distributed$/i;
 export const GARBAGE_PATTERN =
   /^(n\/?a|location|unknown|hybrid|onsite|on-site|in-office|in-pune|office|hq|headquarters?|global|multiple locations|\d+\s+locations?|blank.*|add all.*|various.*|not applicable)$/i;
 export const STREET_PATTERN = /^\d+\s+\w+/;

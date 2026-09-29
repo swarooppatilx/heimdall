@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   configureFreshness,
   currentFreshnessDays,
@@ -13,14 +13,22 @@ afterEach(() => {
 });
 
 describe("freshnessCutoff", () => {
-  it("returns a timestamp exactly the configured days before the given date", () => {
-    const now = new Date("2026-08-21T12:00:00.000Z");
-    const expected = new Date(now.getTime() - currentFreshnessDays() * DAY_MS).toISOString();
-    expect(freshnessCutoff(now)).toBe(expected);
+  it("returns the configured days before the start of the current hour", () => {
+    const now = new Date("2026-08-21T12:34:56.789Z");
+    const hourStart = new Date("2026-08-21T12:00:00.000Z").getTime();
+    expect(freshnessCutoff(now)).toBe(
+      new Date(hourStart - currentFreshnessDays() * DAY_MS).toISOString(),
+    );
+  });
+
+  it("stays the same across one hour so paging sees one result set", () => {
+    expect(freshnessCutoff(new Date("2026-08-21T12:01:00.000Z"))).toBe(
+      freshnessCutoff(new Date("2026-08-21T12:59:59.000Z")),
+    );
   });
 
   it("defaults to the current time", () => {
-    const before = Date.now() - DEFAULT_FRESHNESS_DAYS * DAY_MS;
+    const before = Date.now() - DEFAULT_FRESHNESS_DAYS * DAY_MS - 60 * 60 * 1000;
     const cutoff = new Date(freshnessCutoff()).getTime();
     const after = Date.now();
     expect(cutoff).toBeGreaterThanOrEqual(before);
@@ -32,6 +40,16 @@ describe("freshnessCutoff", () => {
     const cutoff = freshnessCutoff(now);
     expect(new Date("2026-08-10T00:00:00.000Z").toISOString() > cutoff).toBe(true);
     expect(new Date("2026-07-01T00:00:00.000Z").toISOString() > cutoff).toBe(false);
+  });
+});
+
+describe("currentFreshnessDays", () => {
+  it("falls back to the FRESHNESS_DAYS env var when not configured", async () => {
+    vi.resetModules();
+    vi.stubEnv("FRESHNESS_DAYS", "30");
+    const fresh = await import("@/server/jobs/freshness");
+    expect(fresh.currentFreshnessDays()).toBe(30);
+    vi.unstubAllEnvs();
   });
 });
 

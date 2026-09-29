@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Job } from "@/lib/job";
+import { siteConfig } from "@/lib/site";
 
 const jobs: Job[] = [
   {
@@ -32,16 +33,8 @@ vi.mock("@/server/jobs/queries", () => ({
   getRecentJobs: (limit: number) => mockGetRecentJobs(limit),
 }));
 
-vi.mock("@/server/jobs/kv", () => ({
-  getRecentJobsFromKV: async () => undefined,
-}));
-
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: async () => ({ env: { CACHE: null } }),
-}));
-
-vi.mock("@/server/jobs/site", () => ({
-  siteUrl: async () => "https://example.com",
 }));
 
 describe("GET /llms-full.txt", () => {
@@ -52,14 +45,17 @@ describe("GET /llms-full.txt", () => {
 
   it("lists fresh jobs as markdown starting with newest", async () => {
     const { GET } = await import("./route");
-    const res = await GET(new Request("http://example.com/llms-full.txt"));
+    const res = await GET(
+      new Request("https://evil.example/llms-full.txt", { headers: { host: "evil.example" } }),
+    );
     const body = await res.text();
 
     expect(mockGetRecentJobs).toHaveBeenCalledWith(200);
     expect(res.headers.get("content-type")).toContain("text/plain");
-    expect(res.headers.get("cache-control")).toContain("s-maxage=1800");
     expect(body).toContain("# heimdall fresh jobs");
-    expect(body).toContain("https://example.com/api/jobs");
+    // The site URL comes from config, never the request Host.
+    expect(body).toContain(`${siteConfig.url}/api/jobs`);
+    expect(body).not.toContain("evil.example");
     expect(body).toContain("- [Platform Engineer at globex](https://boards.globex.com/platform)");
     expect(body).toContain(
       "- [Senior Frontend Engineer at acme](https://boards.acme.dev/senior-frontend) - Remote",

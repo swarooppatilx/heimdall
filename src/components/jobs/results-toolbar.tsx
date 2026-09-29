@@ -2,93 +2,89 @@
 
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { MoreFiltersPopover } from "@/components/jobs/more-filters-popover";
 import { SortMenu } from "@/components/jobs/sort-menu";
-import { timeAgo } from "@/lib/time-ago";
+import { Button } from "@/components/ui/button";
+import { type HomeFilterKey, type HomeFilters, hasActiveFilters } from "@/lib/search-params";
+import { timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { FacetOptions } from "@/server/jobs/facets";
+
+interface SyncState {
+  syncedAt: string | undefined;
+  syncStale: boolean;
+}
 
 interface ResultsToolbarProps {
   countLabel: string;
-  syncedAt: string | undefined;
-  syncStale: boolean;
-  hasFilters: boolean;
-  advancedCount: number;
-  filterOptions: FacetOptions | undefined;
-  experience: string;
-  onExperienceChange: (value: string) => void;
-  source: string;
-  onSourceChange: (value: string) => void;
-  onClearAll: () => void;
-  sort: string;
-  onSortChange: (sort: string) => void;
+  isUpdating: boolean;
+  sync: SyncState;
+  filters: HomeFilters;
+  onFilterChange: (key: HomeFilterKey, value: string) => void;
+  onClear: () => void;
 }
 
 export function ResultsToolbar({
   countLabel,
-  syncedAt,
-  syncStale,
-  hasFilters,
-  advancedCount,
-  filterOptions,
-  experience,
-  onExperienceChange,
-  source,
-  onSourceChange,
-  onClearAll,
-  sort,
-  onSortChange,
+  isUpdating,
+  sync,
+  filters,
+  onFilterChange,
+  onClear,
 }: ResultsToolbarProps) {
   return (
-    <div className="mb-4 grid gap-y-2 border-b border-border pb-3 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-x-4">
-      <p
-        className="flex flex-wrap items-baseline gap-x-3 text-xs text-foreground"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <span>{countLabel}</span>
-        {syncedAt ? (
-          <span
-            className={syncStale ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}
-          >
-            synced {timeAgo(syncedAt)}
-          </span>
-        ) : null}
-      </p>
-      <div className="flex items-center justify-between gap-1 sm:justify-self-end">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onClearAll}
-            tabIndex={hasFilters ? 0 : -1}
-            aria-hidden={!hasFilters}
-            className={cn(
-              "min-h-9 items-center gap-1 rounded-md border border-ring/40 bg-ring/10 px-2.5 text-xs text-ring transition-colors hover:border-ring/60",
-              hasFilters
-                ? "inline-flex"
-                : "hidden sm:inline-flex sm:invisible sm:pointer-events-none",
-            )}
-          >
-            <HugeiconsIcon
-              icon={Cancel01Icon}
-              strokeWidth={2}
-              className="size-3"
-              aria-hidden="true"
-            />
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <ResultsSummary
+          countLabel={countLabel}
+          isUpdating={isUpdating}
+          sync={sync}
+          className="hidden sm:flex"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        {hasActiveFilters(filters) ? (
+          <Button variant="ghost" size="sm" onClick={onClear}>
+            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} data-icon="inline-start" />
             clear
-          </button>
-          <MoreFiltersPopover
-            advancedCount={advancedCount}
-            filterOptions={filterOptions}
-            experience={experience}
-            onExperienceChange={onExperienceChange}
-            source={source}
-            onSourceChange={onSourceChange}
-          />
-        </div>
-        <SortMenu sort={sort} onSortChange={onSortChange} />
+          </Button>
+        ) : null}
+        <SortMenu sort={filters.sort} onSortChange={(value) => onFilterChange("sort", value)} />
       </div>
     </div>
+  );
+}
+
+interface ResultsSummaryProps {
+  countLabel: string;
+  isUpdating: boolean;
+  sync: SyncState;
+  className?: string;
+}
+
+export function ResultsSummary({ countLabel, isUpdating, sync, className }: ResultsSummaryProps) {
+  if (!countLabel) return null;
+  const syncedAgo = sync.syncedAt ? timeAgo(sync.syncedAt) : undefined;
+
+  return (
+    <p
+      aria-busy={isUpdating}
+      className={cn(
+        "flex items-baseline gap-x-1.5 text-xs text-muted-foreground transition-opacity",
+        isUpdating && "opacity-60 delay-150",
+        className,
+      )}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span className="font-medium text-foreground">{countLabel}</span>
+      {syncedAgo ? (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className={sync.syncStale ? "text-warning" : undefined}>
+            updated {syncedAgo === "now" ? "just now" : `${syncedAgo} ago`}
+          </span>
+        </>
+      ) : null}
+    </p>
   );
 }

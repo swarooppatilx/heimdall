@@ -1,69 +1,82 @@
-"use client";
-
-import { ArrowUpRightIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { toCompanySlug } from "@/lib/company-slug";
-import type { Job } from "@/lib/job";
-import { timeAgo } from "@/lib/time-ago";
+import type { Job, JobDto } from "@/lib/job";
+import { MS_PER_DAY, timeAgo } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
 interface JobCardProps {
-  job: Job;
+  job: Job | JobDto;
   openings: number;
+  showCompany?: boolean;
 }
 
-export function JobCard({ job, openings }: JobCardProps) {
+function Dot() {
   return (
-    <li className="group relative rounded-lg border border-border/60 p-3 transition-colors hover:border-ring/40 hover:bg-card/60 hover:shadow-md sm:p-4">
+    <span aria-hidden="true" className="text-muted-foreground">
+      ·
+    </span>
+  );
+}
+
+export function JobCard({ job, openings, showCompany = true }: JobCardProps) {
+  const postedAt = new Date(job.postedAt);
+  const postedToday = Date.now() - postedAt.getTime() < MS_PER_DAY;
+  const details = [job.location, job.salary, openings > 1 ? `${openings} openings` : null].filter(
+    (detail): detail is string => Boolean(detail),
+  );
+
+  return (
+    <li className="content-auto relative isolate rounded-lg border border-border p-3 transition-[background-color,box-shadow] hover:bg-card hover:shadow-sm active:bg-muted sm:p-4">
       <a
         href={job.url}
         target="_blank"
         rel="noopener noreferrer"
         title={`via ${job.source}`}
         aria-label={`Apply to ${job.title} at ${job.company}`}
-        className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <span className="sr-only">Apply</span>
       </a>
 
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="min-w-0 flex-1 text-sm font-semibold text-foreground sm:text-base">
-          <span className="break-words">{job.title}</span>
-          {openings > 1 && (
-            <span className="ml-1.5 inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 align-middle text-[10px] font-medium text-secondary-foreground">
-              ×{openings}
-            </span>
-          )}
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="min-w-0 flex-1 text-sm font-semibold break-words text-foreground sm:text-base">
+          {job.title}
         </h2>
-        <HugeiconsIcon
-          icon={ArrowUpRightIcon}
-          strokeWidth={2}
-          className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
-          aria-hidden="true"
-        />
-      </div>
-
-      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs">
-        <Link
-          href={`/company/${toCompanySlug(job.company)}`}
-          className="relative z-[1] font-medium text-foreground/90 hover:text-foreground hover:underline"
-          onClick={(e) => e.stopPropagation()}
+        {/* relative time differs between server render and hydration by design */}
+        <time
+          dateTime={postedAt.toISOString()}
+          className={cn(
+            "shrink-0 font-mono text-xs font-medium tabular-nums",
+            postedToday ? "text-foreground" : "text-muted-foreground",
+          )}
+          suppressHydrationWarning
         >
-          {job.company}
-        </Link>
-        <span aria-hidden="true" className="text-muted-foreground/60">
-          ·
-        </span>
-        <span className="truncate text-muted-foreground">{job.location}</span>
-      </p>
-
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-        {job.experienceLevel && job.experienceLevel !== "mid" && <span>{job.experienceLevel}</span>}
-        {Boolean(job.salary) && (
-          <span className="font-medium text-foreground/80">{job.salary}</span>
-        )}
-        <span className="ml-auto shrink-0 tabular-nums">{timeAgo(job.postedAt)}</span>
+          {timeAgo(postedAt)}
+        </time>
       </div>
+
+      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+        {showCompany ? (
+          <>
+            <Link
+              href={`/company/${toCompanySlug(job.company)}`}
+              prefetch={false}
+              className="relative z-10 -my-1.5 py-1.5 font-medium text-foreground/90 hover:text-foreground hover:underline"
+            >
+              {job.company}
+            </Link>
+            <Dot />
+          </>
+        ) : null}
+        {details.map((detail, i) => (
+          <span key={detail} className="contents">
+            {i > 0 ? <Dot /> : null}
+            <span className={detail === job.salary ? "text-foreground/80" : undefined}>
+              {detail}
+            </span>
+          </span>
+        ))}
+      </p>
     </li>
   );
 }

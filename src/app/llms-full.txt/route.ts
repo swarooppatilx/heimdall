@@ -1,21 +1,17 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { siteConfig } from "@/lib/site";
 import { trackApiRequest } from "@/server/analytics";
-import { withRateLimit } from "@/server/api/with-rate-limit";
-import { getRecentJobsFromKV } from "@/server/jobs/kv";
-import { getRecentJobs } from "@/server/jobs/queries";
-import { siteUrl } from "@/server/jobs/site";
+import { defineRoute } from "@/server/api/define-route";
+import { getRecentJobLinksCached } from "@/server/jobs/cached-views";
 
 export const dynamic = "force-dynamic";
 
-const MAX_JOBS = 200;
-
-export const GET = withRateLimit(
-  { binding: "JOBS_RATE_LIMITER", windowMs: 60_000, max: 60, onRequest: trackApiRequest },
+export const GET = defineRoute(
+  { binding: "JOBS_RATE_LIMITER", onRequest: trackApiRequest },
   async () => {
-    const url = await siteUrl();
+    const url = siteConfig.url;
     const { env } = await getCloudflareContext();
-    const kvJobs = await getRecentJobsFromKV(env, MAX_JOBS);
-    const jobs = kvJobs ?? (await getRecentJobs(MAX_JOBS));
+    const jobs = await getRecentJobLinksCached(env);
 
     const lines = [
       "# heimdall fresh jobs",
@@ -33,11 +29,9 @@ export const GET = withRateLimit(
       }),
     ];
 
+    // Caching is set by the worker's page cache, which tags it for purging.
     return new Response(`${lines.join("\n")}\n`, {
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "public, max-age=0, s-maxage=1800, stale-while-revalidate=86400",
-      },
+      headers: { "content-type": "text/plain; charset=utf-8" },
     });
   },
 );

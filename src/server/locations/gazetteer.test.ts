@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { formatPlace, resolvePlace } from "@/server/locations/gazetteer";
+import { fold } from "@/lib/fold";
+import { formatPlace, resolvePlace, splitLocations } from "@/server/locations/gazetteer";
+import { CITY_ALIASES } from "@/server/locations/gazetteer-data";
 
 describe("resolvePlace", () => {
   const city = (raw: string) => {
@@ -105,5 +107,47 @@ describe("filter matching contract", () => {
 
   it("marks remote variants", () => {
     expect(resolvePlace("Remote — United States")?.remote).toBe(true);
+  });
+});
+
+describe("folding and data policy", () => {
+  it("resolves accented and upper-case spellings to the same place", () => {
+    const munich = { city: "munich", country: "germany" };
+    expect(resolvePlace("München")).toEqual(munich);
+    expect(resolvePlace("MUNCHEN")).toEqual(munich);
+    expect(resolvePlace("São Paulo")).toEqual({ city: "sao paulo", country: "brazil" });
+  });
+
+  it("keeps every alias key in folded form so lookups can't miss on accents", () => {
+    for (const alias of Object.keys(CITY_ALIASES)) expect(fold(alias)).toBe(alias);
+  });
+
+  it("does not treat a 'distributed systems' job as remote", () => {
+    expect(resolvePlace("Distributed Systems, Berlin")).toEqual({
+      city: "berlin",
+      country: "germany",
+    });
+  });
+
+  it("still recognises remote wherever the word appears", () => {
+    expect(resolvePlace("US (Remote)")).toEqual({ remote: true, country: "united states" });
+    expect(resolvePlace("Anywhere in the US")?.remote).toBe(true);
+    expect(resolvePlace("Distributed")).toEqual({ remote: true });
+  });
+
+  it("has one canonical name per country", () => {
+    expect(resolvePlace("Czech Republic")).toEqual({ country: "czechia" });
+    expect(resolvePlace("Croatia")).toEqual({ country: "croatia" });
+    expect(resolvePlace("Zagreb")).toEqual({ city: "zagreb", country: "croatia" });
+  });
+
+  it("reads bare 'korea' as South Korea and never invents North Korea", () => {
+    expect(resolvePlace("Korea")).toEqual({ country: "south korea" });
+    expect(resolvePlace("North Korea")).toBeNull();
+  });
+
+  it("splits offices on a spaced slash but keeps 'Remote/US' as one location", () => {
+    expect(splitLocations("Berlin / Munich")).toEqual(["Berlin", "Munich"]);
+    expect(splitLocations("Remote/US")).toEqual(["Remote/US"]);
   });
 });
