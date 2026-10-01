@@ -21,8 +21,8 @@ Job boards resell and repost listings, so dates drift, duplicates pile up, and p
 | Frontend | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query |
 | Backend | Cloudflare Workers (OpenNext) |
 | Data | Drizzle ORM, Cloudflare D1 |
-| Caching | Cloudflare KV |
-| Scheduling | Workers Cron
+| Caching | Workers Cache (edge, purged after each crawl), Cloudflare KV |
+| Scheduling | Workers Cron, Cloudflare Queues |
 | CI | GitHub Actions: typecheck, lint, knip, tests, build |
 
 ## Deploy & self-host
@@ -34,15 +34,17 @@ Heimdall runs on Cloudflare Workers. To deploy to your own account:
    `npx wrangler d1 create heimdall --binding DB --update-config`
 3. Create the KV namespace (same auto-config):
    `npx wrangler kv namespace create heimdall-cache --binding CACHE --update-config`
-4. Swap the Web Analytics token in `wrangler.jsonc` for your own, if you have one.
-5. Deploy: applies the migrations to the remote database, builds the worker, and deploys in one command.
+4. Create the crawl queue:
+   `npx wrangler queues create heimdall-crawl`
+5. Swap the Web Analytics token in `wrangler.jsonc` for your own, if you have one.
+6. Deploy: applies the migrations to the remote database, builds the worker, and deploys in one command.
 
    ```bash
    npm run deploy
    ```
 
-6. The first scheduled crawl runs within 30 minutes and populates the database. The Analytics Engine dataset (`heimdall`) auto-creates on the first write, so there is no provisioning step.
-7. To enable on-demand crawls in production, set the trigger secret: `npx wrangler secret put CRAWL_TRIGGER_TOKEN`. Skip it for a crawler that only runs on the cron.
+7. The first scheduled crawl runs within 30 minutes and populates the database. The Analytics Engine dataset (`heimdall`) auto-creates on the first write, so there is no provisioning step.
+8. To enable on-demand crawls in production, set the trigger secret: `npx wrangler secret put CRAWL_TRIGGER_TOKEN`. Skip it for a crawler that only runs on the cron.
 
 The full variable, secret, and binding reference is in [CONTRIBUTING.md](CONTRIBUTING.md).
 
