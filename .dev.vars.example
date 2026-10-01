@@ -6,7 +6,6 @@
 # Pick any value for local use. If this is absent, the trigger returns 401.
 CRAWL_TRIGGER_TOKEN=change-me
 
-# Optional. Lock down GET /api/crawl/status with this token.
-# Leave unset to keep the endpoint open — the homepage footer reads it
-# without authentication, so setting this breaks that readout.
-# CRAWL_STATUS_TOKEN=
+# Optional. Canonical site URL for metadata, sitemap and llms-full.txt.
+# Defaults to the production workers.dev URL; never derived from the request Host.
+# NEXT_PUBLIC_SITE_URL=https://heimdall.example.dev
