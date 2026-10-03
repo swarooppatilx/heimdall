@@ -1,7 +1,15 @@
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import type { NextConfig } from "next";
 
-initOpenNextCloudflareForDev();
+// Starts local bindings for `next dev`; OpenNext documents it as fire-and-forget.
+void initOpenNextCloudflareForDev();
+
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  ...(process.env.NODE_ENV === "production" ? [] : ["'unsafe-eval'"]),
+  "https://static.cloudflareinsights.com",
+].join(" ");
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -15,12 +23,13 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+    value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`,
   },
 ];
 
 const nextConfig: NextConfig = {
+  // Internal links are checked against the app's routes at build time.
+  typedRoutes: true,
   headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
