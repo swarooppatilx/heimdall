@@ -1,6 +1,6 @@
 npm run cf-typegen
 npx lint-staged
+npx tsc --noEmit --incremental false
 npx knip
-npx tsc --noEmit
 npx next build
 npm test
