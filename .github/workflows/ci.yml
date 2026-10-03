@@ -16,8 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run cf-typegen
-      - run: npx tsc --noEmit
+      - run: npx tsc --noEmit --incremental false
       - run: npx biome check .
       - run: npx knip
-      - run: npm test
       - run: npm run build
+      - run: npm test
