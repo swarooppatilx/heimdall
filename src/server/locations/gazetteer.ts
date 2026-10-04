@@ -21,8 +21,13 @@ export interface Place {
 
 // Segments are folded, so "München", "MUNCHEN" and "munchen" hit the same
 // ASCII alias row and resolve to the same canonical place.
+// A US ZIP code trails the state ("ma 01887", "nj 08109-1234"); it names no
+// place of its own, so it goes before the state is looked up.
+const TRAILING_ZIP = /\s+\d{5}(?:-\d{4})?$/;
+
 function cleanSegment(segment: string): string {
   return fold(segment)
+    .replace(TRAILING_ZIP, "")
     .replace(/^[-–—()\s]+|[-–—()\s]+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -86,7 +91,7 @@ function resolveRemote(segments: string[]): Place {
     .map((segment) => cleanSegment(segment.replace(REMOTE_PATTERN, " ")))
     .filter(Boolean);
   const remoteCountry = resolveExplicitCountry(stripped);
-  return remoteCountry ? { remote: true, country: remoteCountry } : { remote: true };
+  return remoteCountry ? { remote: true, country: remoteCountry.toLowerCase() } : { remote: true };
 }
 
 function resolveCityFromSegments(
@@ -134,13 +139,20 @@ export function resolvePlace(raw: string): Place | null {
   return place;
 }
 
+// "us-ca-menlo park" is the state-prefixed form some ATSes use for US offices;
+// reading it as "menlo park, ca" lets the usual city and state lookups apply.
+function withoutUsPrefix(text: string): string {
+  const match = /^us-([a-z]{2})-(.+)$/.exec(text);
+  return match ? `${match[2]}, ${match[1]}` : text;
+}
+
 function resolveUncached(trimmed: string): Place | null {
   if (/^\d+\s+locations?$/i.test(trimmed) || GARBAGE_PATTERN.test(trimmed)) return null;
 
   const street = resolveStreetAddress(trimmed);
   if (street) return street;
 
-  const lowered = fold(trimmed);
+  const lowered = withoutUsPrefix(fold(trimmed));
   const segments = lowered
     .split(SEGMENT_SPLIT)
     .map(cleanSegment)

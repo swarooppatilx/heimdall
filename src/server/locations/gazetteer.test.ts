@@ -68,7 +68,6 @@ describe("resolvePlace", () => {
       "blank, multiple locations",
       "location",
       "hybrid",
-      "1122 broadway, eureka, california",
       "",
       "   ",
     ];
@@ -89,6 +88,60 @@ describe("resolvePlace", () => {
     expect(formatPlace({ city: "bengaluru", country: "india" })).toBe("bengaluru, india");
     expect(formatPlace({ country: "germany" })).toBe("germany");
     expect(formatPlace({ remote: true })).toBe("remote");
+  });
+});
+
+describe("postal codes and bare state names from live data", () => {
+  const where = (raw: string) => {
+    const place = resolvePlace(raw);
+    return place ? { city: place.city, country: place.country } : null;
+  };
+
+  it("reads a US address with a ZIP code as its state", () => {
+    expect(where("Wilmington, MA 01887")).toEqual({ country: "united states" });
+    expect(where("Pennsauken, NJ 08109-1234")).toEqual({ country: "united states" });
+  });
+
+  it("keeps a known city when a ZIP follows the state", () => {
+    expect(where("Austin, TX 78701")).toEqual({ city: "austin", country: "united states" });
+  });
+
+  it("reads a bare US state name as the United States", () => {
+    expect(where("California")).toEqual({ country: "united states" });
+    expect(where("Jackson, Mississippi")).toEqual({ country: "united states" });
+    expect(where("Washington, D.C.")).toEqual({ country: "united states" });
+  });
+
+  it("leaves Georgia alone, since it is as often the country", () => {
+    expect(where("Georgia")).toBeNull();
+  });
+
+  it("reads the us-state-city prefix form, keeping a city only when it is a known one", () => {
+    expect(where("US-CA-Menlo Park")).toEqual({ country: "united states" });
+    expect(where("US-TX-Austin")).toEqual({ city: "austin", country: "united states" });
+  });
+
+  it("resolves a street address in a named state to the country", () => {
+    expect(where("1122 Broadway, Eureka, California")).toEqual({ country: "united states" });
+  });
+
+  it("reads native-language names", () => {
+    expect(where("Brasil")).toEqual({ country: "brazil" });
+    expect(where("Ciudad de México")).toEqual({ city: "mexico city", country: "mexico" });
+  });
+
+  it("keeps the country lower-case when a remote role names only a state", () => {
+    expect(resolvePlace("California - remote")).toEqual({ remote: true, country: "united states" });
+    expect(resolvePlace("Remote, TX")).toEqual({ remote: true, country: "united states" });
+  });
+
+  it("files US towns that share a name with a UK or Australian city under the US", () => {
+    expect(where("Reading, PA 19601")).toEqual({ city: "reading", country: "united states" });
+    expect(where("Perth Amboy, NJ 08861")).toEqual({ country: "united states" });
+  });
+
+  it("does not treat a number that isn't a ZIP as one", () => {
+    expect(where("Building 12345 Campus")).toBeNull();
   });
 });
 
