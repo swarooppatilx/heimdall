@@ -4,7 +4,7 @@ import { logEvent } from "@/server/logger";
 
 export interface ProviderResult {
   jobs: Job[];
-  lastModified: string | null;
+  validator: string | null;
   /** False when only part of the board was fetched; its missing jobs must not be deleted. */
   complete: boolean;
 }

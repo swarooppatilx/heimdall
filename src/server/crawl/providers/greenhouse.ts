@@ -75,17 +75,17 @@ function metaValue(
 export async function fetchGreenhouseJobs(
   board: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs`;
   const result = await fetchJsonWithHeaders(url, board, {
     schema: greenhouseResponseSchema,
     ...(budget ? { budget } : {}),
-    ...(ifModifiedSince ? { ifModifiedSince } : {}),
+    ...(validator ? { validator } : {}),
   });
   if (result.data === undefined) return undefined;
   const jobs = mapPostings(result.data.jobs, board, greenhouseJobSchema, (j) => mapJob(j, board));
-  return { jobs, lastModified: result.lastModified, complete: true };
+  return { jobs, validator: result.validator, complete: true };
 }
 
 function mapJob(raw: z.infer<typeof greenhouseJobSchema>, board: string): Job {

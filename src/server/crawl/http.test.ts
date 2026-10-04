@@ -107,3 +107,54 @@ describe("crawler identity", () => {
     expect(agent(1)).toBe("custom");
   });
 });
+
+describe("conditional requests", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubFetch(response: () => Response) {
+    const fetchMock = vi.fn((_url: string, _init?: RequestInit) => Promise.resolve(response()));
+    vi.stubGlobal("fetch", fetchMock);
+    return (name: string) => new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get(name);
+  }
+
+  it("sends a stored ETag as If-None-Match", async () => {
+    const header = stubFetch(() => Response.json({ ok: 1 }));
+
+    await fetchJsonWithHeaders("/x", "test", { validator: 'W/"abc"' });
+
+    expect(header("if-none-match")).toBe('W/"abc"');
+    expect(header("if-modified-since")).toBeNull();
+  });
+
+  it("sends a stored date as If-Modified-Since", async () => {
+    const header = stubFetch(() => Response.json({ ok: 1 }));
+
+    await fetchJsonWithHeaders("/x", "test", { validator: "Wed, 01 Oct 2026 10:00:00 GMT" });
+
+    expect(header("if-modified-since")).toBe("Wed, 01 Oct 2026 10:00:00 GMT");
+    expect(header("if-none-match")).toBeNull();
+  });
+
+  it("records the ETag a response sends, ahead of Last-Modified", async () => {
+    stubFetch(() =>
+      Response.json(
+        { ok: 1 },
+        { headers: { etag: '"v2"', "last-modified": "Wed, 01 Oct 2026 10:00:00 GMT" } },
+      ),
+    );
+
+    const result = await fetchJsonWithHeaders("/x", "test");
+
+    expect(result.validator).toBe('"v2"');
+  });
+
+  it("keeps the stored validator when the server answers 304", async () => {
+    stubFetch(() => new Response(null, { status: 304 }));
+
+    const result = await fetchJsonWithHeaders("/x", "test", { validator: '"v1"' });
+
+    expect(result).toEqual({ data: undefined, validator: '"v1"' });
+  });
+});

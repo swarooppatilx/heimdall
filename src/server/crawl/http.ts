@@ -90,12 +90,33 @@ export interface FetchJsonOptions<T = unknown> {
   timeoutMs?: number;
   budget?: CrawlBudget;
   schema?: ZodSchema<T>;
-  ifModifiedSince?: string;
+  validator?: string;
 }
 
 export interface FetchJsonResult<T> {
   data: T | undefined;
-  lastModified: string | null;
+  /** What the server uses to tell a client its copy is current: an ETag, else a Last-Modified date. */
+  validator: string | null;
+}
+
+// Stored validators are told apart by shape: an ETag is a quoted string
+// (optionally weak, `W/"…"`), a Last-Modified value is an HTTP date.
+function conditionalHeader(validator: string): "If-None-Match" | "If-Modified-Since" {
+  return validator.startsWith('"') || validator.startsWith('W/"')
+    ? "If-None-Match"
+    : "If-Modified-Since";
+}
+
+function requestHeaders(init: RequestInit | undefined, validator: string | undefined): Headers {
+  const headers = new Headers(init?.headers);
+  if (validator) headers.set(conditionalHeader(validator), validator);
+  if (!headers.has("User-Agent")) headers.set("User-Agent", CRAWLER_USER_AGENT);
+  return headers;
+}
+
+// The ATS APIs send ETags and no Last-Modified, so the ETag comes first.
+function responseValidator(res: Response): string | null {
+  return res.headers.get("etag") ?? res.headers.get("last-modified");
 }
 
 export async function fetchJsonWithHeaders<T>(
@@ -103,24 +124,22 @@ export async function fetchJsonWithHeaders<T>(
   source: string,
   options?: FetchJsonOptions<T>,
 ): Promise<FetchJsonResult<T>> {
-  const { init, timeoutMs = TIMEOUT_MS, budget, schema, ifModifiedSince } = options ?? {};
+  const { init, timeoutMs = TIMEOUT_MS, budget, schema, validator } = options ?? {};
   let lastError: unknown;
   let prevRetryAfter: number | undefined;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     if (attempt > 1) await sleep(backoffDelay(attempt, prevRetryAfter));
     try {
       if (budget) budget.used += 1;
-      const headers = new Headers(init?.headers);
-      if (ifModifiedSince) headers.set("If-Modified-Since", ifModifiedSince);
-      if (!headers.has("User-Agent")) headers.set("User-Agent", CRAWLER_USER_AGENT);
+      const headers = requestHeaders(init, validator);
       const res = await fetch(url, { ...init, headers, signal: AbortSignal.timeout(timeoutMs) });
       if (res.status === STATUS_NOT_MODIFIED) {
         res.body?.cancel();
-        return { data: undefined, lastModified: ifModifiedSince ?? null };
+        return { data: undefined, validator: validator ?? null };
       }
       if (res.ok) {
         const data = await parseJson<T>(res, source, schema);
-        return { data, lastModified: res.headers.get("last-modified") };
+        return { data, validator: responseValidator(res) };
       }
       lastError = new Error(`Failed to fetch jobs from ${source}: ${res.status}`);
       prevRetryAfter = retryAfterMs(res);

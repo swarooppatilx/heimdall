@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   getDriftedBoards,
-  getLastModified,
   getLatestCrawlUnix,
+  getValidator,
   hasChangesSince,
   recordCrawl,
 } from "@/server/crawl/store";
@@ -23,7 +23,7 @@ beforeEach(async () => {
 
 const board = "greenhouse/acme";
 
-function crawl(jobsFound: number, extra: { lastModified?: string; changed?: boolean } = {}) {
+function crawl(jobsFound: number, extra: { validator?: string; changed?: boolean } = {}) {
   return recordCrawl({ board, status: "ok", jobsFound, durationMs: 10, ...extra });
 }
 
@@ -37,11 +37,11 @@ describe("crawl status against D1", () => {
     expect(await getDriftedBoards(1)).toEqual([]);
   });
 
-  it("keeps the last Last-Modified when a crawl doesn't send one", async () => {
-    await crawl(3, { lastModified: "Wed, 01 Oct 2026 10:00:00 GMT" });
+  it("keeps the last validator when a crawl doesn't send one", async () => {
+    await crawl(3, { validator: 'W/"abc123"' });
     await crawl(3);
 
-    expect(await getLastModified(board)).toBe("Wed, 01 Oct 2026 10:00:00 GMT");
+    expect(await getValidator(board)).toBe('W/"abc123"');
   });
 
   it("reports changes only after a crawl that wrote data", async () => {

@@ -43,15 +43,15 @@ function mapJob(raw: z.infer<typeof ashbyJobSchema>, company: string): Job {
 export async function fetchAshbyJobs(
   company: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(company)}`;
   const result = await fetchJsonWithHeaders(url, company, {
     schema: ashbyResponseSchema,
     ...(budget ? { budget } : {}),
-    ...(ifModifiedSince ? { ifModifiedSince } : {}),
+    ...(validator ? { validator } : {}),
   });
   if (result.data === undefined) return undefined;
   const jobs = mapPostings(result.data.jobs, company, ashbyJobSchema, (j) => mapJob(j, company));
-  return { jobs, lastModified: result.lastModified, complete: true };
+  return { jobs, validator: result.validator, complete: true };
 }

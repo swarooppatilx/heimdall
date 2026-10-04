@@ -56,7 +56,7 @@ export const boardStatus = sqliteTable("board_status", {
   jobsFound: integer("jobs_found").notNull().default(0),
   durationMs: integer("duration_ms").notNull().default(0),
   error: text("error"),
-  lastModified: text("last_modified"),
+  validator: text("validator"),
   consecutiveEmpty: integer("consecutive_empty").notNull().default(0),
   changedAt: text("changed_at"),
   crawledAt: text("crawled_at").notNull().default(sql`(datetime('now'))`),

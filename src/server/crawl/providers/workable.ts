@@ -61,16 +61,16 @@ function mapJob(raw: z.infer<typeof workableJobSchema>, account: string): Job {
 export async function fetchWorkableJobs(
   account: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
   const board = await fetchJsonWithHeaders(widgetUrl(account), account, {
     schema: workableResponseSchema,
     ...(budget ? { budget } : {}),
-    ...(ifModifiedSince ? { ifModifiedSince } : {}),
+    ...(validator ? { validator } : {}),
   });
   if (board.data === undefined) return undefined;
   const jobs = mapPostings(board.data.jobs, account, workableJobSchema, (posting) =>
     mapJob(posting, account),
   );
-  return { jobs, lastModified: board.lastModified, complete: true };
+  return { jobs, validator: board.validator, complete: true };
 }

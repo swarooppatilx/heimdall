@@ -19,7 +19,7 @@ import { logEvent } from "@/server/logger";
 type ProviderFetcher = (
   board: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ) => Promise<ProviderResult | undefined>;
 
 interface Provider {
@@ -94,9 +94,9 @@ function deriveFields(posting: Job, unmapped: Set<string>): Job {
 export async function fetchJobs(
   entry: Source,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
-  const result = await providerFor(entry).fetch(entry.name, budget, ifModifiedSince);
+  const result = await providerFor(entry).fetch(entry.name, budget, validator);
   if (result === undefined) return undefined;
 
   const company = entry.label ?? entry.name;
@@ -116,5 +116,5 @@ export async function fetchJobs(
     .map((job) => deriveFields({ ...job, company }, unmapped));
   logUnmapped(company, unmapped);
 
-  return { jobs, lastModified: result.lastModified, complete: result.complete };
+  return { jobs, validator: result.validator, complete: result.complete };
 }
