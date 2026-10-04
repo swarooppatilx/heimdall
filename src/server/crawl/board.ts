@@ -2,7 +2,7 @@ import { diffJobs, isSuspiciousDeletion } from "@/server/crawl/diff";
 import { boardIdPrefix, fetchJobs } from "@/server/crawl/fetch-jobs";
 import { type CrawlBudget, chargeD1 } from "@/server/crawl/http";
 import { boardKey, type Source } from "@/server/crawl/sources";
-import { getLastModified, recordCrawl } from "@/server/crawl/store";
+import { getValidator, recordCrawl } from "@/server/crawl/store";
 import { getJobsByIdPrefix } from "@/server/jobs/queries";
 import { deleteJobsByIds, insertJobs, updateJobs } from "@/server/jobs/writes";
 import { formatError, logError, logEvent } from "@/server/logger";
@@ -23,10 +23,10 @@ export async function crawlBoard(entry: Source, budget?: CrawlBudget): Promise<B
   const start = Date.now();
   try {
     const existing = await getJobsByIdPrefix(boardIdPrefix(entry));
-    const lastMod = await getLastModified(boardKey(entry));
+    const validator = await getValidator(boardKey(entry));
     // Two reads above and the status write at the end share the budget with fetches.
     chargeD1(budget, BOARD_READS + STATUS_WRITES);
-    const fetched = await fetchJobs(entry, budget, lastMod ?? undefined);
+    const fetched = await fetchJobs(entry, budget, validator ?? undefined);
 
     if (fetched === undefined) {
       const durationMs = Date.now() - start;
@@ -35,7 +35,7 @@ export async function crawlBoard(entry: Source, budget?: CrawlBudget): Promise<B
         status: "ok",
         jobsFound: existing.length,
         durationMs,
-        ...(lastMod ? { lastModified: lastMod } : {}),
+        ...(validator ? { validator } : {}),
       });
       return {
         board: boardKey(entry),
@@ -74,7 +74,7 @@ export async function crawlBoard(entry: Source, budget?: CrawlBudget): Promise<B
       jobsFound: fetched.jobs.length,
       durationMs,
       changed: wrote,
-      ...(fetched.lastModified ? { lastModified: fetched.lastModified } : {}),
+      ...(fetched.validator ? { validator: fetched.validator } : {}),
     });
     return {
       board: boardKey(entry),
@@ -104,12 +104,12 @@ interface RecordSafeOptions {
   jobsFound: number;
   durationMs: number;
   error?: string;
-  lastModified?: string;
+  validator?: string;
   changed?: boolean;
 }
 
 function recordSafe(options: RecordSafeOptions): Promise<void> {
-  const { entry, status, jobsFound, durationMs, error, lastModified, changed } = options;
+  const { entry, status, jobsFound, durationMs, error, validator, changed } = options;
   return recordCrawl({
     board: boardKey(entry),
     status,
@@ -117,7 +117,7 @@ function recordSafe(options: RecordSafeOptions): Promise<void> {
     durationMs,
     changed: changed ?? false,
     ...(error ? { error } : {}),
-    ...(lastModified ? { lastModified } : {}),
+    ...(validator ? { validator } : {}),
   }).catch((err: unknown) => {
     logError("crawl_record_failed", { board: boardKey(entry), error: formatError(err) });
   });

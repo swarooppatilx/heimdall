@@ -19,7 +19,7 @@ vi.mock("./fetch-jobs", () => ({
 
 vi.mock("@/server/crawl/store", () => ({
   recordCrawl: vi.fn(async () => {}),
-  getLastModified: vi.fn(async () => null),
+  getValidator: vi.fn(async () => null),
 }));
 
 vi.mock("@/server/jobs/queries", () => ({
@@ -58,7 +58,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
     if (budget) budget.used += 1;
-    return Promise.resolve({ jobs: [], lastModified: null, complete: true });
+    return Promise.resolve({ jobs: [], validator: null, complete: true });
   });
   getJobsByIdPrefixMock.mockResolvedValue([]);
   insertJobsMock.mockResolvedValue(0);
@@ -139,7 +139,7 @@ describe("crawlAll", () => {
   it("charges D1 writes to the budget so heavy boards stop later ones", async () => {
     fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
       if (budget) budget.used += 1;
-      return Promise.resolve({ jobs: [makeJob("new")], lastModified: null, complete: true });
+      return Promise.resolve({ jobs: [makeJob("new")], validator: null, complete: true });
     });
     insertJobsMock.mockResolvedValue(15);
     const budget = createCrawlBudget();
@@ -157,7 +157,7 @@ describe("crawlAll", () => {
     getJobsByIdPrefixMock.mockResolvedValue(board);
     fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
       if (budget) budget.used += 1;
-      return Promise.resolve({ jobs: [makeJob("j2")], lastModified: null, complete: true });
+      return Promise.resolve({ jobs: [makeJob("j2")], validator: null, complete: true });
     });
 
     const run = await crawlAll(registry.slice(0, 1), createCrawlBudget());
@@ -170,7 +170,7 @@ describe("crawlAll", () => {
     getJobsByIdPrefixMock.mockResolvedValue([makeJob("j1"), makeJob("j2")]);
     fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
       if (budget) budget.used += 1;
-      return Promise.resolve({ jobs: [makeJob("j1")], lastModified: null, complete: false });
+      return Promise.resolve({ jobs: [makeJob("j1")], validator: null, complete: false });
     });
 
     const run = await crawlAll(registry.slice(0, 1), createCrawlBudget());
@@ -185,7 +185,7 @@ describe("crawlAll", () => {
     getJobsByIdPrefixMock.mockResolvedValue(board);
     fetchJobsMock.mockImplementation((_entry: unknown, budget?: { used: number }) => {
       if (budget) budget.used += 1;
-      return Promise.resolve({ jobs: [makeJob("j0")], lastModified: null, complete: true });
+      return Promise.resolve({ jobs: [makeJob("j0")], validator: null, complete: true });
     });
 
     const run = await crawlAll(registry.slice(0, 1), createCrawlBudget());

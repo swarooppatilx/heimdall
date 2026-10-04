@@ -35,15 +35,15 @@ function mapJob(raw: z.infer<typeof leverPostingSchema>, company: string): Job {
 export async function fetchLeverJobs(
   company: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
   const url = `https://api.lever.co/v0/postings/${encodeURIComponent(company)}`;
   const result = await fetchJsonWithHeaders(url, company, {
     schema: leverResponseSchema,
     ...(budget ? { budget } : {}),
-    ...(ifModifiedSince ? { ifModifiedSince } : {}),
+    ...(validator ? { validator } : {}),
   });
   if (result.data === undefined) return undefined;
   const jobs = mapPostings(result.data, company, leverPostingSchema, (p) => mapJob(p, company));
-  return { jobs, lastModified: result.lastModified, complete: true };
+  return { jobs, validator: result.validator, complete: true };
 }

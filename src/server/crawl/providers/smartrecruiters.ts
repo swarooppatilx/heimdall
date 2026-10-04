@@ -61,10 +61,10 @@ const MAX_PAGES = 50;
 export async function fetchSmartRecruitersJobs(
   company: string,
   budget?: CrawlBudget,
-  ifModifiedSince?: string,
+  validator?: string,
 ): Promise<ProviderResult | undefined> {
   const postings: unknown[] = [];
-  let lastModified: string | null = null;
+  let pageValidator: string | null = null;
   let complete = false;
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -79,10 +79,10 @@ export async function fetchSmartRecruitersJobs(
     const result = await fetchJsonWithHeaders(url, company, {
       schema: smartRecruitersResponseSchema,
       ...(budget ? { budget } : {}),
-      ...(page === 0 && ifModifiedSince ? { ifModifiedSince } : {}),
+      ...(page === 0 && validator ? { validator } : {}),
     });
     if (result.data === undefined) return undefined;
-    if (result.lastModified) lastModified = result.lastModified;
+    if (result.validator) pageValidator = result.validator;
     const content = result.data.content ?? [];
     postings.push(...content);
 
@@ -95,5 +95,5 @@ export async function fetchSmartRecruitersJobs(
   const jobs = mapPostings(postings, company, smartRecruitersPostingSchema, (j) =>
     mapJob(j, company),
   );
-  return { jobs, lastModified, complete };
+  return { jobs, validator: pageValidator, complete };
 }

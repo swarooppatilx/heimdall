@@ -9,7 +9,7 @@ interface RecordCrawlOptions {
   jobsFound: number;
   durationMs: number;
   error?: string | null;
-  lastModified?: string | null;
+  validator?: string | null;
   changed?: boolean;
 }
 
@@ -26,7 +26,7 @@ export async function recordCrawl(options: RecordCrawlOptions): Promise<void> {
       jobsFound,
       durationMs,
       error,
-      lastModified: options.lastModified ?? null,
+      validator: options.validator ?? null,
       consecutiveEmpty: status === "ok" && jobsFound === 0 ? 1 : 0,
       changedAt: options.changed ? sql`(datetime('now'))` : null,
     })
@@ -37,7 +37,7 @@ export async function recordCrawl(options: RecordCrawlOptions): Promise<void> {
         jobsFound,
         durationMs,
         error,
-        lastModified: sql`coalesce(excluded.last_modified, ${boardStatus.lastModified})`,
+        validator: sql`coalesce(excluded.validator, ${boardStatus.validator})`,
         consecutiveEmpty: sql`case when excluded.consecutive_empty = 1 then ${boardStatus.consecutiveEmpty} + 1 else 0 end`,
         changedAt: sql`coalesce(excluded.changed_at, ${boardStatus.changedAt})`,
         crawledAt: sql`(datetime('now'))`,
@@ -45,13 +45,13 @@ export async function recordCrawl(options: RecordCrawlOptions): Promise<void> {
     });
 }
 
-export async function getLastModified(board: string): Promise<string | null> {
+export async function getValidator(board: string): Promise<string | null> {
   const db = await getDb();
   const [row] = await db
-    .select({ lastModified: boardStatus.lastModified })
+    .select({ validator: boardStatus.validator })
     .from(boardStatus)
     .where(eq(boardStatus.board, board));
-  return row?.lastModified ?? null;
+  return row?.validator ?? null;
 }
 
 /** Whether any crawl since `sinceMs` inserted, updated or deleted jobs. */
