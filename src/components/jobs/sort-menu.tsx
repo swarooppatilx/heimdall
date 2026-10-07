@@ -14,18 +14,26 @@ import {
 import { refocusWithoutScroll } from "@/lib/utils";
 
 const SORT_LABELS = {
+  relevance: "best match",
   newest: "newest first",
   company: "company a–z",
 } as const;
 
+type SortKey = keyof typeof SORT_LABELS;
+
 interface SortMenuProps {
   sort: string;
+  searching: boolean;
   onSortChange: (sort: string) => void;
 }
 
-export function SortMenu({ sort, onSortChange }: SortMenuProps) {
+// The default sort is never written to the URL: best match while searching,
+// newest otherwise, so a search link stays ranked without a sort param.
+export function SortMenu({ sort, searching, onSortChange }: SortMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const label = sort === "company" ? SORT_LABELS.company : SORT_LABELS.newest;
+  const fallback: SortKey = searching ? "relevance" : "newest";
+  const current: SortKey = sort === "newest" || sort === "company" ? sort : fallback;
+  const label = SORT_LABELS[current];
 
   return (
     <DropdownMenu>
@@ -47,9 +55,12 @@ export function SortMenu({ sort, onSortChange }: SortMenuProps) {
         onCloseAutoFocus={refocusWithoutScroll(triggerRef)}
       >
         <DropdownMenuRadioGroup
-          value={sort || "newest"}
-          onValueChange={(v) => onSortChange(v === "newest" ? "" : v)}
+          value={current}
+          onValueChange={(v) => onSortChange(v === fallback ? "" : v)}
         >
+          {searching ? (
+            <DropdownMenuRadioItem value="relevance">{SORT_LABELS.relevance}</DropdownMenuRadioItem>
+          ) : null}
           <DropdownMenuRadioItem value="newest">{SORT_LABELS.newest}</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="company">{SORT_LABELS.company}</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>

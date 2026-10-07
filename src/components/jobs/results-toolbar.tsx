@@ -47,7 +47,11 @@ export function ResultsToolbar({
             clear
           </Button>
         ) : null}
-        <SortMenu sort={filters.sort} onSortChange={(value) => onFilterChange("sort", value)} />
+        <SortMenu
+          sort={filters.sort}
+          searching={filters.q !== ""}
+          onSortChange={(value) => onFilterChange("sort", value)}
+        />
       </div>
     </div>
   );

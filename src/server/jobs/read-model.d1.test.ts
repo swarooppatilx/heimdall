@@ -179,6 +179,55 @@ describe("paging and edge cases against D1", () => {
   });
 });
 
+// bm25 weighs a word by how rare it is, and FTS5 all but zeroes a word found
+// in most rows, so ranking needs rows that don't match, as a real index has.
+function unrelatedJobs(): Job[] {
+  return Array.from({ length: 8 }, (_, i) => job(`gh-z-${i}`, { title: "Data Analyst" }));
+}
+
+describe("ranked search against D1", () => {
+  it("ranks a title match above a newer match on the company name", async () => {
+    await insertJobs([
+      job("gh-a-1", { title: "React Engineer", postedAt: new Date(Date.now() - 5 * MS_PER_DAY) }),
+      job("gh-a-2", { title: "Backend Engineer", company: "react labs" }),
+      ...unrelatedJobs(),
+    ]);
+
+    const ranked = await searchJobsWithCount({ q: "react" });
+    expect(ranked.jobs.map((j) => j.id)).toEqual(["gh-a-1", "gh-a-2"]);
+    expect(ranked.total).toBe(2);
+
+    const newest = await searchJobsWithCount({ q: "react", sort: "newest" });
+    expect(newest.jobs.map((j) => j.id)).toEqual(["gh-a-2", "gh-a-1"]);
+  });
+
+  it("applies filters to a ranked search", async () => {
+    await insertJobs([
+      job("gh-a-1", { title: "React Engineer", level: "senior" }),
+      job("gh-a-2", { title: "React Engineer", level: "mid" }),
+    ]);
+
+    const { jobs } = await searchJobsWithCount({ q: "react", level: "mid" });
+    expect(jobs.map((j) => j.id)).toEqual(["gh-a-2"]);
+  });
+
+  it("pages through a ranked search with tied scores without gaps or repeats", async () => {
+    const postedAt = new Date();
+    await insertJobs(
+      Array.from({ length: 120 }, (_, i) =>
+        job(`gh-a-${i}`, { title: "React Engineer", postedAt }),
+      ),
+    );
+
+    const seen: string[] = [];
+    for (let offset = 0; offset < 120; offset += 50) {
+      const { jobs } = await searchJobsWithCount({ q: "react" }, { limit: 50, offset });
+      seen.push(...jobs.map((j) => j.id));
+    }
+    expect(new Set(seen).size).toBe(120);
+  });
+});
+
 describe("board lookups and cleanup against D1", () => {
   it("loads one board's jobs without the board that shares its prefix", async () => {
     await insertJobs([job("gh-doordash-1"), job("gh-doordashusa-1")]);

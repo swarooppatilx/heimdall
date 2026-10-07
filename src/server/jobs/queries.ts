@@ -1,4 +1,17 @@
-import { type AnyColumn, and, asc, count, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import {
+  type AnyColumn,
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  inArray,
+  lt,
+  ne,
+  sql,
+} from "drizzle-orm";
 import type { Job } from "@/lib/job";
 import {
   COUNT_CAP,
@@ -12,7 +25,7 @@ import {
 import { isHttpUrl } from "@/lib/url";
 import { getDb, getReadDb } from "@/server/db";
 import { jobLocations, jobs } from "@/server/db/schema";
-import { freshnessCutoff } from "@/server/jobs/freshness";
+import { currentFreshnessDays, freshnessCutoff } from "@/server/jobs/freshness";
 import { buildMatchQuery } from "@/server/jobs/fts";
 import { sanitizeFilterValue } from "@/server/jobs/sanitize";
 import { resolvePlace } from "@/server/locations/gazetteer";
@@ -116,9 +129,9 @@ function postedCondition(value: string | undefined) {
   return gte(jobs.postedAt, new Date(Date.now() - windowMs).toISOString());
 }
 
-function jobConditions(filters: JobFilters) {
+function jobConditions(filters: JobFilters, cutoff: string) {
   const conditions = [
-    gte(jobs.postedAt, freshnessCutoff()),
+    gte(jobs.postedAt, cutoff),
     searchCondition(filters.q),
     companyCondition(filters.company),
     locationCondition(filters.location),
@@ -131,6 +144,34 @@ function jobConditions(filters: JobFilters) {
   return conditions.filter((c): c is NonNullable<typeof c> => c != null);
 }
 
+// FTS5 applies bm25 column weights to term frequency before saturation, so
+// even a 10x title weight barely separates a title hit from a company hit.
+// Ranking on a title-only score first (0 when the title doesn't match), then
+// on the score over every searched column, makes title matches lead. job_id
+// is indexed only for writes and never searched.
+const TITLE_ONLY = sql.raw("1, 0, 0, 0, 0");
+const SEARCHED_COLUMNS = sql.raw("1, 1, 1, 1, 0");
+
+function rankedMatches(match: string) {
+  return sql`(SELECT job_id, bm25(jobs_fts, ${TITLE_ONLY}) AS title_score, bm25(jobs_fts, ${SEARCHED_COLUMNS}) AS score FROM jobs_fts WHERE jobs_fts MATCH ${match}) AS ranked`;
+}
+
+// bm25 is negative and lower is better. Scaling it up to 2x across the
+// freshness window lets a newer posting win among near-equal matches. Age is
+// measured from the hour-rounded cutoff, not now, so the order holds still
+// across the pages of one scroll.
+function relevance(cutoff: string) {
+  const freshness = sql`(1 + (julianday(${jobs.postedAt}) - julianday(${cutoff})) / ${currentFreshnessDays()})`;
+  return [sql`ranked.title_score * ${freshness}`, sql`ranked.score * ${freshness}`];
+}
+
+// id breaks ties so offsets are stable: many ATSes post date-only timestamps.
+function dateOrCompanyOrder(sort: string | undefined) {
+  return sort === "company"
+    ? [asc(jobs.company), desc(jobs.postedAt), desc(jobs.id)]
+    : [desc(jobs.postedAt), desc(jobs.id)];
+}
+
 export async function searchJobsWithCount(
   filters: JobFilters,
   page?: PageOptions,
@@ -140,24 +181,31 @@ export async function searchJobsWithCount(
   const limit = Math.min(Math.max(page?.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const offset = Math.max(page?.offset ?? 0, 0);
 
-  const orderBy =
-    // id breaks ties so offsets are stable: many ATSes post date-only timestamps.
-    filters.sort === "company"
-      ? [asc(jobs.company), desc(jobs.postedAt), desc(jobs.id)]
-      : [desc(jobs.postedAt), desc(jobs.id)];
+  const cutoff = freshnessCutoff();
+  const conditions = and(...jobConditions(filters, cutoff));
+  const { q, ...unsearched } = filters;
+  const match = q ? buildMatchQuery(q) : "";
 
-  const conditions = and(...jobConditions(filters));
+  // A search with no explicit sort is ordered by match quality. The join
+  // replaces the search condition, so the index is matched once.
+  const rows =
+    match && !filters.sort
+      ? db
+          .select(getTableColumns(jobs))
+          .from(jobs)
+          .innerJoin(rankedMatches(match), sql`ranked.job_id = ${jobs.id}`)
+          .where(and(...jobConditions(unsearched, cutoff)))
+          .orderBy(...relevance(cutoff), desc(jobs.id))
+      : db
+          .select()
+          .from(jobs)
+          .where(conditions)
+          .orderBy(...dateOrCompanyOrder(filters.sort));
 
   // The capped count reads up to COUNT_CAP rows, so it runs once per search,
   // on the first page, not on every page of an infinite scroll.
   const [jobRows, countResult] = await Promise.all([
-    db
-      .select()
-      .from(jobs)
-      .where(conditions)
-      .orderBy(...orderBy)
-      .limit(limit)
-      .offset(offset),
+    rows.limit(limit).offset(offset),
     offset === 0
       ? db
           .select({ value: count() })
