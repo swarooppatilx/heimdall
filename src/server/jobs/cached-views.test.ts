@@ -74,7 +74,7 @@ describe("getFacetOptionsCached", () => {
 describe("warmJobViews", () => {
   it("stores only small derived views, never the full job table", async () => {
     const kv = fakeKv();
-    await warmJobViews(envWith(kv));
+    await warmJobViews(envWith(kv), { full: true });
     expect([...kv.store.keys()].sort()).toEqual([
       "company-index",
       "facet-options:v2",
@@ -91,9 +91,18 @@ describe("warmJobViews", () => {
     ]);
   });
 
+  it("rebuilds only the cheap recent-jobs view between sweeps", async () => {
+    const kv = fakeKv();
+    await warmJobViews(envWith(kv), { full: false });
+
+    expect([...kv.store.keys()]).toEqual(["recent-jobs:v2"]);
+    expect(getFacetOptions).not.toHaveBeenCalled();
+    expect(getCompanyIndex).not.toHaveBeenCalled();
+  });
+
   it("lets readers skip the database once warmed", async () => {
     const env = envWith(fakeKv());
-    await warmJobViews(env);
+    await warmJobViews(env, { full: true });
     getRecentJobs.mockClear();
     await expect(getRecentJobLinksCached(env)).resolves.toHaveLength(1);
     expect(getRecentJobs).not.toHaveBeenCalled();

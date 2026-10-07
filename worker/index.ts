@@ -84,7 +84,7 @@ async function runTick(controller: ScheduledController, env: CloudflareEnv): Pro
   const dataChanged = crawlsChanged || removed > 0 || deduped > 0;
 
   if (dataChanged) {
-    await warmJobViews(env);
+    await warmJobViews(env, { full: sweepStart });
     await purgeJobsCache();
   }
 

@@ -48,10 +48,15 @@ export function getRecentJobLinksCached(env: Env): Promise<JobLink[]> {
   return cached(recentJobLinks(env));
 }
 
-export async function warmJobViews(env: Env): Promise<void> {
+/**
+ * The recent-jobs view reads 200 rows, so it follows every crawl that changed
+ * data. The facet and company views scan every fresh job (about 55,000 rows
+ * read on production, against 5M a day), so they are rebuilt only when
+ * `full` is set, once per sweep; readers fill a missing key on demand.
+ */
+export async function warmJobViews(env: Env, { full }: { full: boolean }): Promise<void> {
   await Promise.all([
-    refreshCache(facets(env)),
-    refreshCache(companyIndex(env)),
     refreshCache(recentJobLinks(env)),
+    ...(full ? [refreshCache(facets(env)), refreshCache(companyIndex(env))] : []),
   ]);
 }
