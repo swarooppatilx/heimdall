@@ -110,8 +110,9 @@ export const EMPTY_HOME_FILTERS = Object.fromEntries(
   HOME_FILTER_KEYS.map((key) => [key, ""]),
 ) as HomeFilters;
 
-// "newest" is the default and never written to the URL.
-const SORT_OPTIONS: readonly string[] = ["company"];
+// No sort means best match while searching and newest otherwise; "newest" is
+// written only to override best match.
+const SORT_OPTIONS: readonly string[] = ["newest", "company"];
 
 function isValidHomeValue(key: HomeFilterKey, value: string): boolean {
   if (value.length > (key === "q" ? MAX_QUERY_LENGTH : MAX_FILTER_LENGTH)) return false;
