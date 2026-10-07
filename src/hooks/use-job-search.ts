@@ -9,7 +9,7 @@ import { useSearchShortcut } from "@/hooks/use-search-shortcut";
 import { useSyncStatus } from "@/hooks/use-sync-status";
 import type { FacetOptions } from "@/lib/api-types";
 import { dedupeJobs, dedupeKey } from "@/lib/job";
-import { COUNT_CAP, type HomeFilters } from "@/lib/search-params";
+import type { HomeFilters } from "@/lib/search-params";
 
 export interface HomeInitialData {
   filters: HomeFilters;
@@ -18,8 +18,7 @@ export interface HomeInitialData {
 }
 
 function countLabel(total: number): string {
-  const totalLabel = total >= COUNT_CAP ? `${COUNT_CAP}+` : String(total);
-  return `${totalLabel} fresh job${total === 1 ? "" : "s"}`;
+  return `${total} fresh job${total === 1 ? "" : "s"}`;
 }
 
 function resultsLabel(state: { isLoading: boolean; isError: boolean; total: number }): string {

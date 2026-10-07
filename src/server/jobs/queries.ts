@@ -14,7 +14,6 @@ import {
 } from "drizzle-orm";
 import type { Job } from "@/lib/job";
 import {
-  COUNT_CAP,
   DEFAULT_LIMIT,
   type JobFilters,
   MAX_LIMIT,
@@ -202,17 +201,9 @@ export async function searchJobsWithCount(
           .where(conditions)
           .orderBy(...dateOrCompanyOrder(filters.sort));
 
-  // The capped count reads up to COUNT_CAP rows, so it runs once per search,
-  // on the first page, not on every page of an infinite scroll.
   const [jobRows, countResult] = await Promise.all([
     rows.limit(limit).offset(offset),
-    offset === 0
-      ? db
-          .select({ value: count() })
-          .from(
-            db.select({ one: sql`1` }).from(jobs).where(conditions).limit(COUNT_CAP).as("capped"),
-          )
-      : null,
+    offset === 0 ? db.select({ value: count() }).from(jobs).where(conditions) : null,
   ]);
 
   return {

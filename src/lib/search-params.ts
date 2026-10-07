@@ -14,10 +14,6 @@ export const POSTED_WINDOWS: PostedWindow[] = ["today", "week"];
 export const DEFAULT_LIMIT = 50;
 export const MAX_LIMIT = 500;
 
-// Counting stops here: D1 bills every row a count scans, and the UI only
-// needs "1000+" beyond this point.
-export const COUNT_CAP = 1000;
-
 export interface JobFilters {
   q?: string;
   company?: string;

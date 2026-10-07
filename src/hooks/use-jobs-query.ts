@@ -2,13 +2,7 @@
 
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import type { JobDto } from "@/lib/job";
-import {
-  COUNT_CAP,
-  DEFAULT_LIMIT,
-  HOME_FILTER_KEYS,
-  type HomeFilters,
-  MAX_OFFSET,
-} from "@/lib/search-params";
+import { DEFAULT_LIMIT, HOME_FILTER_KEYS, type HomeFilters, MAX_OFFSET } from "@/lib/search-params";
 
 export interface JobPage {
   jobs: JobDto[];
@@ -16,14 +10,13 @@ export interface JobPage {
   total: number | null;
 }
 
-// A short page means the list is done. So does reaching an exact total (it
-// saves one empty request; a capped "1000+" can't be trusted for that), or the
+// A short page means the list is done. So does reaching an exact total, or the
 // deepest offset the API serves.
 export function nextOffset(lastPage: JobPage, allPages: JobPage[]): number | undefined {
   if (lastPage.jobs.length < DEFAULT_LIMIT) return undefined;
   const loaded = allPages.length * DEFAULT_LIMIT;
   const total = allPages[0]?.total ?? null;
-  if (total !== null && total < COUNT_CAP && loaded >= total) return undefined;
+  if (total !== null && loaded >= total) return undefined;
   if (loaded > MAX_OFFSET) return undefined;
   return loaded;
 }
