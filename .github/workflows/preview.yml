@@ -15,8 +15,8 @@ env:
 
 jobs:
   deploy:
-    # Fork PRs get no secrets, so only same-repo branches are previewed.
-    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    # Fork and Dependabot PRs get no secrets, so they are not previewed.
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,7 +41,7 @@ jobs:
             --body "Preview: $url"
 
   cleanup:
-    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
